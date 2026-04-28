@@ -1,6 +1,5 @@
 // /admin?t=<ADMIN_TOKEN>
-// Backoffice léger pour Fred. Liste les prospects, leur status, dernier engagement, événements.
-// Token validé contre process.env.GEOPERF_ADMIN_TOKEN (à définir dans Vercel env vars).
+// Backoffice Geoperf : actions trigger workflows + KPIs + table prospects + activite.
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -8,6 +7,7 @@ import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
 import { getServiceClient } from "@/lib/supabase";
+import { AdminActions } from "./AdminActions";
 
 export const metadata: Metadata = {
   title: "Admin — Geoperf",
@@ -37,17 +37,40 @@ function fmtDate(iso: string | null): string {
 export default async function AdminPage({ searchParams }: Props) {
   const { t: token, status: statusFilter, min_score } = await searchParams;
   const expected = process.env.GEOPERF_ADMIN_TOKEN;
-
-  if (!expected || !token || token !== expected) {
-    notFound();
-  }
+  if (!expected || !token || token !== expected) notFound();
 
   const sb = getServiceClient();
 
-  // Aggregate KPIs
-  const { data: kpiData } = await sb
-    .from("prospects")
-    .select("id, status, lead_score, download_at, conversion_at");
+  // Donnees pour AdminActions
+  const { data: catRows } = await sb.from("categories").select("slug, nom, parent_id").order("nom");
+  const { data: catParents } = await sb.from("categories").select("id, nom").is("parent_id", null);
+  const parentMap = Object.fromEntries((catParents || []).map((c: any) => [c.id, c.nom]));
+  const { data: reportRows } = await sb
+    .from("reports")
+    .select("id, sous_categorie, created_at")
+    .eq("status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const reportCounts = await sb.from("report_companies").select("report_id");
+  const countByReport = (reportCounts.data || []).reduce<Record<string, number>>((acc: any, r: any) => {
+    acc[r.report_id] = (acc[r.report_id] || 0) + 1;
+    return acc;
+  }, {});
+  const categoriesForActions = (catRows || []).filter((c: any) => c.parent_id !== null).map((c: any) => ({
+    slug: c.slug,
+    nom: c.nom,
+    parent_nom: parentMap[c.parent_id] || null,
+    reports_count: (reportRows || []).filter((r: any) => r.sous_categorie === c.nom).length,
+  }));
+  const reportsForActions = (reportRows || []).map((r: any) => ({
+    id: r.id,
+    sous_categorie: r.sous_categorie,
+    created_at: r.created_at,
+    companies_count: countByReport[r.id] || 0,
+  }));
+
+  // KPIs
+  const { data: kpiData } = await sb.from("prospects").select("id, status, lead_score, download_at, conversion_at");
   const all = kpiData || [];
   const kpis = {
     total: all.length,
@@ -60,7 +83,7 @@ export default async function AdminPage({ searchParams }: Props) {
     conversions: all.filter((p) => p.conversion_at).length,
   };
 
-  // Filtered list
+  // Filtered prospects
   let q = sb
     .from("prospects")
     .select(`
@@ -84,19 +107,16 @@ export default async function AdminPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen flex flex-col bg-cream">
-      <Header
-        rightSlot={<span className="font-mono text-xs text-ink-muted">ADMIN · {kpis.total} prospects</span>}
-      />
+      <Header rightSlot={<span className="font-mono text-xs text-ink-muted">ADMIN · {kpis.total} prospects</span>} />
 
       <Section py="md" tone="white">
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-serif text-3xl text-navy">Pipeline Geoperf</h1>
-          <p className="text-xs text-ink-muted font-mono">
-            {new Date().toLocaleString("fr-FR")}
-          </p>
+          <p className="text-xs text-ink-muted font-mono">{new Date().toLocaleString("fr-FR")}</p>
         </div>
 
-        {/* KPIs */}
+        <AdminActions adminToken={token} categories={categoriesForActions} reports={reportsForActions} />
+
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           <div className="bg-navy text-white p-4">
             <div className="font-serif text-3xl font-medium">{kpis.total}</div>
@@ -122,7 +142,6 @@ export default async function AdminPage({ searchParams }: Props) {
           </div>
         </div>
 
-        {/* Status breakdown */}
         <div className="flex flex-wrap gap-2 mb-8">
           <a
             href={`/admin?t=${token}`}
@@ -175,9 +194,7 @@ export default async function AdminPage({ searchParams }: Props) {
                     </td>
                     <td className="py-2 pr-3">
                       {p.companies?.nom}
-                      {p.companies?.country && (
-                        <span className="text-xs text-ink-muted ml-1">· {p.companies.country}</span>
-                      )}
+                      {p.companies?.country && <span className="text-xs text-ink-muted ml-1">· {p.companies.country}</span>}
                     </td>
                     <td className="py-2 pr-3 text-ink-muted">{p.title || "—"}</td>
                     <td className="py-2 pr-3 text-xs">{p.reports?.sous_categorie || "—"}</td>
@@ -187,7 +204,11 @@ export default async function AdminPage({ searchParams }: Props) {
                     </td>
                     <td className="py-2 pr-3 text-xs text-ink-muted">{fmtDate(p.last_engagement_at)}</td>
                     <td className="py-2 pr-3 text-xs">
-                      {p.download_at ? <span className="text-green-700 font-medium">{fmtDate(p.download_at)}</span> : <span className="text-ink-muted">—</span>}
+                      {p.download_at ? (
+                        <span className="text-green-700 font-medium">{fmtDate(p.download_at)}</span>
+                      ) : (
+                        <span className="text-ink-muted">—</span>
+                      )}
                     </td>
                   </tr>
                 );
