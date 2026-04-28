@@ -6,7 +6,6 @@ type Category = { slug: string; nom: string; parent_nom: string | null; reports_
 type Report = { id: string; sous_categorie: string; created_at: string; companies_count: number };
 
 type Props = {
-  adminToken: string;
   categories: Category[];
   reports: Report[];
 };
@@ -19,7 +18,7 @@ type LogEntry = {
   details?: any;
 };
 
-export function AdminActions({ adminToken, categories, reports }: Props) {
+export function AdminActions({ categories, reports }: Props) {
   const [extractCat, setExtractCat] = useState<string>(categories[0]?.slug || "");
   const [extractTopN, setExtractTopN] = useState(10);
   const [synthesisReport, setSynthesisReport] = useState<string>(reports[0]?.id || "");
@@ -40,10 +39,8 @@ export function AdminActions({ adminToken, categories, reports }: Props) {
     try {
       const res = await fetch("/api/admin/trigger", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${adminToken}`,
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ action, params }),
       });
       const data = await res.json();

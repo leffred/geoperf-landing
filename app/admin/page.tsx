@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
 import { getServiceClient } from "@/lib/supabase";
+import { getAdminUser } from "@/lib/supabase-server-auth";
+import { logout } from "./login/actions";
 import { AdminActions } from "./AdminActions";
 
 export const metadata: Metadata = { title: "Admin — Geoperf", robots: { index: false, follow: false } };
 
-type Props = { searchParams: Promise<{ t?: string; status?: string; min_score?: string }> };
+type Props = { searchParams: Promise<{ status?: string; min_score?: string }> };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   new: { label: "New", color: "bg-gray-200 text-gray-700" },
@@ -28,9 +30,9 @@ function fmtDate(iso: string | null): string {
 }
 
 export default async function AdminPage({ searchParams }: Props) {
-  const { t: token, status: statusFilter, min_score } = await searchParams;
-  const expected = process.env.GEOPERF_ADMIN_TOKEN;
-  if (!expected || !token || token !== expected) notFound();
+  const { status: statusFilter, min_score } = await searchParams;
+  const user = await getAdminUser();
+  if (!user) redirect("/admin/login");
 
   const sb = getServiceClient();
 
@@ -60,9 +62,21 @@ export default async function AdminPage({ searchParams }: Props) {
 
   const { data: recentEvents } = await sb.from("prospect_events").select("id, event_type, channel, created_at, prospect_id, prospects(full_name, companies(nom))").order("created_at", { ascending: false }).limit(20);
 
+  const headerRight = (
+    <div className="flex items-center gap-4">
+      <span className="font-mono text-xs text-ink-muted hidden sm:inline">{user.email}</span>
+      <span className="font-mono text-xs text-ink-muted">{kpis.total} prospects</span>
+      <form action={logout}>
+        <button type="submit" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy transition">
+          Logout
+        </button>
+      </form>
+    </div>
+  );
+
   return (
     <main className="min-h-screen flex flex-col bg-cream">
-      <Header rightSlot={<span className="font-mono text-xs text-ink-muted">ADMIN · {kpis.total} prospects</span>} />
+      <Header rightSlot={headerRight} />
 
       <Section py="md" tone="white">
         <div className="flex items-center justify-between mb-6">
@@ -70,7 +84,7 @@ export default async function AdminPage({ searchParams }: Props) {
           <p className="text-xs text-ink-muted font-mono">{new Date().toLocaleString("fr-FR")}</p>
         </div>
 
-        <AdminActions adminToken={token} categories={categoriesForActions} reports={reportsForActions} />
+        <AdminActions categories={categoriesForActions} reports={reportsForActions} />
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           <div className="bg-navy text-white p-4">
@@ -96,12 +110,12 @@ export default async function AdminPage({ searchParams }: Props) {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8">
-          <a href={`/admin?t=${token}`} className={`px-3 py-1.5 text-xs ${!statusFilter ? "bg-navy text-white" : "bg-white text-ink-muted hover:bg-cream"}`}>Tous ({kpis.total})</a>
+          <a href={`/admin`} className={`px-3 py-1.5 text-xs ${!statusFilter ? "bg-navy text-white" : "bg-white text-ink-muted hover:bg-cream"}`}>Tous ({kpis.total})</a>
           {Object.entries(kpis.by_status).map(([status, count]) => {
             const meta = STATUS_LABELS[status] || { label: status, color: "bg-gray-100" };
             const active = statusFilter === status;
             return (
-              <a key={status} href={`/admin?t=${token}&status=${status}`} className={`px-3 py-1.5 text-xs ${active ? "bg-navy text-white" : meta.color + " hover:opacity-80"}`}>
+              <a key={status} href={`/admin?status=${status}`} className={`px-3 py-1.5 text-xs ${active ? "bg-navy text-white" : meta.color + " hover:opacity-80"}`}>
                 {meta.label} ({count})
               </a>
             );
