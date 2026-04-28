@@ -11,7 +11,7 @@ type Props = {
 export function DownloadButton({ prospectId, pdfUrl, htmlUrl }: Props) {
   const [busy, setBusy] = useState(false);
   const target = pdfUrl || htmlUrl;
-  const labelFormat = pdfUrl ? "PDF" : "HTML";
+  const format = pdfUrl ? "pdf" : "html";
 
   if (!target) {
     return (
@@ -24,19 +24,14 @@ export function DownloadButton({ prospectId, pdfUrl, htmlUrl }: Props) {
   async function handleClick() {
     setBusy(true);
     try {
-      // Track + get the (possibly fresh) signed URL from the server
-      const res = await fetch(`/api/download?prospect_id=${prospectId}&format=${pdfUrl ? "pdf" : "html"}`, {
-        method: "POST",
-      });
+      const res = await fetch(`/api/download?prospect_id=${prospectId}&format=${format}`, { method: "POST" });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        // Fallback to the embedded URL
-        window.location.href = target!;
-      }
+      const fileUrl = data.url || target!;
+      window.open(fileUrl, "_blank", "noopener,noreferrer");
+      window.location.assign(`/merci?p=${prospectId}&format=${format}`);
     } catch {
-      window.location.href = target!;
+      window.open(target!, "_blank", "noopener,noreferrer");
+      window.location.assign(`/merci?p=${prospectId}&format=${format}`);
     }
   }
 
@@ -46,7 +41,7 @@ export function DownloadButton({ prospectId, pdfUrl, htmlUrl }: Props) {
       disabled={busy}
       className="inline-block bg-amber text-navy px-8 py-4 font-medium hover:bg-amber/90 transition disabled:opacity-50"
     >
-      {busy ? "Préparation..." : `Télécharger l'étude (${labelFormat})`}
+      {busy ? "Préparation..." : `Télécharger l'étude (${format.toUpperCase()})`}
     </button>
   );
 }

@@ -1,6 +1,7 @@
 // Landing personnalisée par sous-catégorie + token prospect.
 // Route exemple : /asset-management?t=ab12cd34ef56...
 
+import type { Metadata } from "next";
 import { resolveToken, logEvent } from "@/lib/tracking";
 import { notFound } from "next/navigation";
 import { DownloadButton } from "./DownloadButton";
@@ -10,13 +11,34 @@ type Props = {
   searchParams: Promise<{ t?: string }>;
 };
 
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const { sous_cat } = await params;
+  const { t: token } = await searchParams;
+  const ctx = token ? await resolveToken(token) : null;
+  const ogImage = token ? `/api/og?t=${encodeURIComponent(token)}` : `/api/og`;
+  const title = ctx?.company_name
+    ? `${ctx.company_name} — Étude Geoperf ${ctx.sous_categorie || ""}`
+    : `Étude Geoperf — ${sous_cat.replace(/-/g, " ")}`;
+  const description = ctx?.company_name
+    ? `${ctx.company_name} ressort en position #${ctx.ranking_position} de l'étude Geoperf ${ctx.sous_categorie} 2026 (visibilité IA ${ctx.visibility_score}/4 LLM).`
+    : "Geoperf publie des études sectorielles trimestrielles sur la perception des marques par les LLM majeurs.";
+  return {
+    title,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      title, description, type: "article",
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
+  };
+}
+
 export default async function LandingPage({ params, searchParams }: Props) {
   const { sous_cat } = await params;
   const { t: token } = await searchParams;
-
   const ctx = token ? await resolveToken(token) : null;
 
-  // No token or invalid → render generic landing for the category
   if (!ctx) {
     return (
       <main className="min-h-screen px-8 py-16">
@@ -24,25 +46,19 @@ export default async function LandingPage({ params, searchParams }: Props) {
           <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-4">
             LLM Visibility Research · {sous_cat.replace(/-/g, " ")}
           </p>
-          <h1 className="font-serif text-4xl text-navy mb-6">
-            Étude {sous_cat.replace(/-/g, " ")} 2026
-          </h1>
+          <h1 className="font-serif text-4xl text-navy mb-6">Étude {sous_cat.replace(/-/g, " ")} 2026</h1>
           <p className="text-ink-muted mb-8">
-            Cette page est personnalisée pour les destinataires de notre campagne. Si vous souhaitez
-            recevoir l'étude, écrivez-nous à contact@geoperf.com.
+            Cette page est personnalisée pour les destinataires de notre campagne. Si vous souhaitez recevoir
+            l'étude, écrivez-nous à contact@geoperf.com.
           </p>
         </div>
       </main>
     );
   }
 
-  // Sanity check sous_cat matches report's sous_categorie
   const expectedSlug = ctx.sous_categorie.toLowerCase().replace(/\s+/g, "-");
-  if (sous_cat !== expectedSlug && sous_cat !== "asset-management") {
-    notFound();
-  }
+  if (sous_cat !== expectedSlug && sous_cat !== "asset-management") notFound();
 
-  // Log landing visit (server-side, fire and forget)
   logEvent({
     prospect_id: ctx.prospect_id,
     event_type: "landing_visited",
@@ -51,38 +67,31 @@ export default async function LandingPage({ params, searchParams }: Props) {
 
   return (
     <main className="min-h-screen flex flex-col">
-      {/* Header */}
       <header className="px-8 py-6 border-b border-navy/10">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="font-serif text-2xl text-navy">Ge<span className="text-amber">·</span>perf</div>
-          <div className="text-sm text-ink-muted font-mono">{ctx.report_id.substring(0,8).toUpperCase()}</div>
+          <div className="text-sm text-ink-muted font-mono">{ctx.report_id.substring(0, 8).toUpperCase()}</div>
         </div>
       </header>
 
-      {/* Hero */}
       <section className="px-8 py-16 bg-navy text-white">
         <div className="max-w-4xl mx-auto">
           <p className="font-mono text-xs tracking-widest text-amber uppercase mb-6">
             Édition réservée — {ctx.full_name || ctx.first_name}
           </p>
           <h1 className="font-serif text-5xl leading-tight mb-6">
-            {ctx.first_name && (<>Bonjour {ctx.first_name},<br/></>)}
+            {ctx.first_name && (<>Bonjour {ctx.first_name},<br /></>)}
             voici l'étude qui couvre {ctx.company_name || ctx.sous_categorie}<span className="text-amber">.</span>
           </h1>
           <p className="text-xl opacity-80 max-w-2xl mb-10 leading-relaxed font-serif">
-            {ctx.company_name} apparaît en position <strong>#{ctx.ranking_position}</strong>, avec un score
-            de visibilité IA de <strong>{ctx.visibility_score}/4</strong>.
+            {ctx.company_name} apparaît en position <strong>#{ctx.ranking_position}</strong>, avec un score de
+            visibilité IA de <strong>{ctx.visibility_score}/4</strong>.
           </p>
           <div className="flex gap-4 flex-wrap">
-            <DownloadButton
-              prospectId={ctx.prospect_id}
-              pdfUrl={ctx.pdf_url}
-              htmlUrl={ctx.html_url}
-            />
+            <DownloadButton prospectId={ctx.prospect_id} pdfUrl={ctx.pdf_url} htmlUrl={ctx.html_url} />
             <a
               href={process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/jourdechance/audit-geo"}
-              target="_blank"
-              rel="noopener"
+              target="_blank" rel="noopener"
               className="inline-block border border-white/40 hover:bg-white/10 px-8 py-4 font-medium transition"
             >
               Réserver 30 min d'audit gratuit
@@ -91,7 +100,6 @@ export default async function LandingPage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {/* What's inside */}
       <section className="px-8 py-16">
         <div className="max-w-4xl mx-auto">
           <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">Ce que contient l'étude</p>
@@ -115,21 +123,19 @@ export default async function LandingPage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {/* Why personalized */}
       <section className="px-8 py-16 bg-cream">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="font-serif text-3xl text-navy mb-4">Pourquoi cette page est personnalisée ?</h2>
           <p className="text-ink-muted leading-relaxed">
             Geoperf publie des études sectorielles trimestrielles sur la perception des marques par les LLM.
-            {ctx.company_name && <> Vous recevez celle-ci parce que <strong>{ctx.company_name}</strong> apparaît dans le top des
-            sociétés citées par au moins {ctx.visibility_score} LLM sur 4. </>}
-            Vous pouvez télécharger le rapport librement, ou réserver un audit gratuit pour discuter de votre
-            positionnement spécifique.
+            {ctx.company_name && (
+              <> Vous recevez celle-ci parce que <strong>{ctx.company_name}</strong> apparaît dans le top des sociétés citées par au moins {ctx.visibility_score} LLM sur 4. </>
+            )}
+            Vous pouvez télécharger le rapport librement, ou réserver un audit gratuit pour discuter de votre positionnement spécifique.
           </p>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="px-8 py-10 border-t border-navy/10 text-xs text-ink-muted bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="mb-2">
