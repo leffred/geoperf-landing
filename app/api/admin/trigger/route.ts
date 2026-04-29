@@ -14,6 +14,7 @@ const ACTIONS: Record<string, { path: string; defaults?: Record<string, any> }> 
   extract: { path: "/geoperf-extract", defaults: { top_n: 10, year: 2026 } },
   synthesis: { path: "/geoperf-synthesis", defaults: { top_n: 14, model: "anthropic/claude-haiku-4.5" } },
   sourcing: { path: "/geoperf-sourcing", defaults: { max_per_company: 3, min_lead_score: 50 } },
+  sequence_load: { path: "/geoperf-sequence-load", defaults: { lead_score_min: 50, max: 50 } },
 };
 
 async function authorize(req: NextRequest): Promise<{ ok: boolean; via: "session" | "token" | null }> {

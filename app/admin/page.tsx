@@ -65,6 +65,7 @@ export default async function AdminPage({ searchParams }: Props) {
   const headerRight = (
     <div className="flex items-center gap-4">
       <span className="font-mono text-xs text-ink-muted hidden sm:inline">{user.email}</span>
+      <a href="/admin/profiles" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy">Profils SEO</a>
       <span className="font-mono text-xs text-ink-muted">{kpis.total} prospects</span>
       <form action={logout}>
         <button type="submit" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy transition">
@@ -146,8 +147,10 @@ export default async function AdminPage({ searchParams }: Props) {
                 return (
                   <tr key={p.id} className="border-b border-navy/5 hover:bg-cream/50">
                     <td className="py-2 pr-3">
-                      <div className="font-medium text-navy">{p.full_name || `${p.first_name || ""} ${p.last_name || ""}`}</div>
-                      <div className="text-xs text-ink-muted">{p.email}</div>
+                      <a href={`/admin/prospects/${p.id}`} className="block hover:underline">
+                        <div className="font-medium text-navy">{p.full_name || `${p.first_name || ""} ${p.last_name || ""}`}</div>
+                        <div className="text-xs text-ink-muted">{p.email}</div>
+                      </a>
                     </td>
                     <td className="py-2 pr-3">
                       {p.companies?.nom}

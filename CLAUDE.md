@@ -10,7 +10,7 @@ Next.js 15 App Router + Tailwind + TypeScript strict. Server-rendered, no client
 
 ---
 
-## Routes (20 total)
+## Routes (25 total)
 
 ### Publiques (indexées)
 - `/` — home générique
@@ -19,14 +19,19 @@ Next.js 15 App Router + Tailwind + TypeScript strict. Server-rendered, no client
 - `/contact` — email + Calendly
 - `/privacy` — politique RGPD
 - `/terms` — CGU + mentions légales
+- `/profile/[domain]` — page SEO générative par société (score IA, gap, citations LLMs, CTA audit). Sitemap dynamique enumère toutes les companies du DB.
 
 ### Personnalisées (noindex)
 - `/[sous_cat]?t=<token>` — landing perso prospect (ex : `/asset-management?t=...`)
 - `/portal?t=<token>` — dashboard client perso
 - `/merci?p=<prospect_id>&format=...` — post-download
 
-### Admin (token-protected)
-- `/admin?t=<GEOPERF_ADMIN_TOKEN>` — backoffice Fred
+### Admin (Supabase Auth session)
+- `/admin/login` — form email/mdp
+- `/admin` — backoffice principal (KPIs + actions + prospects)
+- `/admin/profiles` — index des pages SEO `/profile/[domain]`
+- `/admin/prospects/[id]` — page détail prospect (events, copy email, liens portal/profile/LinkedIn)
+- `/admin/logout` — POST signOut
 
 ### API
 - `POST /api/download` — log + signed URL fraîche
@@ -34,7 +39,7 @@ Next.js 15 App Router + Tailwind + TypeScript strict. Server-rendered, no client
 - `GET /api/pixel/[token].png` — tracking pixel emails (200 + log async)
 - `GET /api/click?t=&u=&l=` — redirect tracker (allowlist hosts)
 - `GET /api/og?t=` — OG image dynamique (Edge runtime, fetch direct PostgREST)
-- `POST /api/admin/trigger` — proxy webhooks n8n (token-protected)
+- `POST /api/admin/trigger` — proxy webhooks n8n. Auth = session Supabase OU Bearer token. Actions : `extract`, `synthesis`, `sourcing`, `sequence_load`.
 - `POST /api/calendly-webhook` — handler Calendly (HMAC-SHA256 verif)
 
 ### Auto
