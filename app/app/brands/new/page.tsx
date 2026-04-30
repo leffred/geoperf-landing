@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/ui/Section";
-import { loadSaasContext, TIER_LIMITS } from "@/lib/saas-auth";
+import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { createBrand } from "./actions";
 
@@ -33,7 +33,7 @@ export default async function NewBrandPage({ searchParams }: Props) {
     .order("nom");
   const categories = (cats as { slug: string; nom: string }[] | null) ?? [];
 
-  const limits = TIER_LIMITS[ctx.tier];
+  const limits = tierLimits(ctx.tier);
   const isFree = ctx.tier === "free";
 
   return (

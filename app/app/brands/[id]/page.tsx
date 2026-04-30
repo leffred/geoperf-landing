@@ -7,6 +7,7 @@ import { BrandEvolutionChart, type Point } from "@/components/saas/BrandEvolutio
 import { AlertBanner } from "@/components/saas/AlertBanner";
 import { RecommendationList } from "@/components/saas/RecommendationList";
 import { CompetitorMatrix } from "@/components/saas/CompetitorMatrix";
+import { TopicSelector } from "@/components/saas/TopicSelector";
 import { requireSaasUser, loadSaasContext, relativeVisibility } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand, markAlertsRead } from "./actions";
@@ -37,6 +38,15 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
   const user = ctx.user;
   const sb = getServiceClient();
   const matrixUnlocked = ctx.tier === "pro" || ctx.tier === "agency";
+
+  // Charger topics pour le sélecteur
+  const { data: topicsData } = await sb
+    .from("saas_topics")
+    .select("id, name, slug, is_default")
+    .eq("brand_id", id)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true });
+  const topicList = (topicsData as any[] | null) ?? [];
 
   const { data: brand } = await sb
     .from("saas_tracked_brands")
@@ -114,6 +124,24 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
             Lancer un snapshot
           </button>
         </form>
+      </div>
+
+      {topicList.length > 0 && (
+        <TopicSelector
+          brandId={id}
+          topics={topicList}
+          currentTopicId={null}
+          isOwner={ctx.is_owner}
+          topicLimit={ctx.limits.topics}
+        />
+      )}
+
+      <div className="bg-white p-3 mb-4 flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-mono uppercase tracking-widest text-navy-light shrink-0">Vues</span>
+        <Link href={`/app/brands/${id}/sources`} className="px-2.5 py-1 hover:bg-cream text-navy">Sources</Link>
+        <Link href={`/app/brands/${id}/by-model`} className="px-2.5 py-1 hover:bg-cream text-navy">Par LLM</Link>
+        <Link href={`/app/brands/${id}/by-prompt`} className="px-2.5 py-1 hover:bg-cream text-navy">Par prompt</Link>
+        <Link href={`/app/brands/${id}/topics`} className="px-2.5 py-1 hover:bg-cream text-navy">Topics</Link>
       </div>
 
       {refreshed === "1" && (

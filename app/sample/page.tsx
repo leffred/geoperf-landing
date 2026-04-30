@@ -75,10 +75,10 @@ export default async function SamplePage() {
         <div className="font-mono text-xs tracking-widest text-amber uppercase mb-6">
           Édition Asset Management · 2026
         </div>
-        <h1 className="font-serif text-5xl leading-tight mb-6 max-w-3xl">
+        <h1 className="text-5xl md:text-6xl font-medium tracking-tight leading-[1.05] mb-6 max-w-3xl">
           Comment les LLM perçoivent l'industrie de la gestion d'actifs<span className="text-amber">.</span>
         </h1>
-        <p className="text-xl opacity-85 max-w-2xl leading-relaxed font-serif">
+        <p className="text-xl opacity-85 max-w-2xl leading-relaxed">
           Geoperf a interrogé en parallèle ChatGPT, Gemini, Claude et Perplexity. Voici les {stats.total} sociétés
           qu'au moins un modèle cite spontanément, classées par niveau de consensus inter-LLM.
         </p>
@@ -98,8 +98,8 @@ export default async function SamplePage() {
 
       {/* Stats */}
       <Section py="md">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">Méthodologie en chiffres</p>
-        <h2 className="font-serif text-3xl text-navy mb-8">Une mesure simple, reproductible</h2>
+        <p className="font-mono text-xs tracking-widest text-brand-500 uppercase mb-3">Méthodologie en chiffres</p>
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-8">Une mesure simple, reproductible</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Stat label="LLM interrogés" value="4" variant="highlight" />
           <Stat label="Sociétés identifiées" value={stats.total || "—"} />
@@ -115,26 +115,26 @@ export default async function SamplePage() {
 
       {/* Top 5 preview */}
       <Section tone="cream" py="md">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">Aperçu — Top 5</p>
-        <h2 className="font-serif text-3xl text-navy mb-8">
+        <p className="font-mono text-xs tracking-widest text-brand-500 uppercase mb-3">Aperçu — Top 5</p>
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-8">
           Le quatuor qui domine la perception IA
         </h2>
         <div className="space-y-3">
           {companies.slice(0, 5).map((c) => (
-            <div key={c.rank} className="bg-white p-5 grid grid-cols-[60px_1fr_120px] gap-4 items-center">
-              <div className="font-serif text-3xl text-navy font-medium text-center">
+            <div key={c.rank} className="bg-white border border-DEFAULT rounded-lg p-5 grid grid-cols-[60px_1fr_120px] gap-4 items-center">
+              <div className="font-mono text-2xl text-brand-500 font-medium text-center">
                 {String(c.rank).padStart(2, "0")}
               </div>
               <div>
-                <div className="font-serif text-xl text-navy">{c.name}</div>
+                <div className="text-lg font-medium text-ink">{c.name}</div>
                 <div className="text-xs text-ink-muted font-mono mt-1">
                   {c.domain} · {c.country}
                 </div>
               </div>
               <div className="text-right">
                 <span
-                  className={`inline-block px-3 py-1 font-mono text-xs ${
-                    c.visibility_score === 4 ? "bg-navy text-white" : c.visibility_score === 3 ? "bg-navy-light text-white" : "bg-ink-muted text-white"
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full font-mono text-xs ${
+                    c.visibility_score === 4 ? "bg-ink text-white" : c.visibility_score === 3 ? "bg-brand-600 text-white" : "bg-ink-muted text-white"
                   }`}
                 >
                   {c.visibility_score}/4 LLM
@@ -143,9 +143,9 @@ export default async function SamplePage() {
             </div>
           ))}
         </div>
-        <div className="mt-8 p-6 border-l-2 border-amber bg-white">
+        <div className="mt-8 p-6 border border-DEFAULT border-l-2 border-l-brand-500 bg-white rounded-lg shadow-card">
           <p className="text-ink leading-relaxed">
-            <strong className="text-navy">L'étude complète</strong> couvre les {stats.total} sociétés identifiées,
+            <strong className="text-ink">L'étude complète</strong> couvre les {stats.total} sociétés identifiées,
             détaille les biais par modèle (Gemini sur-représente les sociétés US-listed), et propose 5 recommandations
             actionnables pour améliorer votre score IA.
           </p>
@@ -159,7 +159,7 @@ export default async function SamplePage() {
 
       {/* What's inside */}
       <Section py="md">
-        <h2 className="font-serif text-3xl text-navy mb-8">Ce que contient l'étude complète</h2>
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-8">Ce que contient l'étude complète</h2>
         <div className="grid md:grid-cols-2 gap-8">
           {[
             { n: "01", t: "Méthodologie inter-LLM", d: "Comment les 4 LLM ont été interrogés. Reproductible par n'importe quelle équipe data." },
@@ -169,9 +169,9 @@ export default async function SamplePage() {
             { n: "05", t: "5 insights actionnables", d: "Recommandations concrètes pour CMO et Head of Brand." },
             { n: "06", t: "Glossaire & FAQ", d: "GEO, score IA, méthodologie, sources." },
           ].map((s) => (
-            <div key={s.n} className="border-l-2 border-amber pl-4">
-              <div className="font-mono text-xs text-amber mb-1">SECTION {s.n}</div>
-              <div className="font-serif text-lg text-navy mb-1">{s.t}</div>
+            <div key={s.n} className="border-l-2 border-brand-500 pl-4">
+              <div className="font-mono text-xs text-brand-500 mb-1">SECTION {s.n}</div>
+              <div className="text-base font-medium text-ink mb-1">{s.t}</div>
               <div className="text-sm text-ink-muted">{s.d}</div>
             </div>
           ))}
@@ -180,7 +180,7 @@ export default async function SamplePage() {
 
       {/* Why personalized */}
       <Section tone="navy" py="lg">
-        <h2 className="font-serif text-3xl mb-4 text-white max-w-2xl">
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-white mb-4 max-w-2xl">
           Une étude par secteur. Une lecture par marque<span className="text-amber">.</span>
         </h2>
         <p className="text-lg opacity-85 mb-8 max-w-2xl leading-relaxed">

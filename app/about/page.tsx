@@ -16,10 +16,10 @@ export default function AboutPage() {
       <Header />
 
       <Section tone="navy" py="lg" eyebrow="À propos">
-        <h1 className="font-serif text-5xl leading-tight mb-6">
+        <h1 className="text-5xl md:text-6xl font-medium tracking-tight leading-[1.05] mb-6">
           Mesurer ce que les IA disent de votre marque<span className="text-amber">.</span>
         </h1>
-        <p className="text-xl opacity-85 max-w-2xl leading-relaxed font-serif">
+        <p className="text-xl opacity-85 max-w-2xl leading-relaxed">
           ChatGPT, Gemini, Claude et Perplexity sont devenus la nouvelle porte d'entrée des décisions B2B.
           Pourtant, aucun outil ne mesurait jusqu'ici comment ces modèles décrivent votre marque.
           Geoperf répond à ce vide.
@@ -27,7 +27,7 @@ export default function AboutPage() {
       </Section>
 
       <Section py="lg">
-        <h2 className="font-serif text-3xl text-navy mb-6">Notre méthode</h2>
+        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-ink mb-6">Notre méthode</h2>
         <div className="space-y-4 text-ink leading-relaxed">
           <p>
             Pour chaque secteur étudié, Geoperf interroge en parallèle les quatre LLM majeurs avec un prompt
@@ -53,7 +53,7 @@ export default function AboutPage() {
       </Section>
 
       <Section tone="cream" py="lg">
-        <h2 className="font-serif text-3xl text-navy mb-6">Qui est derrière Geoperf ?</h2>
+        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-ink mb-6">Qui est derrière Geoperf ?</h2>
         <p className="text-ink leading-relaxed mb-4">
           Geoperf est un produit de <strong>Jourdechance SAS</strong>, société française fondée en 2018 et basée à
           Boulogne-Billancourt. Jourdechance accompagne les marques B2B depuis huit ans sur leurs problématiques
@@ -67,7 +67,7 @@ export default function AboutPage() {
       </Section>
 
       <Section py="lg">
-        <h2 className="font-serif text-3xl text-navy mb-6">Pour qui ?</h2>
+        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-ink mb-6">Pour qui ?</h2>
         <ul className="space-y-3 text-ink leading-relaxed">
           <li>
             <strong>CMO et Directeurs Marketing</strong> qui veulent un benchmark concret de leur visibilité IA versus
@@ -85,7 +85,7 @@ export default function AboutPage() {
       </Section>
 
       <Section tone="navy" py="lg">
-        <h2 className="font-serif text-3xl mb-4 text-white">Demander une étude</h2>
+        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-white mb-4">Demander une étude</h2>
         <p className="text-lg opacity-85 mb-8 max-w-xl">
           Vous voulez l'étude qui couvre votre secteur ? Ou un audit personnalisé de votre positionnement IA ?
         </p>

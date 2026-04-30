@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://geoperf.com/saas" },
 };
 
+// Spec : SPRINT_S7_BRIEF.md "Pricing nouvelle grille"
 const TIERS = [
   {
     key: "free",
@@ -19,34 +20,43 @@ const TIERS = [
     price: 0,
     cta: "Créer un compte",
     href: "/signup",
-    bullets: ["1 marque", "1 LLM (ChatGPT)", "Snapshot mensuel", "3 derniers snapshots", "Aucun export"],
+    bullets: ["1 marque", "1 LLM (ChatGPT)", "30 prompts", "1 topic", "Snapshot mensuel", "Aucun export"],
     highlight: false,
   },
   {
-    key: "solo",
-    name: "Solo",
-    price: 149,
-    cta: "Démarrer Solo",
+    key: "starter",
+    name: "Starter",
+    price: 79,
+    cta: "Démarrer Starter",
     href: "/signup?next=/app/billing",
-    bullets: ["1 marque", "4 LLMs (tous)", "Snapshot hebdo", "Historique illimité", "Recos IA + alertes email", "Export CSV/PDF"],
+    bullets: ["1 marque", "4 LLMs", "50 prompts", "3 topics", "Snapshot hebdo", "Recos IA + alertes", "Export CSV/PDF"],
+    highlight: false,
+  },
+  {
+    key: "growth",
+    name: "Growth",
+    price: 199,
+    cta: "Passer Growth",
+    href: "/signup?next=/app/billing",
+    bullets: ["1 marque", "4 LLMs", "200 prompts", "9 topics", "5 seats inclus", "Sources Explorer", "Tout Starter"],
     highlight: true,
   },
   {
     key: "pro",
     name: "Pro",
-    price: 349,
+    price: 399,
     cta: "Passer Pro",
     href: "/signup?next=/app/billing",
-    bullets: ["3 marques", "4 LLMs hebdo", "Tout Solo", "Matrice concurrentielle", "Comparaison cross-marques"],
+    bullets: ["3 marques", "6 LLMs (+ Mistral, Grok)", "200 prompts", "Topics illimités", "Seats illimités", "Matrice concurrentielle"],
     highlight: false,
   },
   {
     key: "agency",
     name: "Agency",
-    price: 899,
+    price: 799,
     cta: "Déployer Agency",
     href: "/signup?next=/app/billing",
-    bullets: ["10 marques", "Tout Pro", "White-label", "Multi-utilisateurs (à venir)", "Support prioritaire"],
+    bullets: ["10 marques", "Tous les LLMs", "300 prompts", "Tout Pro", "White-label", "Support prioritaire"],
     highlight: false,
   },
 ];
@@ -148,7 +158,7 @@ export default function SaasMarketingPage() {
         <h2 className="font-serif text-3xl text-navy mb-3">Tarifs simples, sans engagement</h2>
         <p className="text-sm text-ink-muted mb-10 max-w-2xl">Tous les plans incluent : prompts FR, monitoring multi-LLM (à partir de Solo), recos Haiku, alertes email. Annulation en 1 clic depuis le portail Stripe.</p>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {TIERS.map((t) => (
             <div
               key={t.key}

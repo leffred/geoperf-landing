@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/ui/Section";
-import { loadSaasContext, TIER_LIMITS } from "@/lib/saas-auth";
+import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,7 @@ export default async function BrandsPage() {
     .order("created_at", { ascending: false });
 
   const brands = (data as Brand[] | null) ?? [];
-  const limits = TIER_LIMITS[ctx.tier];
+  const limits = tierLimits(ctx.tier);
   const canAddMore = brands.length < limits.brands;
 
   return (

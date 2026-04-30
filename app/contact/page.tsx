@@ -15,7 +15,7 @@ export default function ContactPage() {
       <Header />
 
       <Section py="lg" eyebrow="Contact">
-        <h1 className="font-serif text-5xl text-navy leading-tight mb-6">
+        <h1 className="text-5xl md:text-6xl font-medium tracking-tight text-ink leading-[1.05] mb-6">
           Comment vous aider<span className="text-amber">?</span>
         </h1>
         <p className="text-lg text-ink-muted leading-relaxed mb-12 max-w-2xl">
@@ -25,8 +25,8 @@ export default function ContactPage() {
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-cream p-8">
-            <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">Email</p>
-            <h2 className="font-serif text-2xl text-navy mb-3">Demander une étude</h2>
+            <p className="font-mono text-xs tracking-widest text-brand-500 uppercase mb-3">Email</p>
+            <h2 className="text-xl font-medium text-ink mb-3">Demander une étude</h2>
             <p className="text-ink-muted text-sm mb-6">
               Vous voulez l'étude Geoperf qui couvre votre secteur ? Précisez votre catégorie et votre fonction,
               nous revenons vers vous sous 48h.
@@ -42,7 +42,7 @@ export default function ContactPage() {
 
           <div className="bg-navy text-white p-8">
             <p className="font-mono text-xs tracking-widest text-amber uppercase mb-3">Audit gratuit</p>
-            <h2 className="font-serif text-2xl mb-3">Réserver 30 min</h2>
+            <h2 className="text-xl font-medium mb-3">Réserver 30 min</h2>
             <p className="opacity-85 text-sm mb-6">
               30 minutes pour analyser votre positionnement actuel et identifier les leviers prioritaires
               d'amélioration. Aucun engagement.
@@ -59,7 +59,7 @@ export default function ContactPage() {
       </Section>
 
       <Section tone="cream" py="md">
-        <h3 className="font-serif text-2xl text-navy mb-3">Adresse</h3>
+        <h3 className="text-xl font-medium text-ink mb-3">Adresse</h3>
         <address className="not-italic text-ink-muted">
           Jourdechance SAS<br />
           31 rue Diaz<br />

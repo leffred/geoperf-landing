@@ -3,19 +3,37 @@
 @tailwind utilities;
 
 @layer base {
-  body { font-feature-settings: "ss01", "cv11"; }
-  ::selection { background-color: #EF9F27; color: #042C53; }
+  :root {
+    color-scheme: light;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background-color: #2563EB;
+    color: #FFFFFF;
+  }
 }
 
-@layer components {
-  .amber-pulse {
-    animation: amberpulse 3s ease-in-out infinite;
+@layer utilities {
+  .border-hairline {
+    border-width: 0.5px;
+  }
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
 @keyframes amberpulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
+}
+.amber-pulse {
+  animation: amberpulse 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

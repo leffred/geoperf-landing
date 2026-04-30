@@ -4,7 +4,7 @@ import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Card";
 import { BrandEvolutionChart, type Point } from "@/components/saas/BrandEvolutionChart";
 import { AlertBanner } from "@/components/saas/AlertBanner";
-import { loadSaasContext, TIER_LIMITS, relativeVisibility } from "@/lib/saas-auth";
+import { loadSaasContext, tierLimits, relativeVisibility } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -70,7 +70,7 @@ export default async function DashboardPage() {
   const featuredPoints = featuredBrandId ? evoByBrand[featuredBrandId] : [];
   const featuredName = featuredBrandId ? nameByBrand[featuredBrandId] : "";
 
-  const limits = TIER_LIMITS[ctx.tier];
+  const limits = tierLimits(ctx.tier);
   const brandsUsed = brandList.length;
 
   return (

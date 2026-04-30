@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { loadSaasContext, TIER_LIMITS } from "@/lib/saas-auth";
+import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 
 function normalizeDomain(input: string): string {
@@ -34,7 +34,7 @@ export async function createBrand(formData: FormData) {
   if (!domain || !domain.includes(".")) redirect("/app/brands/new?error=bad_domain");
   if (!categoryRaw) redirect("/app/brands/new?error=missing_category");
 
-  const limits = TIER_LIMITS[ctx.tier];
+  const limits = tierLimits(ctx.tier);
   if (limits.cadence === "monthly" && cadence === "weekly") {
     redirect("/app/brands/new?error=cadence_locked");
   }

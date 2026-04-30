@@ -17,12 +17,28 @@ const ERROR_LABELS: Record<string, string> = {
   unknown: "Une erreur est survenue. Réessaie.",
 };
 
-type Props = { searchParams: Promise<{ error?: string; check_email?: string }> };
+type Props = { searchParams: Promise<{ error?: string; check_email?: string; source?: string; category?: string; invitation_token?: string; email?: string }> };
 
 export default async function SignupPage({ searchParams }: Props) {
-  const { error, check_email } = await searchParams;
+  const { error, check_email, source, category, invitation_token, email: prefilledEmail } = await searchParams;
   const errorMsg = error ? ERROR_LABELS[error] || ERROR_LABELS.unknown : null;
   const checkEmail = check_email === "1";
+  const isEtude = source === "etude";
+  const isInvitation = !!invitation_token;
+
+  let title = "Suivre ma marque dans les LLM";
+  let subtitle = "Plan gratuit : 1 marque, 1 LLM, snapshot mensuel. Upgrade à tout moment.";
+  let eyebrow = "CRÉER UN COMPTE";
+
+  if (isInvitation) {
+    title = "Rejoindre l'équipe";
+    subtitle = "Tu as été invité à rejoindre un compte Geoperf. Crée ton accès personnel ci-dessous — tu seras automatiquement ajouté à l'équipe après vérification.";
+    eyebrow = "INVITATION";
+  } else if (isEtude) {
+    title = "Recevoir l'étude sectorielle gratuite";
+    subtitle = "Crée ton compte gratuit. Une fois connecté, tu recevras automatiquement l'étude sectorielle correspondant à ton secteur en plus de ton dashboard de monitoring.";
+    eyebrow = "ÉTUDE GRATUITE + COMPTE";
+  }
 
   return (
     <main className="min-h-screen flex flex-col bg-cream">
@@ -30,11 +46,9 @@ export default async function SignupPage({ searchParams }: Props) {
 
       <Section py="lg" tone="cream">
         <div className="max-w-md mx-auto bg-white border border-navy/10 p-8">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">CRÉER UN COMPTE</p>
-          <h1 className="font-serif text-2xl text-navy mb-2">Suivre ma marque dans les LLM</h1>
-          <p className="text-sm text-ink-muted mb-6">
-            Plan gratuit : 1 marque, 1 LLM, snapshot mensuel. Upgrade à tout moment.
-          </p>
+          <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">{eyebrow}</p>
+          <h1 className="font-serif text-2xl text-navy mb-2">{title}</h1>
+          <p className="text-sm text-ink-muted mb-6">{subtitle}</p>
 
           {errorMsg && (
             <div className="mb-4 px-4 py-3 bg-red-50 border-l-2 border-red-600 text-sm text-red-900">{errorMsg}</div>
@@ -46,6 +60,9 @@ export default async function SignupPage({ searchParams }: Props) {
           )}
 
           <form action={signup} className="space-y-4">
+            {source && <input type="hidden" name="source" value={source} />}
+            {category && <input type="hidden" name="category" value={category} />}
+            {invitation_token && <input type="hidden" name="invitation_token" value={invitation_token} />}
             <div>
               <label htmlFor="full_name" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Nom complet</label>
               <input
@@ -74,9 +91,14 @@ export default async function SignupPage({ searchParams }: Props) {
                 type="email"
                 required
                 autoComplete="email"
-                autoFocus
-                className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none"
+                autoFocus={!prefilledEmail}
+                defaultValue={prefilledEmail || ""}
+                readOnly={isInvitation}
+                className={`w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none ${isInvitation ? "opacity-70 cursor-not-allowed" : ""}`}
               />
+              {isInvitation && (
+                <p className="text-xs text-ink-muted mt-1">L&apos;email est verrouillé sur l&apos;invitation. Pour utiliser un autre email, demande une nouvelle invitation.</p>
+              )}
             </div>
             <div>
               <label htmlFor="password" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Mot de passe (8+ caractères)</label>
@@ -95,7 +117,7 @@ export default async function SignupPage({ searchParams }: Props) {
               type="submit"
               className="w-full bg-navy text-white py-2.5 text-sm font-medium hover:bg-navy-light transition"
             >
-              Créer mon compte gratuit
+              {isInvitation ? "Créer mon compte et rejoindre l'équipe" : isEtude ? "Créer mon compte et recevoir l'étude" : "Créer mon compte gratuit"}
             </button>
           </form>
 

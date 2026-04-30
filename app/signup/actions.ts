@@ -9,6 +9,10 @@ export async function signup(formData: FormData) {
   const password = String(formData.get("password") || "");
   const fullName = String(formData.get("full_name") || "").trim();
   const company = String(formData.get("company") || "").trim();
+  // S7 : query params propagated as hidden fields
+  const source = String(formData.get("source") || "").trim();          // ex: "etude"
+  const category = String(formData.get("category") || "").trim();      // ex: "asset-management"
+  const invitationToken = String(formData.get("invitation_token") || "").trim();
 
   if (!email || !password) redirect("/signup?error=missing");
   if (password.length < 8) redirect("/signup?error=password_too_short");
@@ -17,12 +21,25 @@ export async function signup(formData: FormData) {
   const h = await headers();
   const origin = h.get("origin") || h.get("referer")?.replace(/\/[^/]*$/, "") || process.env.NEXT_PUBLIC_SITE_URL || "https://geoperf.com";
 
+  // Si invitation : redirect post-signup vers /auth/accept?token=... (qui lie au compte owner)
+  // Sinon : redirect vers /app/dashboard
+  const nextPath = invitationToken
+    ? `/auth/accept?token=${encodeURIComponent(invitationToken)}`
+    : `/app/dashboard${source === "etude" ? `?welcome_etude=1${category ? `&category=${encodeURIComponent(category)}` : ""}` : ""}`;
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/app/dashboard`,
-      data: { full_name: fullName || null, company: company || null },
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+      data: {
+        full_name: fullName || null,
+        company: company || null,
+        // Métadonnées de signup pour le welcome email + lookup ultérieur (S7)
+        source: source || null,
+        category: category || null,
+        invitation_token: invitationToken || null,
+      },
     },
   });
 
@@ -31,10 +48,9 @@ export async function signup(formData: FormData) {
     redirect(`/signup?error=${code}`);
   }
 
-  // Si la session est créée tout de suite (email confirmation off), redirect vers dashboard.
-  // Sinon (email confirmation requise), rediriger vers une page d'attente.
+  // Si session immédiate (email confirmation off), redirect direct vers nextPath.
   if (data.session) {
-    redirect("/app/dashboard");
+    redirect(nextPath);
   }
   redirect("/signup?check_email=1");
 }

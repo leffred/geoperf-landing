@@ -23,10 +23,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     </div>
   );
 
+  const seatsCap = ctx.limits.seats;
+  const showTeam = ctx.is_owner && (seatsCap > 1);
   const navItems = [
     { href: "/app/dashboard", label: "Dashboard" },
     { href: "/app/brands", label: "Marques" },
     { href: "/app/alerts", label: "Alertes" },
+    ...(showTeam ? [{ href: "/app/team", label: "Équipe" }] : []),
     { href: "/app/billing", label: "Abonnement" },
     { href: "/app/settings", label: "Réglages" },
   ];

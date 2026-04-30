@@ -1,31 +1,40 @@
 import { ReactNode } from "react";
+import { Eyebrow } from "./Eyebrow";
+
+type Tone = "white" | "surface" | "dark" | "cream" | "navy";
 
 type Props = {
   children: ReactNode;
-  /** Vertical padding preset. */
   py?: "sm" | "md" | "lg";
-  /** Background tone. */
-  tone?: "white" | "cream" | "navy";
-  /** Optional eyebrow text above the section. */
+  tone?: Tone;
   eyebrow?: string;
   className?: string;
 };
 
-const PY = { sm: "py-10", md: "py-16", lg: "py-24" };
-const TONES = {
+const PY = { sm: "py-12", md: "py-20", lg: "py-28" };
+const TONE_MAP: Record<Tone, string> = {
   white: "bg-white text-ink",
-  cream: "bg-cream text-ink",
-  navy: "bg-navy text-white",
+  surface: "bg-surface text-ink border-y border-DEFAULT",
+  dark: "bg-ink text-white",
+  cream: "bg-surface text-ink border-y border-DEFAULT",
+  navy: "bg-ink text-white",
 };
 
-export function Section({ children, py = "md", tone = "white", eyebrow, className = "" }: Props) {
+export function Section({
+  children,
+  py = "md",
+  tone = "white",
+  eyebrow,
+  className = "",
+}: Props) {
+  const isDark = tone === "dark" || tone === "navy";
   return (
-    <section className={`px-8 ${PY[py]} ${TONES[tone]} ${className}`}>
-      <div className="max-w-4xl mx-auto">
+    <section className={`px-6 md:px-8 ${PY[py]} ${TONE_MAP[tone]} ${className}`}>
+      <div className="max-w-6xl mx-auto">
         {eyebrow && (
-          <p className={`font-mono text-xs tracking-widest uppercase mb-3 ${tone === "navy" ? "text-amber" : "text-navy-light"}`}>
+          <Eyebrow variant={isDark ? "muted" : "brand"} className="mb-3">
             {eyebrow}
-          </p>
+          </Eyebrow>
         )}
         {children}
       </div>

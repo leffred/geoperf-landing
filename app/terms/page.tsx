@@ -13,12 +13,12 @@ export default function TermsPage() {
     <main className="min-h-screen flex flex-col">
       <Header />
       <Section eyebrow="Mentions légales" py="lg">
-        <h1 className="font-serif text-4xl text-navy mb-2">Conditions générales d'utilisation</h1>
+        <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-2">Conditions générales d'utilisation</h1>
         <p className="text-ink-muted text-sm mb-12">Dernière mise à jour : 28 avril 2026</p>
 
         <div className="prose-lg space-y-8 text-ink leading-relaxed">
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">1. Éditeur du site</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">1. Éditeur du site</h2>
             <p>
               Le site geoperf.com est édité par <strong>Jourdechance SAS</strong>, société par actions simplifiée
               au capital de 1 000 €, immatriculée au RCS de Nanterre sous le numéro <strong>838 114 619</strong>,
@@ -27,12 +27,12 @@ export default function TermsPage() {
             <p>
               Numéro de TVA intracommunautaire : FR (à compléter).<br />
               Directeur de la publication : Frédéric Lefebvre, Président.<br />
-              Email : <a href="mailto:contact@geoperf.com" className="text-navy-light underline">contact@geoperf.com</a>
+              Email : <a href="mailto:contact@geoperf.com" className="text-brand-500 underline hover:text-brand-600">contact@geoperf.com</a>
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">2. Hébergeur</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">2. Hébergeur</h2>
             <p>
               Le site est hébergé par <strong>Vercel Inc.</strong>, 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis.<br />
               Les données back-end sont hébergées par <strong>Supabase Inc.</strong> sur AWS région EU-Central-1
@@ -41,7 +41,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">3. Objet du service</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">3. Objet du service</h2>
             <p>
               Geoperf est un service B2B qui produit et distribue des études sectorielles sur la perception des
               marques par les principaux modèles de langage (LLM) tels que ChatGPT, Gemini, Claude et Perplexity.
@@ -53,7 +53,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">4. Propriété intellectuelle</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">4. Propriété intellectuelle</h2>
             <p>
               L'ensemble des contenus publiés sur geoperf.com (études, méthodologie, design, textes, logos) sont
               la propriété exclusive de Jourdechance SAS. Toute reproduction, partielle ou totale, à des fins
@@ -66,7 +66,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">5. Limites de responsabilité</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">5. Limites de responsabilité</h2>
             <p>
               Les études Geoperf reflètent la perception des LLM à un instant donné. Cette perception peut évoluer
               au fil des mises à jour des modèles. Les classements et descriptions ne constituent pas une évaluation
@@ -80,7 +80,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">6. Liens externes</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">6. Liens externes</h2>
             <p>
               Le site peut contenir des liens vers des sites tiers. Geoperf ne peut être tenu responsable du
               contenu, des pratiques ou de la disponibilité de ces sites externes.
@@ -88,14 +88,14 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">7. Données personnelles</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">7. Données personnelles</h2>
             <p>
-              Le traitement des données personnelles est détaillé dans notre <a href="/privacy" className="text-navy-light underline">politique de confidentialité</a>.
+              Le traitement des données personnelles est détaillé dans notre <a href="/privacy" className="text-brand-500 underline hover:text-brand-600">politique de confidentialité</a>.
             </p>
           </section>
 
           <section>
-            <h2 className="font-serif text-2xl text-navy mb-3">8. Droit applicable</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">8. Droit applicable</h2>
             <p>
               Les présentes CGU sont soumises au droit français. Tout litige relatif à leur interprétation ou leur
               exécution relève de la compétence exclusive des tribunaux du ressort de la Cour d'appel de Versailles,

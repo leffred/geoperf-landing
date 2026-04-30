@@ -1,13 +1,21 @@
 import type { SaasTier } from "@/lib/saas-auth";
 
 const STYLES: Record<SaasTier, string> = {
-  free:   "bg-cream text-ink-muted border border-navy/10",
-  solo:   "bg-navy text-white",
-  pro:    "bg-amber text-navy",
-  agency: "bg-navy text-amber",
+  free:    "bg-cream text-ink-muted border border-navy/10",
+  starter: "bg-navy/10 text-navy border border-navy/20",
+  growth:  "bg-amber/30 text-navy border border-amber",
+  pro:     "bg-amber text-navy",
+  agency:  "bg-navy text-amber",
+  // Legacy : 'solo' affiché comme Starter (visuellement)
+  solo:    "bg-navy/10 text-navy border border-navy/20",
 };
 const LABELS: Record<SaasTier, string> = {
-  free: "Free", solo: "Solo", pro: "Pro", agency: "Agency",
+  free: "Free",
+  starter: "Starter",
+  growth: "Growth",
+  pro: "Pro",
+  agency: "Agency",
+  solo: "Starter", // Legacy display
 };
 
 export function TierBadge({ tier, size = "sm" }: { tier: SaasTier; size?: "sm" | "md" }) {

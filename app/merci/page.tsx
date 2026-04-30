@@ -46,23 +46,23 @@ export default async function MerciPage({ searchParams }: Props) {
         <p className="font-mono text-xs tracking-widest text-amber uppercase mb-6">
           Téléchargement {format === "pdf" ? "PDF" : "HTML"} en cours
         </p>
-        <h1 className="font-serif text-5xl leading-tight mb-6">
+        <h1 className="text-5xl md:text-6xl font-medium tracking-tight leading-[1.05] mb-6">
           Merci{ctx?.first_name ? ` ${ctx.first_name}` : ""}<span className="text-amber">.</span>
         </h1>
-        <p className="text-xl opacity-85 max-w-2xl leading-relaxed font-serif">
+        <p className="text-xl opacity-85 max-w-2xl leading-relaxed">
           Votre étude{ctx?.sous_categorie ? ` ${ctx.sous_categorie}` : ""} est en cours de téléchargement.
           Si elle ne démarre pas, vérifiez votre dossier Téléchargements ou retournez sur la page précédente.
         </p>
       </Section>
 
       <Section py="lg">
-        <h2 className="font-serif text-3xl text-navy mb-8">Et maintenant ?</h2>
+        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-ink mb-8">Et maintenant ?</h2>
 
         <div className="space-y-6">
           <div className="grid md:grid-cols-[60px_1fr] gap-6 items-start">
-            <div className="font-serif text-4xl text-amber font-medium">01</div>
+            <div className="font-mono text-2xl text-brand-500 font-medium">01</div>
             <div>
-              <h3 className="font-serif text-xl text-navy mb-2">Lisez la section "Top sociétés"</h3>
+              <h3 className="text-lg font-medium text-ink mb-2">Lisez la section "Top sociétés"</h3>
               <p className="text-ink-muted leading-relaxed">
                 C'est là que vous verrez{ctx?.company_name ? ` exactement comment ${ctx.company_name} se positionne par rapport à vos concurrents directs` : " la pyramide complète des acteurs cités par les LLM"}.
                 Notez les écarts entre les modèles : ils révèlent des opportunités de positionnement.
@@ -71,9 +71,9 @@ export default async function MerciPage({ searchParams }: Props) {
           </div>
 
           <div className="grid md:grid-cols-[60px_1fr] gap-6 items-start">
-            <div className="font-serif text-4xl text-amber font-medium">02</div>
+            <div className="font-mono text-2xl text-brand-500 font-medium">02</div>
             <div>
-              <h3 className="font-serif text-xl text-navy mb-2">Réservez 30 min d'audit gratuit</h3>
+              <h3 className="text-lg font-medium text-ink mb-2">Réservez 30 min d'audit gratuit</h3>
               <p className="text-ink-muted leading-relaxed mb-4">
                 On regarde ensemble les 3 actions concrètes prioritaires pour améliorer votre score IA dans les 6 prochains mois. Aucun engagement, aucun pitch déguisé.
               </p>
@@ -84,9 +84,9 @@ export default async function MerciPage({ searchParams }: Props) {
           </div>
 
           <div className="grid md:grid-cols-[60px_1fr] gap-6 items-start">
-            <div className="font-serif text-4xl text-amber font-medium">03</div>
+            <div className="font-mono text-2xl text-brand-500 font-medium">03</div>
             <div>
-              <h3 className="font-serif text-xl text-navy mb-2">Partagez l'étude</h3>
+              <h3 className="text-lg font-medium text-ink mb-2">Partagez l'étude</h3>
               <p className="text-ink-muted leading-relaxed mb-4">
                 L'étude vous a éclairé ? Elle peut aussi intéresser votre équipe ou un pair sur LinkedIn.
                 (Toutes les données sont libres de partage non-commercial.)
@@ -113,9 +113,9 @@ export default async function MerciPage({ searchParams }: Props) {
       </Section>
 
       <Section tone="cream" py="md">
-        <h2 className="font-serif text-2xl text-navy mb-3">Une question ?</h2>
+        <h2 className="text-xl font-medium text-ink mb-3">Une question ?</h2>
         <p className="text-ink-muted leading-relaxed">
-          Sur la méthodologie, les chiffres, les sources : <a href="mailto:contact@geoperf.com" className="text-navy-light underline">contact@geoperf.com</a>.
+          Sur la méthodologie, les chiffres, les sources : <a href="mailto:contact@geoperf.com" className="text-brand-500 underline hover:text-brand-600">contact@geoperf.com</a>.
           Vous pouvez aussi répondre directement à l'email qui vous a amené ici.
         </p>
       </Section>
