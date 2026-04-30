@@ -1,6 +1,6 @@
-// Middleware: refresh Supabase auth cookies on each /admin/* request and
-// redirect unauthenticated visitors to /admin/login.
-// Public routes (/, /sample, /[sous_cat], etc.) are NOT touched.
+// Middleware: refresh Supabase auth cookies on /admin/* and /app/* requests, redirect
+// unauthenticated visitors to /admin/login (admin) or /login (saas).
+// Public routes (/, /sample, /[sous_cat], /signup, etc.) are NOT touched.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
@@ -28,23 +28,44 @@ export async function middleware(req: NextRequest) {
   });
 
   const { data } = await supabase.auth.getUser();
-  const isLogin = req.nextUrl.pathname === "/admin/login";
+  const path = req.nextUrl.pathname;
+  const isAdminScope = path === "/admin" || path.startsWith("/admin/");
+  const isAppScope = path === "/app" || path.startsWith("/app/");
+  const adminLogin = path === "/admin/login";
+  const saasLogin = path === "/login";
+  const saasSignup = path === "/signup";
 
-  if (!data.user && !isLogin) {
-    const loginUrl = new URL("/admin/login", req.url);
-    if (req.nextUrl.pathname !== "/admin") {
-      loginUrl.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
+  // /admin/* → /admin/login si non authentifié
+  if (isAdminScope) {
+    if (!data.user && !adminLogin) {
+      const loginUrl = new URL("/admin/login", req.url);
+      if (path !== "/admin") {
+        loginUrl.searchParams.set("next", path + req.nextUrl.search);
+      }
+      return NextResponse.redirect(loginUrl);
     }
-    return NextResponse.redirect(loginUrl);
+    if (data.user && adminLogin) {
+      return NextResponse.redirect(new URL("/admin", req.url));
+    }
   }
 
-  if (data.user && isLogin) {
-    return NextResponse.redirect(new URL("/admin", req.url));
+  // /app/* → /login si non authentifié
+  if (isAppScope) {
+    if (!data.user) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("next", path + req.nextUrl.search);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Si déjà loggé, /login et /signup redirigent vers /app/dashboard
+  if ((saasLogin || saasSignup) && data.user) {
+    return NextResponse.redirect(new URL("/app/dashboard", req.url));
   }
 
   return res;
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/app", "/app/:path*", "/login", "/signup"],
 };

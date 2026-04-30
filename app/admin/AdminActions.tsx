@@ -25,6 +25,7 @@ export function AdminActions({ categories, reports }: Props) {
   const [synthesisModel, setSynthesisModel] = useState("anthropic/claude-haiku-4.5");
   const [sourcingReport, setSourcingReport] = useState<string>(reports[0]?.id || "");
   const [sourcingMax, setSourcingMax] = useState(3);
+  const [sourcingCountry, setSourcingCountry] = useState<string>("");
   const [busy, setBusy] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
@@ -166,6 +167,17 @@ export function AdminActions({ categories, reports }: Props) {
             ))}
             {reports.length === 0 && <option disabled>Aucun report</option>}
           </select>
+          <select
+            value={sourcingCountry}
+            onChange={(e) => setSourcingCountry(e.target.value)}
+            className="w-full text-sm bg-cream px-3 py-2 border border-navy/10"
+          >
+            <option value="">Tous pays</option>
+            <option value="France">🇫🇷 France uniquement</option>
+            <option value="États-Unis">🇺🇸 États-Unis</option>
+            <option value="Royaume-Uni">🇬🇧 Royaume-Uni</option>
+            <option value="Allemagne">🇩🇪 Allemagne</option>
+          </select>
           <div className="flex items-center gap-2">
             <label className="text-xs text-ink-muted">Max / société :</label>
             <input
@@ -178,7 +190,7 @@ export function AdminActions({ categories, reports }: Props) {
             />
           </div>
           <button
-            onClick={() => call("sourcing", { report_id: sourcingReport, max_per_company: sourcingMax, min_lead_score: 50 }, `Sourcing ${sourcingReport.substring(0, 8)}`)}
+            onClick={() => call("sourcing", { report_id: sourcingReport, max_per_company: sourcingMax, min_lead_score: 50, country_filter: sourcingCountry }, `Sourcing ${sourcingReport.substring(0, 8)}${sourcingCountry ? " · " + sourcingCountry : ""}`)}
             disabled={busy !== null || !sourcingReport}
             className="w-full bg-amber text-navy py-2 text-sm font-medium hover:bg-amber/90 disabled:opacity-50 transition"
           >

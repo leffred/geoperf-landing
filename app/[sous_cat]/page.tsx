@@ -54,7 +54,7 @@ export default async function LandingPage({ params, searchParams }: Props) {
     <main className="min-h-screen flex flex-col">
       <header className="px-8 py-6 border-b border-navy/10">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="font-serif text-2xl text-navy">Ge<span className="text-amber">·</span>perf</div>
+          <div className="font-serif text-2xl text-navy">Ge<span className="text-amber amber-pulse">·</span>perf</div>
           <div className="text-sm text-ink-muted font-mono">{ctx.report_id.substring(0, 8).toUpperCase()}</div>
         </div>
       </header>

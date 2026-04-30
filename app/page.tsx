@@ -6,7 +6,7 @@ export default function Home() {
     <main className="min-h-screen flex flex-col">
       <header className="px-8 py-6 border-b border-navy/10">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="font-serif text-2xl text-navy">Ge<span className="text-amber">·</span>perf</div>
+          <div className="font-serif text-2xl text-navy">Ge<span className="text-amber amber-pulse">·</span>perf</div>
           <a href="mailto:contact@geoperf.com" className="text-sm text-navy hover:underline">contact@geoperf.com</a>
         </div>
       </header>
