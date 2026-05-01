@@ -38,7 +38,7 @@ const TIERS = [
     price: 199,
     cta: "Passer Growth",
     href: "/signup?next=/app/billing",
-    bullets: ["1 marque", "4 LLMs", "200 prompts", "9 topics", "5 seats inclus", "Sources Explorer", "Sentiment analysis ✨"],
+    bullets: ["1 marque", "4 LLMs", "200 prompts", "9 topics", "5 seats inclus", "Sentiment ✨", "Webhooks Slack 🔌"],
     highlight: true,
   },
   {
@@ -47,7 +47,7 @@ const TIERS = [
     price: 399,
     cta: "Passer Pro",
     href: "/signup?next=/app/billing",
-    bullets: ["3 marques", "6 LLMs (+ Mistral, Grok)", "200 prompts", "Topics ∞", "Seats ∞", "Brand Alignment ✨", "Content Studio (10/mois) ✨"],
+    bullets: ["3 marques", "6 LLMs", "Topics ∞", "Seats ∞", "Alignment ✨", "Content Studio ✨", "Citations Flow 📊", "Webhooks Teams 🔌"],
     highlight: false,
   },
   {
@@ -56,7 +56,7 @@ const TIERS = [
     price: 799,
     cta: "Déployer Agency",
     href: "/signup?next=/app/billing",
-    bullets: ["10 marques", "7 LLMs (+ Llama)", "300 prompts", "Tout Pro", "Content Studio ∞", "White-label"],
+    bullets: ["10 marques", "7 LLMs", "Tout Pro", "Content Studio ∞", "API REST 🔑", "White-label"],
     highlight: false,
   },
 ];

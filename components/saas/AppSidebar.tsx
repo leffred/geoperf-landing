@@ -59,9 +59,11 @@ type Props = {
   ownerEmail?: string | null;
 };
 
-// Tier-gating S9
+// Tier-gating S9 + S10
 const SENTIMENT_ALLOWED: ReadonlySet<string> = new Set(["growth", "pro", "agency"]);
 const PRO_FEATURES_ALLOWED: ReadonlySet<string> = new Set(["pro", "agency"]);
+const SLACK_ALLOWED: ReadonlySet<string> = new Set(["growth", "pro", "agency"]); // S10.3
+const AGENCY_ONLY: ReadonlySet<string> = new Set(["agency"]); // S10.4 API
 
 // SVG icons compactes pour la sidebar (pas de lib externe)
 const Icon = {
@@ -76,6 +78,9 @@ const Icon = {
   sentiment: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><circle cx="8" cy="8" r="6"/><circle cx="6" cy="7" r="0.6" fill="currentColor"/><circle cx="10" cy="7" r="0.6" fill="currentColor"/><path d="M5.5 10.5c.7.6 1.7 1 2.5 1s1.8-.4 2.5-1"/></svg>,
   alignment: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><path d="M3 3h10M3 8h6M3 13h10"/></svg>,
   studio: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><path d="M11.5 3.5l1 1L5 12l-2 .5L3.5 11z"/></svg>,
+  flow: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><circle cx="3" cy="4" r="1.5"/><circle cx="3" cy="12" r="1.5"/><circle cx="13" cy="4" r="1.5"/><circle cx="13" cy="12" r="1.5"/><path d="M4.5 4 13 12M4.5 12 13 4" strokeOpacity="0.5"/></svg>,
+  webhook: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="8" cy="13" r="2"/><path d="M5.5 5.5 7 11M10.5 5.5 9 11M6 4h4"/></svg>,
+  apikey: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><circle cx="5" cy="8" r="3"/><path d="M8 8h6v3M11 8v3"/></svg>,
   team: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><circle cx="6" cy="6" r="2.5"/><circle cx="11" cy="7" r="1.6" strokeOpacity="0.7"/><path d="M2 13c0-2 2-3.5 4-3.5s4 1.5 4 3.5"/><path d="M10 13c0-1.4 1-2.5 2.5-2.5S15 11.6 15 13" strokeOpacity="0.7"/></svg>,
   billing: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><rect x="2" y="4" width="12" height="8"/><line x1="2" y1="7" x2="14" y2="7"/></svg>,
   settings: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><circle cx="8" cy="8" r="2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4"/></svg>,
@@ -313,6 +318,29 @@ export function AppSidebar({
                 active={pathname.startsWith(`/app/brands/${currentBrand.id}/setup`)}
               />
             </div>
+
+            <SectionLabel>Reports</SectionLabel>
+            <div className="px-2 space-y-0.5">
+              {PRO_FEATURES_ALLOWED.has(tier) ? (
+                <NavItem
+                  href={`/app/brands/${currentBrand.id}/citations-flow`}
+                  icon={Icon.flow}
+                  label="Citations Flow"
+                  active={pathname.startsWith(`/app/brands/${currentBrand.id}/citations-flow`)}
+                />
+              ) : (
+                <Link
+                  href="/app/billing"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/70 hover:text-navy hover:bg-cream transition rounded-sm"
+                  title="Citations Flow réservé Pro+"
+                >
+                  <span className="shrink-0">{Icon.flow}</span>
+                  <span className="flex-1">Citations Flow</span>
+                  <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Pro+</span>
+                </Link>
+              )}
+            </div>
           </>
         ) : (
           <div className="px-4 mt-4">
@@ -330,6 +358,34 @@ export function AppSidebar({
         <SectionLabel>Settings</SectionLabel>
         <div className="px-2 space-y-0.5">
           {showTeam && <NavItem href="/app/team" icon={Icon.team} label="Équipe" active={pathname.startsWith("/app/team")} />}
+          {SLACK_ALLOWED.has(tier) ? (
+            <NavItem href="/app/integrations" icon={Icon.webhook} label="Intégrations" active={pathname.startsWith("/app/integrations")} />
+          ) : (
+            <Link
+              href="/app/billing"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/70 hover:text-navy hover:bg-cream transition rounded-sm"
+              title="Webhooks Slack/Teams réservés Growth+"
+            >
+              <span className="shrink-0">{Icon.webhook}</span>
+              <span className="flex-1">Intégrations</span>
+              <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Growth+</span>
+            </Link>
+          )}
+          {AGENCY_ONLY.has(tier) ? (
+            <NavItem href="/app/api-keys" icon={Icon.apikey} label="API Keys" active={pathname.startsWith("/app/api-keys")} />
+          ) : (
+            <Link
+              href="/app/billing"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/70 hover:text-navy hover:bg-cream transition rounded-sm"
+              title="API REST réservée Agency"
+            >
+              <span className="shrink-0">{Icon.apikey}</span>
+              <span className="flex-1">API Keys</span>
+              <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Agency</span>
+            </Link>
+          )}
           <NavItem href="/app/billing" icon={Icon.billing} label="Abonnement" active={pathname.startsWith("/app/billing")} />
           <NavItem href="/app/brands" icon={Icon.competition} label="Toutes les marques" active={pathname === "/app/brands"} />
           <NavItem href="/app/settings" icon={Icon.settings} label="Réglages" active={pathname.startsWith("/app/settings")} />
