@@ -29,17 +29,22 @@ const TIER_FEATURES: Record<Exclude<SaasTier, "solo">, string[]> = {
   growth: [
     "1 marque", "4 LLMs", "200 prompts / marque",
     "9 topics", "5 seats inclus", "Snapshot hebdo",
-    "Recos IA + alertes email", "Export CSV/PDF", "Sources Explorer",
+    "Recos IA + alertes email", "Sources Explorer",
+    "✨ Sentiment analysis (Brand Health)",
   ],
   pro: [
     "3 marques", "6 LLMs (+ Mistral, Grok)", "200 prompts / marque",
-    "Topics illimités", "Seats illimités", "Snapshot hebdo",
-    "Tout Growth", "Matrice concurrentielle", "Comparaison cross-marques",
+    "Topics illimités", "Seats illimités",
+    "Tout Growth + Sentiment",
+    "✨ Brand Alignment (gap keywords / value props)",
+    "✨ Content Studio (10 drafts/mois)",
+    "Matrice concurrentielle",
   ],
   agency: [
-    "10 marques", "Tous les LLMs", "300 prompts / marque",
-    "Topics illimités", "Seats illimités", "Tout Pro",
-    "White-label", "Support prioritaire",
+    "10 marques", "7 LLMs (+ Llama)", "300 prompts / marque",
+    "Topics illimités", "Seats illimités",
+    "Tout Pro + Content Studio illimité",
+    "White-label + support prioritaire",
   ],
 };
 

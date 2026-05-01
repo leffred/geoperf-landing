@@ -59,6 +59,10 @@ type Props = {
   ownerEmail?: string | null;
 };
 
+// Tier-gating S9
+const SENTIMENT_ALLOWED: ReadonlySet<string> = new Set(["growth", "pro", "agency"]);
+const PRO_FEATURES_ALLOWED: ReadonlySet<string> = new Set(["pro", "agency"]);
+
 // SVG icons compactes pour la sidebar (pas de lib externe)
 const Icon = {
   dashboard: <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3.5 h-3.5"><rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>,
@@ -241,25 +245,73 @@ export function AppSidebar({
 
             <SectionLabel>Brand Health</SectionLabel>
             <div className="px-2 space-y-0.5">
-              <span className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/60 cursor-not-allowed" title="Sentiment analysis (Sprint S9)">
-                <span className="shrink-0">{Icon.sentiment}</span>
-                <span className="flex-1">Sentiment</span>
-                <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Soon</span>
-              </span>
-              <span className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/60 cursor-not-allowed" title="Brand alignment (Sprint S9)">
-                <span className="shrink-0">{Icon.alignment}</span>
-                <span className="flex-1">Alignment</span>
-                <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Soon</span>
-              </span>
+              {SENTIMENT_ALLOWED.has(tier) ? (
+                <NavItem
+                  href={`/app/brands/${currentBrand.id}/sentiment`}
+                  icon={Icon.sentiment}
+                  label="Sentiment"
+                  active={pathname.startsWith(`/app/brands/${currentBrand.id}/sentiment`)}
+                />
+              ) : (
+                <Link
+                  href="/app/billing"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/70 hover:text-navy hover:bg-cream transition rounded-sm"
+                  title="Sentiment réservé Growth+"
+                >
+                  <span className="shrink-0">{Icon.sentiment}</span>
+                  <span className="flex-1">Sentiment</span>
+                  <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Growth+</span>
+                </Link>
+              )}
+              {PRO_FEATURES_ALLOWED.has(tier) ? (
+                <NavItem
+                  href={`/app/brands/${currentBrand.id}/alignment`}
+                  icon={Icon.alignment}
+                  label="Alignment"
+                  active={pathname.startsWith(`/app/brands/${currentBrand.id}/alignment`)}
+                />
+              ) : (
+                <Link
+                  href="/app/billing"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/70 hover:text-navy hover:bg-cream transition rounded-sm"
+                  title="Brand Alignment réservé Pro+"
+                >
+                  <span className="shrink-0">{Icon.alignment}</span>
+                  <span className="flex-1">Alignment</span>
+                  <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Pro+</span>
+                </Link>
+              )}
             </div>
 
             <SectionLabel>Optimization</SectionLabel>
             <div className="px-2 space-y-0.5">
-              <span className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/60 cursor-not-allowed" title="Content Studio (Sprint S9)">
-                <span className="shrink-0">{Icon.studio}</span>
-                <span className="flex-1">Content Studio</span>
-                <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Soon</span>
-              </span>
+              {PRO_FEATURES_ALLOWED.has(tier) ? (
+                <NavItem
+                  href={`/app/brands/${currentBrand.id}/content`}
+                  icon={Icon.studio}
+                  label="Content Studio"
+                  active={pathname.startsWith(`/app/brands/${currentBrand.id}/content`)}
+                />
+              ) : (
+                <Link
+                  href="/app/billing"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-ink-muted/70 hover:text-navy hover:bg-cream transition rounded-sm"
+                  title="Content Studio réservé Pro+"
+                >
+                  <span className="shrink-0">{Icon.studio}</span>
+                  <span className="flex-1">Content Studio</span>
+                  <span className="font-mono text-[9px] uppercase tracking-widest opacity-70">Pro+</span>
+                </Link>
+              )}
+              <NavItem
+                href={`/app/brands/${currentBrand.id}/setup`}
+                icon={Icon.settings}
+                label="Brand Setup"
+                active={pathname.startsWith(`/app/brands/${currentBrand.id}/setup`)}
+              />
             </div>
           </>
         ) : (
