@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { EmptyState } from "@/components/saas/EmptyState";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
@@ -24,16 +25,34 @@ type Gaps = {
 
 function GaugeBar({ score }: { score: number }) {
   const w = Math.max(0, Math.min(100, score));
-  const color = w >= 70 ? "#1D9E75" : w >= 40 ? "#EF9F27" : "#B91C1C";
+  const colorClass = w >= 70 ? "bg-success" : w >= 40 ? "bg-warning" : "bg-danger";
   return (
     <div className="w-full">
-      <div className="h-3 bg-cream overflow-hidden rounded-sm relative">
-        <div className="h-full transition-all duration-500" style={{ width: `${w}%`, background: color }} />
+      <div className="h-3 bg-surface-2 overflow-hidden rounded-full relative">
+        <div className={`h-full transition-all duration-500 ${colorClass}`} style={{ width: `${w}%` }} />
       </div>
-      <div className="flex justify-between mt-1 text-[10px] font-mono text-ink-muted">
+      <div className="flex justify-between mt-1 text-[10px] font-mono text-ink-subtle">
         <span>0</span>
         <span>50</span>
         <span>100</span>
+      </div>
+    </div>
+  );
+}
+
+function PageHeader({ id, brandName, subtitle }: { id: string; brandName: string; subtitle?: React.ReactNode }) {
+  return (
+    <div className="mb-8 flex items-baseline justify-between flex-wrap gap-3">
+      <div>
+        <Eyebrow className="mb-2">
+          <Link href={`/app/brands/${id}`} className="hover:underline">{brandName}</Link>
+          <span className="opacity-50"> / </span>
+          <span>Alignment</span>
+        </Eyebrow>
+        <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+          Brand Health · Alignment
+        </h1>
+        {subtitle && <p className="text-sm text-ink-muted mt-1">{subtitle}</p>}
       </div>
     </div>
   );
@@ -52,15 +71,11 @@ export default async function AlignmentPage({ params }: Props) {
 
   if (!ALLOWED.has(ctx.tier)) {
     return (
-      <Section py="md" tone="cream">
-        <div className="mb-4">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-            <Link href={`/app/brands/${id}`} className="hover:underline">{(brand as any).name}</Link> / Alignment
-          </p>
-          <h1 className="font-serif text-3xl text-navy">Brand Health · Alignment</h1>
-        </div>
+      <Section py="md" tone="white">
+        <PageHeader id={id} brandName={(brand as any).name} />
         <EmptyState
           icon="alerts"
+          eyebrow="Tier verrouillé"
           title="Brand Alignment réservé Pro+"
           body={`Tu es en ${tierLabel(ctx.tier)}. L'analyse alignment compare ce que tu dis (description, keywords, value props) à ce que les LLM disent en réalité, et te montre les gaps + thèmes inattendus.`}
           ctaLabel="Voir les plans"
@@ -76,15 +91,11 @@ export default async function AlignmentPage({ params }: Props) {
 
   if (setupEmpty) {
     return (
-      <Section py="md" tone="cream">
-        <div className="mb-4">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-            <Link href={`/app/brands/${id}`} className="hover:underline">{(brand as any).name}</Link> / Alignment
-          </p>
-          <h1 className="font-serif text-3xl text-navy">Brand Health · Alignment</h1>
-        </div>
+      <Section py="md" tone="white">
+        <PageHeader id={id} brandName={(brand as any).name} />
         <EmptyState
           icon="topics"
+          eyebrow="Setup requis"
           title="Configure d'abord ta marque"
           body="Pour calculer un score d'alignment, on a besoin de ta description, de tes keywords cibles et de tes value props. Va sur la page Setup pour les renseigner."
           ctaLabel="Configurer la marque"
@@ -103,13 +114,8 @@ export default async function AlignmentPage({ params }: Props) {
 
   if (!latest) {
     return (
-      <Section py="md" tone="cream">
-        <div className="mb-4">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-            <Link href={`/app/brands/${id}`} className="hover:underline">{(brand as any).name}</Link> / Alignment
-          </p>
-          <h1 className="font-serif text-3xl text-navy">Brand Health · Alignment</h1>
-        </div>
+      <Section py="md" tone="white">
+        <PageHeader id={id} brandName={(brand as any).name} />
         <EmptyState
           icon="snapshot"
           title="Pas encore d'analyse alignment"
@@ -131,81 +137,87 @@ export default async function AlignmentPage({ params }: Props) {
   const totalVp = matchedVp + (gaps.missing_value_props ?? []).length;
 
   return (
-    <Section py="md" tone="cream">
-      <div className="mb-6 flex items-baseline justify-between flex-wrap gap-3">
-        <div>
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-            <Link href={`/app/brands/${id}`} className="hover:underline">{(brand as any).name}</Link> / Alignment
-          </p>
-          <h1 className="font-serif text-3xl text-navy">Brand Health · Alignment</h1>
-          <p className="text-sm text-ink-muted">
-            Snapshot du {new Date((latest as any).created_at).toLocaleDateString("fr-FR")} ·{" "}
-            <Link href={`/app/brands/${id}/setup`} className="underline">Modifier le setup</Link>
-          </p>
-        </div>
-      </div>
+    <Section py="md" tone="white">
+      <PageHeader
+        id={id}
+        brandName={(brand as any).name}
+        subtitle={
+          <>
+            Snapshot du {new Date((latest as any).created_at).toLocaleDateString("fr-FR")}{" · "}
+            <Link href={`/app/brands/${id}/setup`} className="underline hover:text-ink transition-colors">Modifier le setup</Link>
+          </>
+        }
+      />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Stat label="Alignment score / 100" value={score.toFixed(0)} variant="highlight" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <Stat label="Alignment score / 100" value={score.toFixed(0)} variant="dark" />
         <Stat label="Keywords matchés" value={`${matchedKw} / ${totalKw}`} />
         <Stat label="Value props matchés" value={`${matchedVp} / ${totalVp}`} />
         <Stat label="Themes inattendus" value={String((gaps.unexpected_themes ?? []).length)} />
       </div>
 
-      <div className="bg-white p-5 mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-3">Score d&apos;alignment</p>
+      <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5 mb-8">
+        <Eyebrow className="mb-4">Score d&apos;alignment</Eyebrow>
         <GaugeBar score={score} />
-        {summary && <p className="text-sm mt-4 leading-relaxed">{summary}</p>}
+        {summary && <p className="text-sm text-ink-muted mt-4 leading-relaxed">{summary}</p>}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white p-5">
-          <p className="font-mono text-xs uppercase tracking-widest text-emerald-700 mb-3">Keywords présents dans les LLM ({matchedKw})</p>
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+          <p className="font-mono text-xs uppercase tracking-eyebrow text-success mb-3">
+            Keywords présents dans les LLM ({matchedKw})
+          </p>
           {(gaps.matched_keywords ?? []).length === 0 ? (
             <p className="text-xs text-ink-muted italic">Aucun keyword n&apos;est repris par les LLM.</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {(gaps.matched_keywords ?? []).map(k => (
-                <span key={k} className="font-mono text-[11px] px-2 py-0.5 bg-emerald-50 text-emerald-900 border border-emerald-600/30">{k}</span>
+                <span key={k} className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-emerald-50 text-success border border-success/20">{k}</span>
               ))}
             </div>
           )}
         </div>
-        <div className="bg-white p-5">
-          <p className="font-mono text-xs uppercase tracking-widest text-red-700 mb-3">Keywords absents ({(gaps.missing_keywords ?? []).length})</p>
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+          <p className="font-mono text-xs uppercase tracking-eyebrow text-danger mb-3">
+            Keywords absents ({(gaps.missing_keywords ?? []).length})
+          </p>
           {(gaps.missing_keywords ?? []).length === 0 ? (
             <p className="text-xs text-ink-muted italic">Tous tes keywords sont repris.</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {(gaps.missing_keywords ?? []).map(k => (
-                <span key={k} className="font-mono text-[11px] px-2 py-0.5 bg-red-50 text-red-900 border border-red-600/30">{k}</span>
+                <span key={k} className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-red-50 text-danger border border-danger/20">{k}</span>
               ))}
             </div>
           )}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white p-5">
-          <p className="font-mono text-xs uppercase tracking-widest text-emerald-700 mb-3">Value props matchés ({matchedVp})</p>
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+          <p className="font-mono text-xs uppercase tracking-eyebrow text-success mb-3">
+            Value props matchés ({matchedVp})
+          </p>
           {(gaps.matched_value_props ?? []).length === 0 ? (
             <p className="text-xs text-ink-muted italic">Aucune value prop reprise.</p>
           ) : (
             <ul className="space-y-1.5 text-sm">
               {(gaps.matched_value_props ?? []).map((v, i) => (
-                <li key={i} className="leading-snug border-l-2 border-emerald-600 pl-2 text-emerald-900">{v}</li>
+                <li key={i} className="leading-snug border-l-2 border-success pl-3 text-ink">{v}</li>
               ))}
             </ul>
           )}
         </div>
-        <div className="bg-white p-5">
-          <p className="font-mono text-xs uppercase tracking-widest text-red-700 mb-3">Value props absents ({(gaps.missing_value_props ?? []).length})</p>
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+          <p className="font-mono text-xs uppercase tracking-eyebrow text-danger mb-3">
+            Value props absents ({(gaps.missing_value_props ?? []).length})
+          </p>
           {(gaps.missing_value_props ?? []).length === 0 ? (
             <p className="text-xs text-ink-muted italic">Tous repris.</p>
           ) : (
             <ul className="space-y-1.5 text-sm">
               {(gaps.missing_value_props ?? []).map((v, i) => (
-                <li key={i} className="leading-snug border-l-2 border-red-600 pl-2 text-red-900">{v}</li>
+                <li key={i} className="leading-snug border-l-2 border-danger pl-3 text-ink">{v}</li>
               ))}
             </ul>
           )}
@@ -213,12 +225,16 @@ export default async function AlignmentPage({ params }: Props) {
       </div>
 
       {(gaps.unexpected_themes ?? []).length > 0 && (
-        <div className="bg-white p-5">
-          <p className="font-mono text-xs uppercase tracking-widest text-amber mb-2">Thèmes inattendus ({(gaps.unexpected_themes ?? []).length})</p>
-          <p className="text-xs text-ink-muted mb-3">Sujets récurrents dans les réponses LLM, absents de ta description. Soit à intégrer, soit à corriger en relations presse.</p>
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+          <p className="font-mono text-xs uppercase tracking-eyebrow text-warning mb-2">
+            Thèmes inattendus ({(gaps.unexpected_themes ?? []).length})
+          </p>
+          <p className="text-xs text-ink-muted mb-3">
+            Sujets récurrents dans les réponses LLM, absents de ta description. Soit à intégrer, soit à corriger en relations presse.
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {(gaps.unexpected_themes ?? []).map((t, i) => (
-              <span key={i} className="font-mono text-[11px] px-2 py-0.5 bg-amber/30 text-navy border border-amber">{t}</span>
+              <span key={i} className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-amber/15 text-warning border border-warning/30">{t}</span>
             ))}
           </div>
         </div>

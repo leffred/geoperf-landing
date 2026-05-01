@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Stat } from "@/components/ui/Card";
 import { getAdminUser } from "@/lib/supabase-server-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { SignupsBarChart, TierDonut } from "@/components/saas/AdminCharts";
@@ -11,6 +13,12 @@ import { logout } from "../login/actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin SaaS — Geoperf", robots: { index: false, follow: false } };
+
+const STATUS_BADGE: Record<string, string> = {
+  completed: "bg-emerald-50 text-success",
+  failed: "bg-red-50 text-danger",
+  running: "bg-brand-50 text-brand-600",
+};
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "—";
@@ -20,6 +28,12 @@ function fmtUsd(n: number | null): string {
   if (n === null || n === undefined) return "—";
   return `$${Number(n).toFixed(2)}`;
 }
+
+const ADMIN_TABS = [
+  { href: "/admin/saas", label: "Overview" },
+  { href: "/admin/saas/snapshots", label: "Snapshots" },
+  { href: "/admin/saas/cron", label: "Cron" },
+];
 
 export default async function AdminSaasPage() {
   const user = await getAdminUser();
@@ -43,100 +57,99 @@ export default async function AdminSaasPage() {
   const headerRight = (
     <div className="flex items-center gap-3">
       <span className="font-mono text-xs text-ink-muted hidden sm:inline">{user.email}</span>
-      <Link href="/admin" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy">Outreach</Link>
+      <Link
+        href="/admin"
+        className="font-mono text-xs px-3 py-1.5 rounded-md bg-surface hover:bg-surface-2 text-ink transition-colors"
+      >
+        Outreach
+      </Link>
       <form action={logout}>
-        <button type="submit" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy transition">Logout</button>
+        <button
+          type="submit"
+          className="font-mono text-xs px-3 py-1.5 rounded-md bg-surface hover:bg-surface-2 text-ink transition-colors"
+        >
+          Logout
+        </button>
       </form>
     </div>
   );
 
   return (
-    <main className="min-h-screen flex flex-col bg-cream">
+    <main className="min-h-screen flex flex-col bg-white">
       <Header rightSlot={headerRight} />
 
-      <nav className="bg-white border-b border-navy/10 px-8">
+      <nav className="bg-white border-b border-DEFAULT px-6 md:px-8">
         <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto">
-          {[
-            { href: "/admin/saas", label: "Overview" },
-            { href: "/admin/saas/snapshots", label: "Snapshots" },
-            { href: "/admin/saas/cron", label: "Cron" },
-          ].map(item => (
-            <Link key={item.href} href={item.href}
-              className="px-4 py-3 text-sm font-medium text-navy hover:bg-cream transition border-b-2 border-transparent hover:border-amber whitespace-nowrap">
+          {ADMIN_TABS.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="px-4 py-3 text-sm font-medium text-ink hover:bg-surface transition-colors border-b-2 border-transparent hover:border-brand-500 whitespace-nowrap"
+            >
               {item.label}
             </Link>
           ))}
         </div>
       </nav>
 
-      <Section py="md" tone="cream">
-        <div className="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+      <Section py="md" tone="white">
+        <div className="flex items-baseline justify-between mb-8 flex-wrap gap-3">
           <div>
-            <p className="font-mono text-xs tracking-widest text-navy-light uppercase">Admin SaaS</p>
-            <h1 className="font-serif text-3xl text-navy">Vue d&apos;ensemble</h1>
+            <Eyebrow className="mb-2">Admin SaaS</Eyebrow>
+            <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+              Vue d&apos;ensemble
+            </h1>
           </div>
-          <p className="text-xs text-ink-muted font-mono">{new Date().toLocaleString("fr-FR")}</p>
+          <p className="text-xs text-ink-subtle font-mono">{new Date().toLocaleString("fr-FR")}</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-navy text-white p-4">
-            <div className="font-serif text-3xl font-medium">{k.signups_30d}</div>
-            <div className="text-xs opacity-80 mt-1">Signups 30j</div>
-            <div className="text-[10px] opacity-60 mt-0.5 font-mono">{k.signups_total} total</div>
-          </div>
-          <div className="bg-amber p-4">
-            <div className="font-serif text-3xl font-medium text-navy">{k.active_paid_subs}</div>
-            <div className="text-xs text-navy mt-1">Subs payantes</div>
-            <div className="text-[10px] text-navy/70 mt-0.5 font-mono">{k.active_free_subs} free</div>
-          </div>
-          <div className="bg-cream p-4 border border-navy/10">
-            <div className="font-serif text-3xl font-medium text-navy">{Number(k.mrr_eur).toFixed(0)}€</div>
-            <div className="text-xs text-ink-muted mt-1">MRR (€/mois)</div>
-            <div className="text-[10px] text-ink-muted mt-0.5 font-mono">ARR ~{(Number(k.mrr_eur) * 12).toFixed(0)}€</div>
-          </div>
-          <div className="bg-cream p-4 border border-navy/10">
-            <div className="font-serif text-3xl font-medium text-navy">{fmtUsd(k.llm_cost_30d_usd)}</div>
-            <div className="text-xs text-ink-muted mt-1">Coût LLM 30j</div>
-            <div className="text-[10px] text-ink-muted mt-0.5 font-mono">{k.snapshots_30d} snapshots · {k.emails_sent_30d} emails</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Stat label="Signups 30j" value={String(k.signups_30d)} hint={`${k.signups_total} total`} variant="dark" />
+          <Stat label="Subs payantes" value={String(k.active_paid_subs)} hint={`${k.active_free_subs} free`} />
+          <Stat label="MRR (€/mois)" value={`${Number(k.mrr_eur).toFixed(0)}€`} hint={`ARR ~${(Number(k.mrr_eur) * 12).toFixed(0)}€`} />
+          <Stat label="Coût LLM 30j" value={fmtUsd(k.llm_cost_30d_usd)} hint={`${k.snapshots_30d} snapshots · ${k.emails_sent_30d} emails`} />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-4 mb-6">
+        <div className="grid lg:grid-cols-2 gap-6">
           <SignupsBarChart points={signupsList} />
           <TierDonut slices={tierList} />
         </div>
       </Section>
 
-      <Section py="md" tone="white">
-        <div className="flex items-baseline justify-between mb-3">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">Top 10 users · coût 30j</p>
-          <Link href="/admin/saas/snapshots" className="font-mono text-xs text-ink-muted hover:text-navy underline">Snapshots →</Link>
+      <Section py="md" tone="surface">
+        <div className="flex items-baseline justify-between mb-4">
+          <Eyebrow>Top 10 users · coût 30j</Eyebrow>
+          <Link href="/admin/saas/snapshots" className="font-mono text-xs text-ink-muted hover:text-ink underline transition-colors">
+            Snapshots →
+          </Link>
         </div>
-        <div className="overflow-x-auto">
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs text-ink-muted border-b border-navy/15">
+            <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
               <tr>
-                <th className="text-left py-2 px-3">Email</th>
-                <th className="text-left py-2 px-3 hidden md:table-cell">Société</th>
-                <th className="text-left py-2 px-3">Tier</th>
-                <th className="text-right py-2 px-3">Marques</th>
-                <th className="text-right py-2 px-3">Snapshots 30j</th>
-                <th className="text-right py-2 px-3">Coût 30j</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Email</th>
+                <th className="text-left py-3 px-3 hidden md:table-cell font-mono uppercase tracking-eyebrow">Société</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Tier</th>
+                <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Marques</th>
+                <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Snapshots 30j</th>
+                <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Coût 30j</th>
               </tr>
             </thead>
             <tbody>
               {topUsersList.map(u => (
-                <tr key={u.user_id} className="border-b border-navy/5 hover:bg-cream/50">
+                <tr key={u.user_id} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface transition-colors">
                   <td className="py-2 px-3">
-                    <Link href={`/admin/saas/users/${u.user_id}`} className="font-medium text-navy hover:underline">
+                    <Link href={`/admin/saas/users/${u.user_id}`} className="font-medium text-ink hover:text-brand-500 transition-colors">
                       {u.email}
                     </Link>
                   </td>
                   <td className="py-2 px-3 hidden md:table-cell text-xs text-ink-muted">{u.company || "—"}</td>
-                  <td className="py-2 px-3 text-xs">{u.tier ? <span className="font-mono uppercase">{u.tier}</span> : <span className="text-ink-muted">—</span>}</td>
-                  <td className="py-2 px-3 text-right font-mono">{u.brands_count}</td>
-                  <td className="py-2 px-3 text-right font-mono">{u.snapshots_30d}</td>
-                  <td className="py-2 px-3 text-right font-mono">{fmtUsd(u.cost_30d_usd)}</td>
+                  <td className="py-2 px-3 text-xs">
+                    {u.tier ? <span className="font-mono uppercase text-ink">{u.tier}</span> : <span className="text-ink-subtle">—</span>}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{u.brands_count}</td>
+                  <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{u.snapshots_30d}</td>
+                  <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{fmtUsd(u.cost_30d_usd)}</td>
                 </tr>
               ))}
               {topUsersList.length === 0 && (
@@ -147,37 +160,47 @@ export default async function AdminSaasPage() {
         </div>
       </Section>
 
-      <Section py="md" tone="cream">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">20 derniers snapshots</p>
-        <div className="bg-white overflow-x-auto">
+      <Section py="md" tone="white">
+        <Eyebrow className="mb-4">20 derniers snapshots</Eyebrow>
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs text-ink-muted border-b border-navy/15">
+            <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
               <tr>
-                <th className="text-left py-2 px-3">Date</th>
-                <th className="text-left py-2 px-3">Marque</th>
-                <th className="text-left py-2 px-3 hidden md:table-cell">User</th>
-                <th className="text-left py-2 px-3">Status</th>
-                <th className="text-right py-2 px-3">Score</th>
-                <th className="text-right py-2 px-3 hidden md:table-cell">Durée</th>
-                <th className="text-right py-2 px-3">Coût</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Date</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Marque</th>
+                <th className="text-left py-3 px-3 hidden md:table-cell font-mono uppercase tracking-eyebrow">User</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Status</th>
+                <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Score</th>
+                <th className="text-right py-3 px-3 hidden md:table-cell font-mono uppercase tracking-eyebrow">Durée</th>
+                <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Coût</th>
               </tr>
             </thead>
             <tbody>
               {recentList.map(s => (
-                <tr key={s.id} className="border-b border-navy/5 hover:bg-cream/50">
-                  <td className="py-2 px-3 font-mono text-xs">{fmtDate(s.created_at)}</td>
+                <tr key={s.id} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface transition-colors">
+                  <td className="py-2 px-3 font-mono text-xs text-ink-muted">{fmtDate(s.created_at)}</td>
                   <td className="py-2 px-3">
-                    <Link href={`/admin/saas/users/${s.user_id}`} className="text-navy hover:underline">{s.brand_name}</Link>
-                    <div className="text-[10px] text-ink-muted font-mono">{s.brand_domain}</div>
+                    <Link href={`/admin/saas/users/${s.user_id}`} className="text-ink hover:text-brand-500 transition-colors">
+                      {s.brand_name}
+                    </Link>
+                    <div className="text-[10px] text-ink-subtle font-mono">{s.brand_domain}</div>
                   </td>
                   <td className="py-2 px-3 hidden md:table-cell text-xs text-ink-muted">{s.user_email}</td>
                   <td className="py-2 px-3">
-                    <span className={`text-xs px-2 py-0.5 ${s.status === "completed" ? "bg-green-100 text-green-800" : s.status === "failed" ? "bg-red-100 text-red-800" : s.status === "running" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-700"}`}>{s.status}</span>
-                    {s.error_message && <span className="block text-[10px] text-red-600 mt-0.5 truncate max-w-[140px]" title={s.error_message}>{s.error_message}</span>}
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono uppercase tracking-eyebrow ${STATUS_BADGE[s.status] || "bg-surface text-ink-subtle"}`}>
+                      {s.status}
+                    </span>
+                    {s.error_message && (
+                      <span className="block text-[10px] text-danger mt-0.5 truncate max-w-[140px]" title={s.error_message}>
+                        {s.error_message}
+                      </span>
+                    )}
                   </td>
-                  <td className="py-2 px-3 text-right font-mono">{s.visibility_score?.toFixed?.(0) ?? "—"}</td>
-                  <td className="py-2 px-3 text-right font-mono hidden md:table-cell text-xs">{s.duration_seconds ? `${Math.round(s.duration_seconds)}s` : "—"}</td>
-                  <td className="py-2 px-3 text-right font-mono text-xs">{fmtUsd(s.total_cost_usd)}</td>
+                  <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{s.visibility_score?.toFixed?.(0) ?? "—"}</td>
+                  <td className="py-2 px-3 text-right font-mono hidden md:table-cell text-xs text-ink-muted tabular-nums">
+                    {s.duration_seconds ? `${Math.round(s.duration_seconds)}s` : "—"}
+                  </td>
+                  <td className="py-2 px-3 text-right font-mono text-xs text-ink-muted tabular-nums">{fmtUsd(s.total_cost_usd)}</td>
                 </tr>
               ))}
               {recentList.length === 0 && (

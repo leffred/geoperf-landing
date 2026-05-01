@@ -1,34 +1,24 @@
-// Panel "Top 10" réutilisable. Spec : S8.2
-// Liste numérotée 1-10 avec barre de progression colorée.
+// Panel "Top 10". Style DS — Card + barres brand-500.
 
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 export type TopRow = {
-  /** Identifier unique (key) */
   id: string;
-  /** Texte principal de la row */
   label: string;
-  /** Sous-titre optionnel (ex: "AXA · axa.fr") */
   sublabel?: string;
-  /** Métrique numérique pour la barre + display */
   value: number;
-  /** Texte de la métrique affichée (ex: "78%", "12 mentions") */
   display?: string;
-  /** Si href fourni, la row devient un Link */
   href?: string;
-  /** Couleur de la barre (default = navy) */
-  color?: string;
+  /** Classe Tailwind pour la barre — défaut: bg-brand-500 */
+  colorClass?: string;
 };
 
 type Props = {
   title: string;
   rows: TopRow[];
-  /** Nb max de rows affichées (default 10) */
   limit?: number;
-  /** Action à droite du title (ex: "Voir tout →") */
   rightSlot?: ReactNode;
-  /** Texte affiché si rows vide */
   emptyText?: string;
 };
 
@@ -37,9 +27,9 @@ export function TopPanel({ title, rows, limit = 10, rightSlot, emptyText = "Pas 
   const max = Math.max(1, ...top.map(r => r.value));
 
   return (
-    <div className="bg-white p-5">
-      <div className="flex items-baseline justify-between mb-3 gap-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-navy-light">{title}</p>
+    <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+      <div className="flex items-baseline justify-between mb-4 gap-3">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500">{title}</p>
         {rightSlot}
       </div>
       {top.length === 0 ? (
@@ -50,25 +40,38 @@ export function TopPanel({ title, rows, limit = 10, rightSlot, emptyText = "Pas 
             const pct = (r.value / max) * 100;
             const inner = (
               <div className="flex items-baseline gap-3">
-                <span className="font-mono text-[10px] text-ink-muted w-5 shrink-0 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-mono text-[10px] text-ink-subtle w-5 shrink-0 tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2 mb-1">
-                    <span className="text-xs text-navy truncate">{r.label}</span>
-                    <span className="font-mono text-[11px] text-ink-muted shrink-0">{r.display ?? r.value}</span>
+                    <span className="text-xs text-ink truncate">{r.label}</span>
+                    <span className="font-mono text-[11px] text-ink-muted shrink-0 tabular-nums">
+                      {r.display ?? r.value}
+                    </span>
                   </div>
-                  <div className="h-1.5 bg-cream overflow-hidden rounded-sm">
+                  <div className="h-1.5 bg-surface-2 overflow-hidden rounded-full">
                     <div
-                      className="h-full transition-all duration-300"
-                      style={{ width: `${pct.toFixed(1)}%`, background: r.color ?? "#042C53" }}
+                      className={`h-full transition-all duration-300 ease-out rounded-full ${r.colorClass ?? "bg-brand-500"}`}
+                      style={{ width: `${pct.toFixed(1)}%` }}
                     />
                   </div>
-                  {r.sublabel && <div className="text-[10px] text-ink-muted mt-0.5 truncate font-mono">{r.sublabel}</div>}
+                  {r.sublabel && (
+                    <div className="text-[10px] text-ink-subtle mt-0.5 truncate font-mono">
+                      {r.sublabel}
+                    </div>
+                  )}
                 </div>
               </div>
             );
             return r.href ? (
               <li key={r.id}>
-                <Link href={r.href} className="block py-1 hover:bg-cream/50 -mx-2 px-2 rounded-sm">{inner}</Link>
+                <Link
+                  href={r.href}
+                  className="block py-1 px-2 -mx-2 rounded-md hover:bg-surface transition-colors duration-150 ease-out"
+                >
+                  {inner}
+                </Link>
               </li>
             ) : (
               <li key={r.id} className="py-1">{inner}</li>

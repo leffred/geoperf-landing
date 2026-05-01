@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/saas/EmptyState";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
@@ -19,6 +21,9 @@ const ERROR_LABELS: Record<string, string> = {
   insert_failed: "Impossible de créer la clé.",
 };
 
+const FIELD_LABEL = "block text-xs font-mono uppercase tracking-eyebrow text-ink-subtle mb-1.5";
+const FIELD_INPUT = "w-full text-sm bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none transition-colors duration-150 ease-out";
+
 type Props = { searchParams: Promise<{ error?: string; created?: string; revoked?: string }> };
 
 const ALLOWED = new Set(["agency"]);
@@ -28,23 +33,24 @@ export default async function ApiKeysPage({ searchParams }: Props) {
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  // Lecture du cookie pour afficher la clé full créée à l'instant (one-shot)
   const cookieStore = await cookies();
   const justCreated = cookieStore.get("saas_api_key_just_created")?.value;
   if (justCreated) {
-    // On consomme le cookie en le supprimant côté server
     cookieStore.set({ name: "saas_api_key_just_created", value: "", maxAge: 0, path: "/app/api-keys" });
   }
 
   if (!ALLOWED.has(ctx.tier)) {
     return (
-      <Section py="md" tone="cream">
-        <div className="mb-4">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">API Keys</p>
-          <h1 className="font-serif text-3xl text-navy">API REST publique</h1>
+      <Section py="md" tone="white">
+        <div className="mb-8">
+          <Eyebrow className="mb-2">API Keys</Eyebrow>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+            API REST publique
+          </h1>
         </div>
         <EmptyState
           icon="topics"
+          eyebrow="Tier verrouillé"
           title="API REST réservée au plan Agency"
           body={`Tu es en ${tierLabel(ctx.tier)}. L'API REST permet d'intégrer Geoperf à ton stack interne (Looker, Tableau, scripts) avec auth Bearer + rate limit 60 req/min.`}
           ctaLabel="Voir les plans"
@@ -66,58 +72,74 @@ export default async function ApiKeysPage({ searchParams }: Props) {
   const activeKeys = list.filter(k => !k.revoked_at);
 
   return (
-    <Section py="md" tone="cream">
-      <div className="mb-6 flex items-baseline justify-between flex-wrap gap-3">
+    <Section py="md" tone="white">
+      <div className="mb-8 flex items-baseline justify-between flex-wrap gap-3">
         <div>
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">API Keys</p>
-          <h1 className="font-serif text-3xl text-navy">API REST publique</h1>
-          <p className="text-sm text-ink-muted">
-            Clés Bearer pour ton intégration custom. Format : <code className="font-mono">gp_live_xxxxxxxxxxxxxxxxxxxxxxxx</code>. Rate limit : 60 req/min/clé.
+          <Eyebrow className="mb-2">API Keys</Eyebrow>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+            API REST publique
+          </h1>
+          <p className="text-sm text-ink-muted mt-1">
+            Clés Bearer pour ton intégration custom. Format :{" "}
+            <code className="font-mono">gp_live_xxxxxxxxxxxxxxxxxxxxxxxx</code>. Rate limit : 60 req/min/clé.
           </p>
         </div>
-        <Link href="/saas/api-docs" target="_blank" className="bg-cream border border-navy/15 text-navy px-4 py-2 text-sm font-medium hover:bg-navy/5 transition">
-          Documentation API ↗
-        </Link>
+        <Button href="/saas/api-docs" variant="secondary" size="md">Documentation API ↗</Button>
       </div>
 
       {sp.created === "1" && justCreated && (
-        <div className="mb-6 p-5 bg-amber/20 border-l-2 border-amber">
-          <p className="font-mono text-xs uppercase tracking-widest text-navy mb-2">Clé créée — copie-la maintenant</p>
-          <p className="text-sm text-navy mb-3">Cette clé ne s&apos;affichera plus jamais. Stocke-la dans un secret manager (1Password, Doppler, AWS Secrets Manager…) avant de quitter cette page.</p>
-          <pre className="bg-white p-3 font-mono text-xs text-navy overflow-x-auto border border-navy/10 select-all">{justCreated}</pre>
+        <div className="mb-6 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 p-5">
+          <Eyebrow className="mb-2 text-brand-600">Clé créée — copie-la maintenant</Eyebrow>
+          <p className="text-sm text-ink mb-3">
+            Cette clé ne s&apos;affichera plus jamais. Stocke-la dans un secret manager (1Password, Doppler, AWS Secrets Manager…) avant de quitter cette page.
+          </p>
+          <pre className="bg-white p-3 font-mono text-xs text-ink overflow-x-auto rounded-md border border-DEFAULT select-all">
+            {justCreated}
+          </pre>
         </div>
       )}
-      {sp.revoked === "1" && <div className="mb-4 px-4 py-3 bg-cream border-l-2 border-navy/20 text-sm text-ink-muted">Clé révoquée. Les requêtes avec cette clé seront refusées immédiatement.</div>}
-      {errorMsg && <div className="mb-4 px-4 py-3 bg-red-50 border-l-2 border-red-600 text-sm text-red-900">{errorMsg}</div>}
+      {sp.revoked === "1" && (
+        <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-ink/15 bg-surface px-4 py-3 text-sm text-ink-muted">
+          Clé révoquée. Les requêtes avec cette clé seront refusées immédiatement.
+        </div>
+      )}
+      {errorMsg && (
+        <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-danger bg-white px-4 py-3 text-sm text-danger">
+          {errorMsg}
+        </div>
+      )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <Stat label="Clés actives" value={`${activeKeys.length} / 10`} variant="highlight" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <Stat label="Clés actives" value={`${activeKeys.length} / 10`} variant="dark" />
         <Stat label="Usage cumulé" value={String(activeKeys.reduce((s, k) => s + (k.use_count ?? 0), 0))} />
-        <Stat label="Plan" value={ctx.tier.toUpperCase()} variant="highlight" />
+        <Stat label="Plan" value={ctx.tier.toUpperCase()} variant="dark" />
         <Stat label="Rate limit" value="60/min" />
       </div>
 
       {ctx.is_owner && (
-        <div className="bg-white p-6 mb-6">
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-3">Créer une clé</p>
+        <Card variant="default" className="mb-8">
+          <Eyebrow className="mb-4">Créer une clé</Eyebrow>
           <form action={createApiKey} className="space-y-4">
             <div>
-              <label className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Nom (pour repérer la clé)</label>
-              <input name="name" type="text" required maxLength={100} placeholder="ex: Looker prod / Script ETL daily / Notion automations"
-                className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none" />
+              <label className={FIELD_LABEL}>Nom (pour repérer la clé)</label>
+              <input
+                name="name" type="text" required maxLength={100}
+                placeholder="ex: Looker prod / Script ETL daily / Notion automations"
+                className={FIELD_INPUT}
+              />
             </div>
             <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" name="write" className="mt-1 w-4 h-4 accent-navy" />
+              <input type="checkbox" name="write" className="mt-1 w-4 h-4 accent-brand-500" />
               <span className="text-sm text-ink">
                 <span className="font-medium">Activer scope <code className="font-mono">write</code></span>
-                <span className="block text-xs text-ink-muted mt-0.5">Permet POST /v1/brands/:id/snapshots (déclencher un snapshot via API). Sans cette case, la clé est read-only.</span>
+                <span className="block text-xs text-ink-muted mt-0.5">
+                  Permet POST /v1/brands/:id/snapshots (déclencher un snapshot via API). Sans cette case, la clé est read-only.
+                </span>
               </span>
             </label>
-            <button type="submit" className="bg-navy text-white px-5 py-2.5 text-sm font-medium hover:bg-navy-light transition">
-              Créer une clé API
-            </button>
+            <Button type="submit" variant="primary" size="md">Créer une clé API</Button>
           </form>
-        </div>
+        </Card>
       )}
 
       {list.length === 0 ? (
@@ -127,39 +149,50 @@ export default async function ApiKeysPage({ searchParams }: Props) {
           body={ctx.is_owner ? "Génère ta 1re clé ci-dessus pour commencer à intégrer Geoperf à ton stack." : "Le propriétaire du compte gère les clés API."}
         />
       ) : (
-        <div className="bg-white overflow-x-auto">
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs text-ink-muted border-b border-navy/15">
+            <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
               <tr>
-                <th className="text-left py-2 px-3">Nom</th>
-                <th className="text-left py-2 px-3">Préfixe</th>
-                <th className="text-left py-2 px-3">Scopes</th>
-                <th className="text-right py-2 px-3">Calls</th>
-                <th className="text-left py-2 px-3 hidden md:table-cell">Dernier appel</th>
-                <th className="text-left py-2 px-3 hidden md:table-cell">Créée</th>
-                <th className="text-left py-2 px-3">Status</th>
-                <th className="text-right py-2 px-3"></th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Nom</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Préfixe</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Scopes</th>
+                <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Calls</th>
+                <th className="text-left py-3 px-3 hidden md:table-cell font-mono uppercase tracking-eyebrow">Dernier appel</th>
+                <th className="text-left py-3 px-3 hidden md:table-cell font-mono uppercase tracking-eyebrow">Créée</th>
+                <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Status</th>
+                <th className="text-right py-3 px-3"></th>
               </tr>
             </thead>
             <tbody>
               {list.map(k => {
                 const revoked = !!k.revoked_at;
                 return (
-                  <tr key={k.id} className={`border-b border-navy/5 ${revoked ? "opacity-50" : ""}`}>
-                    <td className="py-2 px-3 text-navy">{k.name}</td>
+                  <tr key={k.id} className={`border-b border-DEFAULT last:border-b-0 ${revoked ? "opacity-50" : ""}`}>
+                    <td className="py-2 px-3 text-ink">{k.name}</td>
                     <td className="py-2 px-3 font-mono text-xs text-ink-muted">{k.key_prefix}…</td>
                     <td className="py-2 px-3">
                       <div className="flex gap-1">
                         {(k.scopes as string[]).map(s => (
-                          <span key={s} className={`text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 ${s === "write" ? "bg-amber text-navy" : "bg-navy/10 text-navy"}`}>{s}</span>
+                          <span
+                            key={s}
+                            className={`text-[10px] font-mono uppercase tracking-eyebrow px-1.5 py-0.5 rounded-md ${
+                              s === "write" ? "bg-brand-500 text-white" : "bg-surface text-ink-muted"
+                            }`}
+                          >
+                            {s}
+                          </span>
                         ))}
                       </div>
                     </td>
-                    <td className="py-2 px-3 text-right font-mono">{k.use_count ?? 0}</td>
-                    <td className="py-2 px-3 hidden md:table-cell font-mono text-xs">{k.last_used_at ? new Date(k.last_used_at).toLocaleString("fr-FR") : "—"}</td>
-                    <td className="py-2 px-3 hidden md:table-cell font-mono text-xs">{new Date(k.created_at).toLocaleDateString("fr-FR")}</td>
+                    <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{k.use_count ?? 0}</td>
+                    <td className="py-2 px-3 hidden md:table-cell font-mono text-xs text-ink-muted">
+                      {k.last_used_at ? new Date(k.last_used_at).toLocaleString("fr-FR") : "—"}
+                    </td>
+                    <td className="py-2 px-3 hidden md:table-cell font-mono text-xs text-ink-muted">
+                      {new Date(k.created_at).toLocaleDateString("fr-FR")}
+                    </td>
                     <td className="py-2 px-3">
-                      <span className={`text-xs px-2 py-0.5 ${revoked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono uppercase tracking-eyebrow ${revoked ? "bg-red-50 text-danger" : "bg-emerald-50 text-success"}`}>
                         {revoked ? `révoquée ${new Date(k.revoked_at).toLocaleDateString("fr-FR")}` : "active"}
                       </span>
                     </td>
@@ -167,7 +200,9 @@ export default async function ApiKeysPage({ searchParams }: Props) {
                       {!revoked && ctx.is_owner && (
                         <form action={revokeApiKey}>
                           <input type="hidden" name="id" value={k.id} />
-                          <button type="submit" className="text-xs text-ink-muted hover:text-red-600 underline">Révoquer</button>
+                          <button type="submit" className="text-xs text-ink-muted hover:text-danger underline transition-colors">
+                            Révoquer
+                          </button>
                         </form>
                       )}
                     </td>
@@ -179,7 +214,7 @@ export default async function ApiKeysPage({ searchParams }: Props) {
         </div>
       )}
 
-      <p className="text-xs text-ink-muted mt-6">
+      <p className="text-xs text-ink-subtle mt-8">
         Note : la clé full n&apos;est jamais re-affichée après création. Stocke-la dans un secret manager. Si tu la perds, révoque-la et créée-en une nouvelle.
         <br />
         Endpoint API : <code className="font-mono">https://qfdvdcvqknoqfxetttch.supabase.co/functions/v1/saas_api_v1_router/v1/...</code>

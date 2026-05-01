@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { TopicSelector } from "@/components/saas/TopicSelector";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
@@ -20,6 +21,22 @@ const LLM_LABELS: Record<string, string> = {
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ llm?: string; topic?: string }> };
 
+function Header({ id, brandName, subtitle }: { id: string; brandName: string; subtitle?: string }) {
+  return (
+    <div className="mb-6">
+      <Eyebrow className="mb-2">
+        <Link href={`/app/brands/${id}`} className="hover:underline">{brandName}</Link>
+        <span className="opacity-50"> / </span>
+        <span>Sources Explorer</span>
+      </Eyebrow>
+      <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+        Sources Explorer
+      </h1>
+      {subtitle && <p className="text-sm text-ink-muted mt-1">{subtitle}</p>}
+    </div>
+  );
+}
+
 export default async function SourcesPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { llm: llmFilter, topic: topicFilter } = await searchParams;
@@ -37,7 +54,6 @@ export default async function SourcesPage({ params, searchParams }: Props) {
     .order("created_at", { ascending: true });
   const topicList = (topicsData as any[] | null) ?? [];
 
-  // Load responses sur les snapshots de la brand (limit 30 derniers snapshots completed)
   let snapshotsQuery = sb
     .from("saas_brand_snapshots")
     .select("id, topic_id, created_at")
@@ -49,14 +65,11 @@ export default async function SourcesPage({ params, searchParams }: Props) {
 
   if (snapshotIds.length === 0) {
     return (
-      <Section py="md" tone="cream">
-        <div className="mb-4">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-            <Link href={`/app/brands/${id}`} className="hover:underline">{brand.name}</Link> / Sources Explorer
-          </p>
-          <h1 className="font-serif text-3xl text-navy">Sources Explorer</h1>
+      <Section py="md" tone="white">
+        <Header id={id} brandName={brand.name} />
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-10 text-center text-ink-muted text-sm">
+          Aucun snapshot completed. Lance un run pour explorer les sources.
         </div>
-        <div className="bg-white p-8 text-center text-ink-muted text-sm">Aucun snapshot completed. Lance un run pour explorer les sources.</div>
       </Section>
     );
   }
@@ -70,7 +83,6 @@ export default async function SourcesPage({ params, searchParams }: Props) {
   const { data: responses } = await respQuery;
   const respList = (responses as any[] | null) ?? [];
 
-  // Aggrégation : domain → { count, llms: Set, citations: number, topics: Set }
   type DomainAgg = { domain: string; count: number; llms: Set<string>; citations: number; topics: Set<string>; example_url: string };
   const domainMap: Record<string, DomainAgg> = {};
   for (const r of respList) {
@@ -83,7 +95,7 @@ export default async function SourcesPage({ params, searchParams }: Props) {
       domainMap[dom].llms.add(r.llm);
       domainMap[dom].citations += 1;
       if (!seenInThisResponse.has(dom)) {
-        domainMap[dom].count += 1; // unique sur la réponse
+        domainMap[dom].count += 1;
         seenInThisResponse.add(dom);
       }
       if (!domainMap[dom].example_url && s.url) domainMap[dom].example_url = s.url;
@@ -93,64 +105,73 @@ export default async function SourcesPage({ params, searchParams }: Props) {
   const top = Object.values(domainMap).sort((a, b) => b.citations - a.citations).slice(0, 50);
   const totalDomains = Object.keys(domainMap).length;
 
-  // Distinct LLMs vus dans les responses (pour le filtre)
   const llmsPresent = Array.from(new Set(respList.map(r => r.llm as string))).sort();
 
   return (
-    <Section py="md" tone="cream">
-      <div className="mb-4">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-          <Link href={`/app/brands/${id}`} className="hover:underline">{brand.name}</Link> / Sources Explorer
-        </p>
-        <h1 className="font-serif text-3xl text-navy">Sources Explorer</h1>
-        <p className="text-sm text-ink-muted">
-          {totalDomains} domains uniques cités sur {respList.length} réponses LLM ({snapshotIds.length} snapshots récents).
-          Top 50 ci-dessous.
-        </p>
-      </div>
+    <Section py="md" tone="white">
+      <Header
+        id={id}
+        brandName={brand.name}
+        subtitle={`${totalDomains} domains uniques cités sur ${respList.length} réponses LLM (${snapshotIds.length} snapshots récents). Top 50 ci-dessous.`}
+      />
 
       {topicList.length > 0 && (
         <TopicSelector brandId={id} topics={topicList} currentTopicId={topicFilter ?? null} isOwner={ctx.is_owner} topicLimit={ctx.limits.topics} />
       )}
 
-      <div className="flex flex-wrap gap-2 mb-4 text-xs">
-        <span className="font-mono uppercase tracking-widest text-navy-light shrink-0 self-center">Filter LLM:</span>
-        <Link href={`/app/brands/${id}/sources${topicFilter ? `?topic=${topicFilter}` : ""}`} className={`px-2.5 py-1 ${!llmFilter ? "bg-navy text-white" : "bg-white hover:bg-cream"}`}>Tous</Link>
+      <div className="flex flex-wrap gap-2 mb-6 text-xs items-center">
+        <span className="font-mono uppercase tracking-eyebrow text-brand-500 shrink-0">Filter LLM</span>
+        <Link
+          href={`/app/brands/${id}/sources${topicFilter ? `?topic=${topicFilter}` : ""}`}
+          className={`px-2.5 py-1 rounded-md transition-colors duration-150 ease-out ${!llmFilter ? "bg-ink text-white" : "bg-white border border-DEFAULT text-ink hover:bg-surface"}`}
+        >
+          Tous
+        </Link>
         {llmsPresent.map(llm => (
           <Link
             key={llm}
             href={`/app/brands/${id}/sources?llm=${encodeURIComponent(llm)}${topicFilter ? `&topic=${topicFilter}` : ""}`}
-            className={`px-2.5 py-1 ${llmFilter === llm ? "bg-navy text-white" : "bg-white hover:bg-cream"}`}
+            className={`px-2.5 py-1 rounded-md transition-colors duration-150 ease-out ${llmFilter === llm ? "bg-ink text-white" : "bg-white border border-DEFAULT text-ink hover:bg-surface"}`}
           >
             {LLM_LABELS[llm] || llm.split("/")[1]}
           </Link>
         ))}
       </div>
 
-      <div className="bg-white overflow-x-auto">
+      <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-xs text-ink-muted border-b border-navy/15">
+          <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
             <tr>
-              <th className="text-left py-2 px-3">#</th>
-              <th className="text-left py-2 px-3">Domain</th>
-              <th className="text-right py-2 px-3">Citations</th>
-              <th className="text-right py-2 px-3">Réponses uniques</th>
-              <th className="text-left py-2 px-3 hidden md:table-cell">LLMs</th>
-              <th className="text-left py-2 px-3 hidden lg:table-cell">Exemple</th>
+              <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">#</th>
+              <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Domain</th>
+              <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Citations</th>
+              <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Réponses uniques</th>
+              <th className="text-left py-3 px-3 hidden md:table-cell font-mono uppercase tracking-eyebrow">LLMs</th>
+              <th className="text-left py-3 px-3 hidden lg:table-cell font-mono uppercase tracking-eyebrow">Exemple</th>
             </tr>
           </thead>
           <tbody>
             {top.map((d, i) => (
-              <tr key={d.domain} className="border-b border-navy/5 hover:bg-cream/30">
-                <td className="py-2 px-3 font-mono text-xs text-ink-muted">{i + 1}</td>
-                <td className="py-2 px-3"><span className="font-mono text-navy">{d.domain}</span></td>
-                <td className="py-2 px-3 text-right font-mono">{d.citations}</td>
-                <td className="py-2 px-3 text-right font-mono">{d.count}</td>
+              <tr key={d.domain} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface transition-colors">
+                <td className="py-2 px-3 font-mono text-xs text-ink-subtle tabular-nums">{i + 1}</td>
+                <td className="py-2 px-3"><span className="font-mono text-ink">{d.domain}</span></td>
+                <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{d.citations}</td>
+                <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{d.count}</td>
                 <td className="py-2 px-3 hidden md:table-cell">
-                  <span className="text-xs">{Array.from(d.llms).map(l => LLM_LABELS[l] || l.split("/")[1]).join(", ")}</span>
+                  <span className="text-xs text-ink-muted">{Array.from(d.llms).map(l => LLM_LABELS[l] || l.split("/")[1]).join(", ")}</span>
                 </td>
                 <td className="py-2 px-3 hidden lg:table-cell">
-                  {d.example_url && <a href={d.example_url} target="_blank" rel="noopener" className="text-xs text-navy-light hover:underline truncate block max-w-[260px]" title={d.example_url}>{d.example_url}</a>}
+                  {d.example_url && (
+                    <a
+                      href={d.example_url}
+                      target="_blank"
+                      rel="noopener"
+                      className="text-xs text-brand-500 hover:underline truncate block max-w-[260px]"
+                      title={d.example_url}
+                    >
+                      {d.example_url}
+                    </a>
+                  )}
                 </td>
               </tr>
             ))}

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 
 export const metadata: Metadata = {
   title: "Geoperf SaaS — Monitoring de visibilité dans les LLM",
@@ -12,7 +14,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://geoperf.com/saas" },
 };
 
-// Spec : SPRINT_S7_BRIEF.md "Pricing nouvelle grille"
 const TIERS = [
   {
     key: "free",
@@ -61,24 +62,61 @@ const TIERS = [
   },
 ];
 
+const FEATURES = [
+  {
+    n: "01",
+    title: "Suivez votre marque",
+    body: "Renseignez votre nom, votre domaine, votre catégorie et 2-3 concurrents. Geoperf génère 30 prompts contextuels et lance un 1er snapshot immédiatement.",
+  },
+  {
+    n: "02",
+    title: "Comparez aux concurrents",
+    body: "Visualisez votre rang moyen, votre taux de citation et votre share-of-voice face à vos rivaux dans les réponses des 4 grands LLMs. Heatmap détaillée par LLM (Pro+).",
+  },
+  {
+    n: "03",
+    title: "Améliorez votre SEO LLM",
+    body: "Claude Haiku analyse vos snapshots et propose 3 à 5 actions priorisées : sources autorité à cibler, gaps de contenu, menaces concurrentielles. Alertes email à chaque dérive.",
+  },
+];
+
+const DIFFERENTIATORS = [
+  {
+    title: "4 LLMs, en parallèle",
+    body: "Beaucoup d'outils GEO se contentent d'interroger ChatGPT. Geoperf compare en parallèle ChatGPT (GPT-4o), Claude Sonnet 4.6, Gemini 2.5 Pro et Perplexity Sonar — chacun a ses biais, c'est leur consensus qui compte.",
+  },
+  {
+    title: "Recommandations actionnables",
+    body: "Pas de dashboard de chiffres opaques. Chaque snapshot vient avec 3 à 5 actions concrètes générées par Claude Haiku 4.5 : quelles sources autorité cibler, sur quels sujets publier, quels concurrents à surveiller.",
+  },
+  {
+    title: "Données stockées en Europe",
+    body: "Hébergé sur Supabase Frankfurt. Aucun transfert de données vers les US. Conforme RGPD, audit possible sur demande.",
+  },
+  {
+    title: "Audit GEO sur mesure inclus",
+    body: "Geoperf est une extension du cabinet Jourdechance. Si les résultats automatisés ne suffisent pas, nous proposons un audit GEO consulting (réservé aux clients Pro+).",
+  },
+];
+
 export default function SaasMarketingPage() {
   return (
-    <main className="min-h-screen flex flex-col bg-cream">
+    <main className="min-h-screen flex flex-col bg-white">
       <Header
         rightSlot={
           <div className="flex items-center gap-4">
-            <Link href="/saas/faq" className="font-mono text-xs text-ink-muted hover:text-navy">FAQ</Link>
-            <Link href="/login" className="font-mono text-xs text-ink-muted hover:text-navy">Connexion</Link>
+            <Link href="/saas/faq" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">FAQ</Link>
+            <Link href="/login" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">Connexion</Link>
             <Button href="/signup" variant="primary" size="sm">Créer un compte</Button>
           </div>
         }
       />
 
-      <Section py="lg" tone="navy">
+      <Section py="lg" tone="dark">
         <div className="max-w-3xl">
-          <p className="font-mono text-xs tracking-widest text-amber uppercase mb-4">Geoperf SaaS · Monitoring continu</p>
-          <h1 className="font-serif text-4xl md:text-5xl text-white leading-tight mb-6">
-            Surveillez votre visibilité dans <span className="text-amber">ChatGPT, Claude, Gemini, Perplexity</span>.
+          <Eyebrow variant="muted" className="mb-5 text-amber">Geoperf SaaS · Monitoring continu</Eyebrow>
+          <h1 className="text-4xl md:text-6xl font-medium tracking-tight leading-[1.05] text-white text-balance mb-6">
+            Surveillez votre visibilité dans <span className="text-brand-500">ChatGPT, Claude, Gemini, Perplexity</span>.
           </h1>
           <p className="text-lg text-white/85 leading-relaxed mb-8 max-w-2xl">
             Geoperf interroge chaque semaine les 4 grands LLMs sur 30 prompts représentatifs de votre secteur, mesure votre rang, vos concurrents et vos sources autorité, et vous propose des recommandations actionnables pour améliorer votre référencement génératif.
@@ -87,148 +125,139 @@ export default function SaasMarketingPage() {
             <Button href="/signup" variant="primary" size="lg">Créer mon compte gratuit</Button>
             <Button href="#pricing" variant="outline-light" size="lg">Voir les plans</Button>
           </div>
-          <p className="text-xs text-white/60 mt-6 font-mono">Sans carte bancaire · Annulation en 1 clic · Hébergé en Europe (Frankfurt)</p>
+          <p className="text-xs text-white/60 mt-6 font-mono">
+            Sans carte bancaire · Annulation en 1 clic · Hébergé en Europe (Frankfurt)
+          </p>
         </div>
       </Section>
 
       <Section py="lg" tone="white" eyebrow="Comment ça marche">
-        <h2 className="font-serif text-3xl text-navy mb-10">3 étapes pour piloter votre référencement génératif</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              n: "01",
-              title: "Suivez votre marque",
-              body:
-                "Renseignez votre nom, votre domaine, votre catégorie et 2-3 concurrents. Geoperf génère 30 prompts contextuels et lance un 1er snapshot immédiatement.",
-            },
-            {
-              n: "02",
-              title: "Comparez aux concurrents",
-              body:
-                "Visualisez votre rang moyen, votre taux de citation et votre share-of-voice face à vos rivaux dans les réponses des 4 grands LLMs. Heatmap détaillée par LLM (Pro+).",
-            },
-            {
-              n: "03",
-              title: "Améliorez votre SEO LLM",
-              body:
-                "Claude Haiku analyse vos snapshots et propose 3 à 5 actions priorisées : sources autorité à cibler, gaps de contenu, menaces concurrentielles. Alertes email à chaque dérive.",
-            },
-          ].map((s) => (
-            <article key={s.n} className="bg-cream p-6 border-l-2 border-amber">
-              <p className="font-mono text-xs tracking-widest text-amber mb-3">SECTION {s.n}</p>
-              <h3 className="font-serif text-xl text-navy mb-3">{s.title}</h3>
-              <p className="text-sm leading-relaxed text-ink">{s.body}</p>
-            </article>
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-10 max-w-2xl text-balance leading-tight">
+          3 étapes pour piloter votre référencement génératif.
+        </h2>
+        <div className="grid md:grid-cols-3 gap-5">
+          {FEATURES.map(s => (
+            <Card key={s.n} variant="default">
+              <span className="font-mono text-xs text-brand-500 tracking-eyebrow uppercase">{s.n}</span>
+              <h3 className="mt-4 text-xl font-medium text-ink leading-tight tracking-tightish">{s.title}</h3>
+              <p className="mt-3 text-sm text-ink-muted leading-relaxed">{s.body}</p>
+            </Card>
           ))}
         </div>
       </Section>
 
-      <Section py="lg" tone="cream" eyebrow="Différenciation">
-        <h2 className="font-serif text-3xl text-navy mb-6">Pourquoi Geoperf, pas un autre outil GEO ?</h2>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white p-6">
-            <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-2">4 LLMs, en parallèle</p>
-            <p className="text-sm leading-relaxed">
-              Beaucoup d&apos;outils GEO se contentent d&apos;interroger ChatGPT. Geoperf compare en parallèle <strong>ChatGPT (GPT-4o), Claude Sonnet 4.6, Gemini 2.5 Pro et Perplexity Sonar</strong> — chacun a ses biais, c&apos;est leur consensus qui compte.
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-2">Recommandations actionnables</p>
-            <p className="text-sm leading-relaxed">
-              Pas de dashboard de chiffres opaques. Chaque snapshot vient avec 3 à 5 actions concrètes générées par <strong>Claude Haiku 4.5</strong> : quelles sources autorité cibler, sur quels sujets publier, quels concurrents à surveiller.
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-2">Données stockées en Europe</p>
-            <p className="text-sm leading-relaxed">
-              Hébergé sur Supabase Frankfurt. Aucun transfert de données vers les US. Conforme RGPD, audit possible sur demande.
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-2">Audit GEO sur mesure inclus dès Solo</p>
-            <p className="text-sm leading-relaxed">
-              Geoperf est une extension du cabinet <strong>Jourdechance</strong>. Si les résultats automatisés ne suffisent pas, nous proposons un audit GEO consulting (réservé aux clients Solo+).
-            </p>
-          </div>
+      <Section py="lg" tone="surface" eyebrow="Différenciation">
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-10 max-w-2xl text-balance leading-tight">
+          Pourquoi Geoperf, pas un autre outil GEO ?
+        </h2>
+        <div className="grid md:grid-cols-2 gap-5">
+          {DIFFERENTIATORS.map(d => (
+            <Card key={d.title} variant="default">
+              <Eyebrow className="mb-2">{d.title}</Eyebrow>
+              <p className="text-sm leading-relaxed text-ink-muted">{d.body}</p>
+            </Card>
+          ))}
         </div>
       </Section>
 
-      <Section py="lg" tone="white" eyebrow="Plans & tarifs" className="scroll-mt-20" >
+      <Section py="lg" tone="white" className="scroll-mt-20">
         <a id="pricing" />
-        <h2 className="font-serif text-3xl text-navy mb-3">Tarifs simples, sans engagement</h2>
-        <p className="text-sm text-ink-muted mb-10 max-w-2xl">Tous les plans incluent : prompts FR, monitoring multi-LLM (à partir de Solo), recos Haiku, alertes email. Annulation en 1 clic depuis le portail Stripe.</p>
+        <Eyebrow className="mb-3">Plans &amp; tarifs</Eyebrow>
+        <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-3 leading-tight max-w-2xl text-balance">
+          Tarifs simples, sans engagement.
+        </h2>
+        <p className="text-sm text-ink-muted mb-10 max-w-2xl leading-relaxed">
+          Tous les plans incluent : prompts FR, monitoring multi-LLM (à partir de Starter), recos Haiku, alertes email. Annulation en 1 clic depuis le portail Stripe.
+        </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-          {TIERS.map((t) => (
+          {TIERS.map(t => (
             <div
               key={t.key}
-              className={`p-6 ${t.highlight ? "bg-navy text-white" : "bg-cream"} ${t.highlight ? "ring-2 ring-amber" : ""}`}
+              className={`rounded-lg p-6 transition-all duration-150 ease-out ${
+                t.highlight
+                  ? "bg-ink text-white shadow-card"
+                  : "bg-white border border-DEFAULT shadow-card hover:shadow-cardHover"
+              }`}
             >
               <div className="flex items-baseline justify-between mb-3">
-                <p className={`font-mono text-xs uppercase tracking-widest ${t.highlight ? "text-amber" : "text-navy-light"}`}>{t.name}</p>
-                {t.highlight && <span className="font-mono text-[10px] uppercase tracking-widest text-amber">Recommandé</span>}
+                <p className={`font-mono text-xs uppercase tracking-eyebrow ${t.highlight ? "text-brand-500" : "text-brand-500"}`}>{t.name}</p>
+                {t.highlight && (
+                  <span className="font-mono text-[10px] uppercase tracking-eyebrow text-brand-500">Recommandé</span>
+                )}
               </div>
               <div className="mb-4">
-                <span className="font-serif text-4xl font-medium">{t.price}</span>
+                <span className="text-4xl font-medium tracking-tightish">{t.price}</span>
                 <span className={`text-sm ml-1 ${t.highlight ? "opacity-70" : "text-ink-muted"}`}>€/mois HT</span>
               </div>
               <ul className={`text-xs space-y-2 mb-6 ${t.highlight ? "" : "text-ink"}`}>
-                {t.bullets.map((b) => (
+                {t.bullets.map(b => (
                   <li key={b} className="flex items-baseline gap-2">
-                    <span className={t.highlight ? "text-amber" : "text-amber"}>·</span>
+                    <span className={t.highlight ? "text-brand-500" : "text-brand-500"}>·</span>
                     <span>{b}</span>
                   </li>
                 ))}
               </ul>
-              <Link
+              <Button
                 href={t.href}
-                className={`block w-full text-center py-2.5 text-sm font-medium transition ${
-                  t.highlight ? "bg-amber text-navy hover:bg-amber/90" : "bg-navy text-white hover:bg-navy-light"
-                }`}
+                variant={t.highlight ? "primary" : "secondary"}
+                size="md"
+                className="w-full"
               >
                 {t.cta}
-              </Link>
+              </Button>
             </div>
           ))}
         </div>
 
-        <p className="text-xs text-ink-muted mt-6">
+        <p className="text-xs text-ink-subtle mt-6">
           TVA UE auto-calculée par Stripe. Carte test :{" "}
-          <code className="font-mono text-xs bg-cream px-2 py-0.5">4242 4242 4242 4242</code>
+          <code className="font-mono text-xs bg-surface px-2 py-0.5 rounded">4242 4242 4242 4242</code>
         </p>
       </Section>
 
-      <Section py="lg" tone="cream" eyebrow="Questions">
+      <Section py="lg" tone="surface" eyebrow="Questions">
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl">
-          <div>
-            <h3 className="font-serif text-xl text-navy mb-2">Combien de temps avant les 1ers résultats ?</h3>
-            <p className="text-sm text-ink-muted">Le 1er snapshot tourne en 30 secondes après création de la marque. Les recommandations Haiku arrivent ~10 secondes plus tard. Le suivi continu démarre immédiatement.</p>
-          </div>
-          <div>
-            <h3 className="font-serif text-xl text-navy mb-2">Quels LLMs sont testés ?</h3>
-            <p className="text-sm text-ink-muted">GPT-4o (OpenAI), Claude Sonnet 4.6 (Anthropic), Gemini 2.5 Pro (Google), Perplexity Sonar Pro. Le plan Free se limite à GPT-4o.</p>
-          </div>
-          <div>
-            <h3 className="font-serif text-xl text-navy mb-2">Combien de prompts ?</h3>
-            <p className="text-sm text-ink-muted">30 prompts FR catégorisés (recherche directe, use-case, concurrentiel) générés à partir de votre catégorie et concurrents. Templates publiés sur GitHub.</p>
-          </div>
-          <div>
-            <h3 className="font-serif text-xl text-navy mb-2">Et le RGPD ?</h3>
-            <p className="text-sm text-ink-muted">Données hébergées Supabase Frankfurt. Aucune donnée personnelle dans les prompts. Audit RGPD complet sur demande contractuelle.</p>
-          </div>
+          {[
+            {
+              q: "Combien de temps avant les 1ers résultats ?",
+              a: "Le 1er snapshot tourne en 30 secondes après création de la marque. Les recommandations Haiku arrivent ~10 secondes plus tard. Le suivi continu démarre immédiatement.",
+            },
+            {
+              q: "Quels LLMs sont testés ?",
+              a: "GPT-4o (OpenAI), Claude Sonnet 4.6 (Anthropic), Gemini 2.5 Pro (Google), Perplexity Sonar Pro. Le plan Free se limite à GPT-4o.",
+            },
+            {
+              q: "Combien de prompts ?",
+              a: "30 prompts FR catégorisés (recherche directe, use-case, concurrentiel) générés à partir de votre catégorie et concurrents. Templates publiés sur GitHub.",
+            },
+            {
+              q: "Et le RGPD ?",
+              a: "Données hébergées Supabase Frankfurt. Aucune donnée personnelle dans les prompts. Audit RGPD complet sur demande contractuelle.",
+            },
+          ].map((item, i) => (
+            <div key={i}>
+              <h3 className="text-xl font-medium text-ink mb-2 tracking-tightish">{item.q}</h3>
+              <p className="text-sm text-ink-muted leading-relaxed">{item.a}</p>
+            </div>
+          ))}
         </div>
         <div className="mt-8">
-          <Link href="/saas/faq" className="font-mono text-xs uppercase tracking-widest text-navy-light underline hover:text-navy">
+          <Link href="/saas/faq" className="font-mono text-xs uppercase tracking-eyebrow text-brand-500 hover:underline">
             Voir toutes les questions →
           </Link>
         </div>
       </Section>
 
-      <Section py="lg" tone="navy">
+      <Section py="lg" tone="dark">
         <div className="max-w-2xl">
-          <p className="font-mono text-xs tracking-widest text-amber uppercase mb-4">Prêt à tester ?</p>
-          <h2 className="font-serif text-3xl text-white mb-4">Démarrez gratuitement en 60 secondes</h2>
-          <p className="text-base text-white/85 mb-6">Plan Free sans carte bancaire. Upgrade Solo (149€/mois) à tout moment via Stripe.</p>
+          <Eyebrow variant="muted" className="mb-3 text-amber">Prêt à tester ?</Eyebrow>
+          <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-white text-balance mb-4 leading-tight">
+            Démarrez gratuitement en 60 secondes.
+          </h2>
+          <p className="text-base text-white/85 mb-6 leading-relaxed">
+            Plan Free sans carte bancaire. Upgrade Starter (79€/mois) à tout moment via Stripe.
+          </p>
           <div className="flex flex-wrap gap-3">
             <Button href="/signup" variant="primary" size="lg">Créer mon compte</Button>
             <Button href="/contact" variant="outline-light" size="lg">Parler à un humain</Button>

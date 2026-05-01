@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { createTopic } from "../actions";
@@ -15,6 +18,9 @@ const ERROR_LABELS: Record<string, string> = {
   bad_prompts_json: "Les prompts custom doivent être un JSON array valide.",
   unknown: "Une erreur est survenue.",
 };
+
+const FIELD_LABEL = "block text-xs font-mono uppercase tracking-eyebrow text-ink-subtle mb-1.5";
+const FIELD_INPUT = "w-full text-sm bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none transition-colors duration-150 ease-out";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> };
 
@@ -30,70 +36,76 @@ export default async function NewTopicPage({ params, searchParams }: Props) {
   const errorMsg = error ? ERROR_LABELS[error] || "Erreur." : null;
 
   return (
-    <Section py="md" tone="cream">
+    <Section py="md" tone="white">
       <div className="max-w-xl">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-          <Link href={`/app/brands/${id}/topics`} className="hover:underline">Topics</Link> / Nouveau
-        </p>
-        <h1 className="font-serif text-3xl text-navy mb-2">Nouveau topic</h1>
-        <p className="text-sm text-ink-muted mb-6">
+        <Eyebrow className="mb-2">
+          <Link href={`/app/brands/${id}/topics`} className="hover:underline">Topics</Link>
+          <span className="opacity-50"> / </span>
+          <span>Nouveau</span>
+        </Eyebrow>
+        <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-3 leading-tight">
+          Nouveau topic
+        </h1>
+        <p className="text-sm text-ink-muted mb-8 leading-relaxed">
           Crée un sous-sujet pour {brand.name}. Tu pourras lancer des snapshots dédiés à ce topic.
         </p>
 
         {errorMsg && (
-          <div className="mb-4 px-4 py-3 bg-red-50 border-l-2 border-red-600 text-sm text-red-900">{errorMsg}</div>
+          <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-danger bg-white px-4 py-3 text-sm text-danger">
+            {errorMsg}
+          </div>
         )}
 
-        <form action={createTopic} className="bg-white p-6 space-y-5">
-          <input type="hidden" name="brand_id" value={id} />
+        <Card variant="default">
+          <form action={createTopic} className="space-y-5">
+            <input type="hidden" name="brand_id" value={id} />
 
-          <div>
-            <label htmlFor="name" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Nom du topic</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              placeholder="ex: ESG, Innovation digitale, Performance financière..."
-              className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none"
-            />
-          </div>
+            <div>
+              <label htmlFor="name" className={FIELD_LABEL}>Nom du topic</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                placeholder="ex: ESG, Innovation digitale, Performance financière..."
+                className={FIELD_INPUT}
+              />
+            </div>
 
-          <div>
-            <label htmlFor="description" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Description (optionnelle)</label>
-            <textarea
-              id="description"
-              name="description"
-              rows={2}
-              placeholder="Quel angle de la marque tu veux explorer..."
-              className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none"
-            />
-          </div>
+            <div>
+              <label htmlFor="description" className={FIELD_LABEL}>Description (optionnelle)</label>
+              <textarea
+                id="description"
+                name="description"
+                rows={2}
+                placeholder="Quel angle de la marque tu veux explorer..."
+                className={FIELD_INPUT}
+              />
+            </div>
 
-          <div>
-            <label htmlFor="prompts" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Prompts custom (JSON, optionnel)</label>
-            <textarea
-              id="prompts"
-              name="prompts"
-              rows={5}
-              placeholder='Vide = utilise les 30 prompts standards. Sinon JSON array : [{"id":"esg_01","category":"direct_search","template":"Quels {category} ont la meilleure note ESG ?"}]'
-              className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none font-mono text-xs"
-            />
-            <p className="text-xs text-ink-muted mt-1">
-              Avancé. Variables disponibles : <code>{"{brand}"}</code>, <code>{"{category}"}</code>, <code>{"{competitors[0..N]}"}</code>.
-              Vide = utilise les 30 prompts par défaut.
-            </p>
-          </div>
+            <div>
+              <label htmlFor="prompts" className={FIELD_LABEL}>Prompts custom (JSON, optionnel)</label>
+              <textarea
+                id="prompts"
+                name="prompts"
+                rows={5}
+                placeholder='Vide = utilise les 30 prompts standards. Sinon JSON array : [{"id":"esg_01","category":"direct_search","template":"Quels {category} ont la meilleure note ESG ?"}]'
+                className={`${FIELD_INPUT} font-mono text-xs`}
+              />
+              <p className="text-xs text-ink-subtle mt-1.5">
+                Avancé. Variables disponibles : <code>{"{brand}"}</code>, <code>{"{category}"}</code>, <code>{"{competitors[0..N]}"}</code>.
+                Vide = utilise les 30 prompts par défaut.
+              </p>
+            </div>
 
-          <div className="flex gap-3 pt-2">
-            <button type="submit" className="flex-1 bg-navy text-white py-2.5 text-sm font-medium hover:bg-navy-light transition">
-              Créer le topic
-            </button>
-            <Link href={`/app/brands/${id}/topics`} className="px-4 py-2.5 text-sm text-ink-muted hover:text-navy">
-              Annuler
-            </Link>
-          </div>
-        </form>
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" variant="primary" size="md" className="flex-1">Créer le topic</Button>
+              <Link href={`/app/brands/${id}/topics`} className="px-4 py-2.5 text-sm text-ink-muted hover:text-ink transition-colors">
+                Annuler
+              </Link>
+            </div>
+          </form>
+        </Card>
       </div>
     </Section>
   );

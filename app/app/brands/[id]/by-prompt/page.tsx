@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { TopicSelector } from "@/components/saas/TopicSelector";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
@@ -27,10 +28,27 @@ type PromptAgg = {
   byLlm: Record<string, { mentioned: number; total: number }>;
 };
 
+function Header({ id, brandName, subtitle }: { id: string; brandName: string; subtitle?: string }) {
+  return (
+    <div className="mb-6">
+      <Eyebrow className="mb-2">
+        <Link href={`/app/brands/${id}`} className="hover:underline">{brandName}</Link>
+        <span className="opacity-50"> / </span>
+        <span>Par prompt</span>
+      </Eyebrow>
+      <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+        Visibilité par prompt
+      </h1>
+      {subtitle && <p className="text-sm text-ink-muted mt-1">{subtitle}</p>}
+    </div>
+  );
+}
+
 export default async function ByPromptPage({ params, searchParams }: Props) {
   const { id } = await params;
   const { topic: topicFilter, sort } = await searchParams;
-  const sortBy: "rate_desc" | "rate_asc" | "rank_asc" = sort === "rate_asc" ? "rate_asc" : sort === "rank_asc" ? "rank_asc" : "rate_desc";
+  const sortBy: "rate_desc" | "rate_asc" | "rank_asc" =
+    sort === "rate_asc" ? "rate_asc" : sort === "rank_asc" ? "rank_asc" : "rate_desc";
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
@@ -45,7 +63,6 @@ export default async function ByPromptPage({ params, searchParams }: Props) {
     .order("created_at", { ascending: true });
   const topicList = (topicsData as any[] | null) ?? [];
 
-  // 5 derniers snapshots (pour avoir un peu de signal)
   let snapQ = sb.from("saas_brand_snapshots").select("id").eq("brand_id", id).eq("status", "completed");
   if (topicFilter) snapQ = snapQ.eq("topic_id", topicFilter);
   const { data: snaps } = await snapQ.order("created_at", { ascending: false }).limit(5);
@@ -53,12 +70,11 @@ export default async function ByPromptPage({ params, searchParams }: Props) {
 
   if (snapIds.length === 0) {
     return (
-      <Section py="md" tone="cream">
-        <div className="mb-4">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase"><Link href={`/app/brands/${id}`} className="hover:underline">{brand.name}</Link> / Par prompt</p>
-          <h1 className="font-serif text-3xl text-navy">Visibilité par prompt</h1>
+      <Section py="md" tone="white">
+        <Header id={id} brandName={brand.name} />
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-10 text-center text-ink-muted text-sm">
+          Aucun snapshot completed.
         </div>
-        <div className="bg-white p-8 text-center text-ink-muted text-sm">Aucun snapshot completed.</div>
       </Section>
     );
   }
@@ -69,7 +85,6 @@ export default async function ByPromptPage({ params, searchParams }: Props) {
     .in("snapshot_id", snapIds);
   const respList = (responses as any[] | null) ?? [];
 
-  // Agg par prompt_text
   const promptMap: Record<string, PromptAgg> = {};
   for (const r of respList) {
     const key = r.prompt_text as string;
@@ -94,59 +109,78 @@ export default async function ByPromptPage({ params, searchParams }: Props) {
   const llmsPresent = Array.from(new Set(respList.map(r => r.llm as string))).sort();
 
   return (
-    <Section py="md" tone="cream">
-      <div className="mb-4">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase">
-          <Link href={`/app/brands/${id}`} className="hover:underline">{brand.name}</Link> / Par prompt
-        </p>
-        <h1 className="font-serif text-3xl text-navy">Visibilité par prompt</h1>
-        <p className="text-sm text-ink-muted">
-          {aggs.length} prompts × {llmsPresent.length} LLMs sur les {snapIds.length} derniers snapshots ({respList.length} réponses).
-        </p>
-      </div>
+    <Section py="md" tone="white">
+      <Header
+        id={id}
+        brandName={brand.name}
+        subtitle={`${aggs.length} prompts × ${llmsPresent.length} LLMs sur les ${snapIds.length} derniers snapshots (${respList.length} réponses).`}
+      />
 
       {topicList.length > 0 && (
         <TopicSelector brandId={id} topics={topicList} currentTopicId={topicFilter ?? null} isOwner={ctx.is_owner} topicLimit={ctx.limits.topics} />
       )}
 
-      <div className="flex flex-wrap gap-2 mb-4 text-xs">
-        <span className="font-mono uppercase tracking-widest text-navy-light shrink-0 self-center">Tri:</span>
-        <Link href={`/app/brands/${id}/by-prompt${topicFilter ? `?topic=${topicFilter}` : ""}`} className={`px-2.5 py-1 ${sortBy === "rate_desc" ? "bg-navy text-white" : "bg-white hover:bg-cream"}`}>Citation ↓</Link>
-        <Link href={`/app/brands/${id}/by-prompt?sort=rate_asc${topicFilter ? `&topic=${topicFilter}` : ""}`} className={`px-2.5 py-1 ${sortBy === "rate_asc" ? "bg-navy text-white" : "bg-white hover:bg-cream"}`}>Citation ↑</Link>
-        <Link href={`/app/brands/${id}/by-prompt?sort=rank_asc${topicFilter ? `&topic=${topicFilter}` : ""}`} className={`px-2.5 py-1 ${sortBy === "rank_asc" ? "bg-navy text-white" : "bg-white hover:bg-cream"}`}>Rang ↑</Link>
+      <div className="flex flex-wrap gap-2 mb-6 text-xs items-center">
+        <span className="font-mono uppercase tracking-eyebrow text-brand-500 shrink-0">Tri</span>
+        <Link
+          href={`/app/brands/${id}/by-prompt${topicFilter ? `?topic=${topicFilter}` : ""}`}
+          className={`px-2.5 py-1 rounded-md transition-colors duration-150 ease-out ${sortBy === "rate_desc" ? "bg-ink text-white" : "bg-white border border-DEFAULT text-ink hover:bg-surface"}`}
+        >
+          Citation ↓
+        </Link>
+        <Link
+          href={`/app/brands/${id}/by-prompt?sort=rate_asc${topicFilter ? `&topic=${topicFilter}` : ""}`}
+          className={`px-2.5 py-1 rounded-md transition-colors duration-150 ease-out ${sortBy === "rate_asc" ? "bg-ink text-white" : "bg-white border border-DEFAULT text-ink hover:bg-surface"}`}
+        >
+          Citation ↑
+        </Link>
+        <Link
+          href={`/app/brands/${id}/by-prompt?sort=rank_asc${topicFilter ? `&topic=${topicFilter}` : ""}`}
+          className={`px-2.5 py-1 rounded-md transition-colors duration-150 ease-out ${sortBy === "rank_asc" ? "bg-ink text-white" : "bg-white border border-DEFAULT text-ink hover:bg-surface"}`}
+        >
+          Rang ↑
+        </Link>
       </div>
 
-      <div className="bg-white overflow-x-auto">
+      <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-xs text-ink-muted border-b border-navy/15">
+          <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
             <tr>
-              <th className="text-left py-2 px-3">Prompt</th>
-              <th className="text-right py-2 px-3">Citations</th>
-              <th className="text-right py-2 px-3">Citation rate</th>
-              <th className="text-right py-2 px-3">Rang moy.</th>
-              <th className="text-left py-2 px-3 hidden lg:table-cell">Détail LLMs</th>
+              <th className="text-left py-3 px-3 font-mono uppercase tracking-eyebrow">Prompt</th>
+              <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Citations</th>
+              <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Citation rate</th>
+              <th className="text-right py-3 px-3 font-mono uppercase tracking-eyebrow">Rang moy.</th>
+              <th className="text-left py-3 px-3 hidden lg:table-cell font-mono uppercase tracking-eyebrow">Détail LLMs</th>
             </tr>
           </thead>
           <tbody>
             {aggs.map((p, i) => (
-              <tr key={i} className="border-b border-navy/5 hover:bg-cream/30 align-top">
+              <tr key={i} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface transition-colors align-top">
                 <td className="py-2 px-3 max-w-[420px]">
-                  <p className="text-sm">{p.prompt}</p>
+                  <p className="text-sm text-ink">{p.prompt}</p>
                 </td>
-                <td className="py-2 px-3 text-right font-mono">{p.mentioned}/{p.total}</td>
-                <td className="py-2 px-3 text-right font-mono">
-                  <span className={p.citationRate >= 50 ? "text-green-700 font-medium" : p.citationRate >= 20 ? "text-navy" : "text-ink-muted"}>
+                <td className="py-2 px-3 text-right font-mono text-ink-muted tabular-nums">{p.mentioned}/{p.total}</td>
+                <td className="py-2 px-3 text-right font-mono tabular-nums">
+                  <span className={p.citationRate >= 50 ? "text-success font-medium" : p.citationRate >= 20 ? "text-ink" : "text-ink-muted"}>
                     {p.citationRate.toFixed(0)}%
                   </span>
                 </td>
-                <td className="py-2 px-3 text-right font-mono">{p.avgRank?.toFixed(1) ?? "—"}</td>
+                <td className="py-2 px-3 text-right font-mono text-ink tabular-nums">{p.avgRank?.toFixed(1) ?? "—"}</td>
                 <td className="py-2 px-3 hidden lg:table-cell">
                   <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
                     {Object.entries(p.byLlm).map(([llm, x]) => {
                       const rate = x.total > 0 ? (x.mentioned / x.total) * 100 : 0;
-                      const intensity = rate >= 50 ? "bg-amber text-navy" : rate >= 20 ? "bg-amber/30 text-navy" : "bg-cream text-ink-muted";
+                      const intensity = rate >= 50
+                        ? "bg-brand-500 text-white"
+                        : rate >= 20
+                          ? "bg-brand-50 text-brand-600"
+                          : "bg-surface text-ink-subtle";
                       return (
-                        <span key={llm} className={`px-1.5 py-0.5 ${intensity}`} title={`${LLM_LABELS[llm] || llm}: ${x.mentioned}/${x.total}`}>
+                        <span
+                          key={llm}
+                          className={`px-1.5 py-0.5 rounded-md ${intensity}`}
+                          title={`${LLM_LABELS[llm] || llm}: ${x.mentioned}/${x.total}`}
+                        >
                           {(LLM_LABELS[llm] || llm.split("/")[1]).slice(0, 8)} {rate.toFixed(0)}%
                         </span>
                       );

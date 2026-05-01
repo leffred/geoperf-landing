@@ -1,7 +1,4 @@
-// KPI card réutilisable pour dashboard. Spec : SPRINTS_S8_S9_S10_PLAN.md S8.2
-//
-// Affiche : icon + label + value (count-up animation) + delta% vs période précédente.
-// Animation côté client : count from 0 → value sur 600ms à mount.
+// KPI card. Style design system "Tech crisp".
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,28 +6,20 @@ import type { ReactNode } from "react";
 
 type Props = {
   label: string;
-  /** Valeur numérique principale */
   value: number;
-  /** Suffixe affiché après la valeur (ex: "%", "/100", "€") */
   suffix?: string;
-  /** Delta% vs période précédente. >0 = vert, <0 = rouge */
   delta?: number | null;
-  /** Texte sous le delta (ex: "vs 30j") */
   deltaLabel?: string;
-  /** Variant d'affichage */
   variant?: "default" | "highlight" | "amber";
-  /** Icon SVG inline (optionnel) */
   icon?: ReactNode;
-  /** Nombre de chiffres après la virgule (default 0) */
   precision?: number;
-  /** Afficher le suffixe collé sans espace (ex: "25%" au lieu de "25 %") */
   tightSuffix?: boolean;
 };
 
 const VARIANT_CLASSES: Record<NonNullable<Props["variant"]>, { bg: string; valueColor: string; labelColor: string }> = {
-  default:   { bg: "bg-white",       valueColor: "text-navy",  labelColor: "text-ink-muted" },
-  highlight: { bg: "bg-navy text-white", valueColor: "text-white", labelColor: "text-white/70" },
-  amber:     { bg: "bg-amber",       valueColor: "text-navy",  labelColor: "text-navy/70" },
+  default:   { bg: "bg-white border border-DEFAULT shadow-card", valueColor: "text-ink",   labelColor: "text-ink-subtle" },
+  highlight: { bg: "bg-ink",                                     valueColor: "text-white", labelColor: "text-white/60" },
+  amber:     { bg: "bg-brand-50 border border-brand-500/20",     valueColor: "text-brand-600", labelColor: "text-brand-600/80" },
 };
 
 function useCountUp(target: number, durationMs = 600): number {
@@ -42,7 +31,6 @@ function useCountUp(target: number, durationMs = 600): number {
     const step = (ts: number) => {
       if (start === null) start = ts;
       const t = Math.min(1, (ts - start) / durationMs);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3);
       setVal(target * eased);
       if (t < 1) raf = requestAnimationFrame(step);
@@ -71,22 +59,22 @@ export function KPICard({
   const deltaPositive = (delta ?? 0) > 0;
   const deltaColor = showDelta
     ? deltaPositive
-      ? "text-emerald-600"
+      ? "text-success"
       : (delta ?? 0) < 0
-        ? "text-red-600"
-        : "text-ink-muted"
+        ? "text-danger"
+        : cls.labelColor
     : "";
   const deltaArrow = (delta ?? 0) > 0 ? "↑" : (delta ?? 0) < 0 ? "↓" : "·";
 
   return (
-    <div className={`p-5 ${cls.bg} flex flex-col`}>
+    <div className={`rounded-lg p-5 ${cls.bg} flex flex-col`}>
       {icon && <div className={`mb-2 ${cls.labelColor}`}>{icon}</div>}
-      <div className={`font-serif text-3xl font-medium leading-none ${cls.valueColor}`}>
+      <div className={`font-mono text-[10px] uppercase tracking-eyebrow ${cls.labelColor}`}>{label}</div>
+      <div className={`mt-2 text-3xl font-medium leading-none tracking-tightish ${cls.valueColor}`}>
         {v.toFixed(precision)}{tightSuffix ? "" : (suffix ? " " : "")}<span className="text-base">{suffix}</span>
       </div>
-      <div className={`text-xs mt-2 tracking-wide ${cls.labelColor}`}>{label}</div>
       {showDelta && (
-        <div className={`mt-1 text-[11px] font-mono ${variant === "highlight" || variant === "amber" ? "" : ""}`}>
+        <div className="mt-2 text-[11px] font-mono">
           <span className={deltaColor}>{deltaArrow} {Math.abs(delta!).toFixed(1)}%</span>
           <span className={`ml-1.5 ${cls.labelColor}`}>{deltaLabel}</span>
         </div>

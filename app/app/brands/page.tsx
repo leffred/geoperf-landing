@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/saas/EmptyState";
 import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 
@@ -36,60 +39,60 @@ export default async function BrandsPage() {
   const canAddMore = brands.length < limits.brands;
 
   return (
-    <Section py="md" tone="cream">
-      <div className="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+    <Section py="md" tone="white">
+      <div className="flex items-baseline justify-between mb-8 flex-wrap gap-3">
         <div>
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">Mes marques</p>
-          <h1 className="font-serif text-3xl text-navy">{brands.length} / {limits.brands} suivies</h1>
+          <Eyebrow className="mb-2">Mes marques</Eyebrow>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+            {brands.length} / {limits.brands} suivies
+          </h1>
         </div>
         {canAddMore ? (
-          <Link href="/app/brands/new" className="bg-amber text-navy px-4 py-2 text-sm font-medium hover:bg-amber/90 transition">
-            + Suivre une marque
-          </Link>
+          <Button href="/app/brands/new" variant="primary" size="md">+ Suivre une marque</Button>
         ) : (
-          <Link href="/app/billing" className="bg-navy text-white px-4 py-2 text-sm font-medium hover:bg-navy-light transition">
-            Upgrade pour ajouter +
-          </Link>
+          <Button href="/app/billing" variant="secondary" size="md">Upgrade pour ajouter +</Button>
         )}
       </div>
 
       {brands.length === 0 ? (
-        <div className="bg-white p-8 text-center">
-          <p className="text-ink-muted mb-4">Aucune marque suivie pour l&apos;instant.</p>
-          <Link href="/app/brands/new" className="inline-block bg-amber text-navy px-6 py-2.5 text-sm font-medium hover:bg-amber/90 transition">
-            Suivre ma 1re marque
-          </Link>
-        </div>
+        <EmptyState
+          icon="brands"
+          eyebrow="Démarrer"
+          title="Aucune marque suivie"
+          body="Commence par suivre ta première marque pour voir comment les LLM la perçoivent."
+          ctaLabel="Suivre ma 1re marque"
+          ctaHref="/app/brands/new"
+        />
       ) : (
-        <div className="bg-white overflow-x-auto">
+        <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-xs text-ink-muted border-b border-navy/15">
+            <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
               <tr>
-                <th className="text-left py-3 px-4">Marque</th>
-                <th className="text-left py-3 px-4">Domaine</th>
-                <th className="text-left py-3 px-4 hidden md:table-cell">Catégorie</th>
-                <th className="text-left py-3 px-4 hidden md:table-cell">Concurrents</th>
-                <th className="text-left py-3 px-4 hidden lg:table-cell">Cadence</th>
-                <th className="text-right py-3 px-4">Score</th>
-                <th className="text-right py-3 px-4 hidden sm:table-cell">Notif</th>
+                <th className="text-left py-3 px-4 font-mono uppercase tracking-eyebrow">Marque</th>
+                <th className="text-left py-3 px-4 font-mono uppercase tracking-eyebrow">Domaine</th>
+                <th className="text-left py-3 px-4 hidden md:table-cell font-mono uppercase tracking-eyebrow">Catégorie</th>
+                <th className="text-left py-3 px-4 hidden md:table-cell font-mono uppercase tracking-eyebrow">Concurrents</th>
+                <th className="text-left py-3 px-4 hidden lg:table-cell font-mono uppercase tracking-eyebrow">Cadence</th>
+                <th className="text-right py-3 px-4 font-mono uppercase tracking-eyebrow">Score</th>
+                <th className="text-right py-3 px-4 hidden sm:table-cell font-mono uppercase tracking-eyebrow">Notif</th>
               </tr>
             </thead>
             <tbody>
               {brands.map(b => (
-                <tr key={b.id} className="border-b border-navy/5 hover:bg-cream/50">
+                <tr key={b.id} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface transition-colors duration-150 ease-out">
                   <td className="py-3 px-4">
-                    <Link href={`/app/brands/${b.id}`} className="font-medium text-navy hover:underline">
+                    <Link href={`/app/brands/${b.id}`} className="font-medium text-ink hover:text-brand-500 transition-colors">
                       {b.name}
                     </Link>
-                    {!b.is_active && <span className="ml-2 text-xs text-ink-muted">(inactive)</span>}
+                    {!b.is_active && <span className="ml-2 text-xs text-ink-subtle">(inactive)</span>}
                   </td>
                   <td className="py-3 px-4 font-mono text-xs text-ink-muted">{b.domain}</td>
-                  <td className="py-3 px-4 hidden md:table-cell text-xs">{b.category_slug.replace(/-/g, " ")}</td>
-                  <td className="py-3 px-4 hidden md:table-cell text-xs text-ink-muted">{b.competitor_domains?.length ?? 0}</td>
-                  <td className="py-3 px-4 hidden lg:table-cell text-xs">{b.cadence === "weekly" ? "Hebdo" : "Mensuel"}</td>
-                  <td className="py-3 px-4 text-right font-mono">{b.visibility_score?.toFixed(0) ?? "—"}</td>
+                  <td className="py-3 px-4 hidden md:table-cell text-xs text-ink-muted">{b.category_slug.replace(/-/g, " ")}</td>
+                  <td className="py-3 px-4 hidden md:table-cell text-xs text-ink-subtle">{b.competitor_domains?.length ?? 0}</td>
+                  <td className="py-3 px-4 hidden lg:table-cell text-xs text-ink-muted">{b.cadence === "weekly" ? "Hebdo" : "Mensuel"}</td>
+                  <td className="py-3 px-4 text-right font-mono text-ink tabular-nums">{b.visibility_score?.toFixed(0) ?? "—"}</td>
                   <td className="py-3 px-4 text-right hidden sm:table-cell text-xs">
-                    {b.unread_alerts > 0 && <span className="text-amber font-medium mr-2">{b.unread_alerts} alertes</span>}
+                    {b.unread_alerts > 0 && <span className="text-warning font-medium mr-2">{b.unread_alerts} alertes</span>}
                     {b.unread_recos > 0 && <span className="text-ink-muted">{b.unread_recos} recos</span>}
                   </td>
                 </tr>

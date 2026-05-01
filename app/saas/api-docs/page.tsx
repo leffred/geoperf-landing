@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "API Geoperf — Documentation",
@@ -90,54 +92,67 @@ const ENDPOINTS = [
 
 export default function ApiDocsPage() {
   return (
-    <main className="min-h-screen flex flex-col bg-cream">
+    <main className="min-h-screen flex flex-col bg-white">
       <Header
         rightSlot={
           <div className="flex items-center gap-4 text-sm">
-            <Link href="/saas" className="hover:underline text-navy">Geoperf SaaS</Link>
-            <Link href="/login" className="hover:underline text-navy">Connexion</Link>
+            <Link href="/saas" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">
+              Geoperf SaaS
+            </Link>
+            <Link href="/login" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">
+              Connexion
+            </Link>
           </div>
         }
       />
 
-      <Section py="lg" tone="cream">
+      <Section py="lg" tone="white">
         <div className="max-w-4xl">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">API · v1</p>
-          <h1 className="font-serif text-4xl text-navy mb-3">Documentation API REST</h1>
-          <p className="text-sm text-ink-muted mb-2 max-w-2xl">
+          <Eyebrow className="mb-3">API · v1</Eyebrow>
+          <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-ink mb-4 leading-tight">
+            Documentation API REST
+          </h1>
+          <p className="text-sm text-ink-muted mb-2 max-w-2xl leading-relaxed">
             API REST publique pour intégrer Geoperf à ton stack interne (Looker, Tableau, scripts ETL, etc).
-            <strong> Réservée au plan Agency.</strong>
+            <strong className="text-ink"> Réservée au plan Agency.</strong>
           </p>
-          <p className="text-sm text-ink-muted max-w-2xl">
-            Génère ta clé API depuis <code className="font-mono">/app/api-keys</code> (visible uniquement si Agency). Format : <code className="font-mono">gp_live_xxxxxxxxxxxxxxxxxxxxxxxx</code> (24 hex).
+          <p className="text-sm text-ink-muted max-w-2xl leading-relaxed">
+            Génère ta clé API depuis <code className="font-mono bg-surface px-1.5 py-0.5 rounded">/app/api-keys</code>{" "}
+            (visible uniquement si Agency). Format :{" "}
+            <code className="font-mono bg-surface px-1.5 py-0.5 rounded">gp_live_xxxxxxxxxxxxxxxxxxxxxxxx</code> (24 hex).
           </p>
+        </div>
+      </Section>
+
+      <Section py="md" tone="surface">
+        <div className="max-w-4xl">
+          <Eyebrow className="mb-3">Authentication</Eyebrow>
+          <p className="text-sm text-ink mb-3">Header obligatoire :</p>
+          <pre className="bg-white border border-DEFAULT rounded-lg p-4 font-mono text-xs overflow-x-auto text-ink">
+            {`Authorization: Bearer gp_live_xxxxxxxxxxxxxxxxxxxxxxxx`}
+          </pre>
+          <p className="text-xs text-ink-muted mt-3">
+            La clé est hashée SHA-256 en DB. Elle n&apos;est affichée qu&apos;une seule fois lors de la création — stocke-la dans un secret manager. Révoque via /app/api-keys.
+          </p>
+
+          <Eyebrow className="mt-8 mb-3">Rate limit</Eyebrow>
+          <p className="text-sm text-ink">
+            60 requêtes / minute / clé. Réponse <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-DEFAULT">429</code>{" "}
+            avec header <code className="font-mono bg-white px-1.5 py-0.5 rounded border border-DEFAULT">Retry-After: 60</code> au-delà.
+          </p>
+          <p className="text-xs text-ink-muted mt-2">
+            Headers de réponse : <code className="font-mono">X-RateLimit-Limit</code>, <code className="font-mono">X-RateLimit-Remaining</code>, <code className="font-mono">X-Geoperf-Tier</code>, <code className="font-mono">X-Geoperf-Duration-Ms</code>.
+          </p>
+
+          <Eyebrow className="mt-8 mb-3">Base URL</Eyebrow>
+          <pre className="bg-white border border-DEFAULT rounded-lg p-4 font-mono text-xs overflow-x-auto text-ink">{BASE}</pre>
         </div>
       </Section>
 
       <Section py="md" tone="white">
         <div className="max-w-4xl">
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-3">Authentication</p>
-          <p className="text-sm mb-3">
-            Header obligatoire :
-          </p>
-          <pre className="bg-cream p-4 font-mono text-xs overflow-x-auto">{`Authorization: Bearer gp_live_xxxxxxxxxxxxxxxxxxxxxxxx`}</pre>
-          <p className="text-xs text-ink-muted mt-3">
-            La clé est hashée SHA-256 en DB. Elle n&apos;est affichée qu&apos;une seule fois lors de la création — stocke-la dans un secret manager. Révoque via /app/api-keys.
-          </p>
-
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mt-8 mb-3">Rate limit</p>
-          <p className="text-sm">60 requêtes / minute / clé. Réponse <code className="font-mono">429</code> avec header <code className="font-mono">Retry-After: 60</code> au-delà.</p>
-          <p className="text-xs text-ink-muted mt-2">Headers de réponse : <code className="font-mono">X-RateLimit-Limit</code>, <code className="font-mono">X-RateLimit-Remaining</code>, <code className="font-mono">X-Geoperf-Tier</code>, <code className="font-mono">X-Geoperf-Duration-Ms</code>.</p>
-
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mt-8 mb-3">Base URL</p>
-          <pre className="bg-cream p-4 font-mono text-xs overflow-x-auto">{BASE}</pre>
-        </div>
-      </Section>
-
-      <Section py="md" tone="cream">
-        <div className="max-w-4xl">
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-3">Quickstart curl</p>
-          <pre className="bg-white p-4 font-mono text-xs overflow-x-auto">{`# Liste des marques accessibles
+          <Eyebrow className="mb-3">Quickstart curl</Eyebrow>
+          <pre className="bg-surface border border-DEFAULT rounded-lg p-4 font-mono text-xs overflow-x-auto text-ink">{`# Liste des marques accessibles
 curl -H "Authorization: Bearer gp_live_xxx" \\
   ${BASE}/v1/brands
 
@@ -153,30 +168,38 @@ curl -X POST -H "Authorization: Bearer gp_live_xxx" \\
         </div>
       </Section>
 
-      <Section py="md" tone="white">
+      <Section py="md" tone="surface">
         <div className="max-w-4xl">
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-4">Endpoints</p>
+          <Eyebrow className="mb-4">Endpoints</Eyebrow>
           <div className="space-y-4">
             {ENDPOINTS.map((e, i) => (
-              <article key={i} className="border border-navy/10 p-5">
+              <article key={i} className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
                 <div className="flex items-baseline gap-3 mb-3 flex-wrap">
-                  <span className={`font-mono text-[10px] px-2 py-0.5 uppercase tracking-widest ${
-                    e.method === "POST" ? "bg-amber text-navy" : "bg-navy text-white"
-                  }`}>{e.method}</span>
-                  <code className="font-mono text-sm text-navy">{e.path}</code>
-                  <span className="font-mono text-[10px] text-ink-muted">scope: {e.scope}</span>
+                  <span
+                    className={`font-mono text-[10px] px-2 py-0.5 rounded-md uppercase tracking-eyebrow ${
+                      e.method === "POST" ? "bg-brand-500 text-white" : "bg-ink text-white"
+                    }`}
+                  >
+                    {e.method}
+                  </span>
+                  <code className="font-mono text-sm text-ink">{e.path}</code>
+                  <span className="font-mono text-[10px] text-ink-subtle">scope: {e.scope}</span>
                 </div>
-                <p className="text-sm text-ink mb-3">{e.desc}</p>
+                <p className="text-sm text-ink-muted mb-3 leading-relaxed">{e.desc}</p>
                 {e.body && (
                   <>
-                    <p className="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Body JSON</p>
-                    <pre className="bg-cream p-3 font-mono text-xs mb-3 overflow-x-auto">{e.body}</pre>
+                    <p className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-subtle mb-1">Body JSON</p>
+                    <pre className="bg-surface border border-DEFAULT rounded-md p-3 font-mono text-xs mb-3 overflow-x-auto text-ink">
+                      {e.body}
+                    </pre>
                   </>
                 )}
                 {e.example_resp && (
                   <>
-                    <p className="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Exemple de réponse</p>
-                    <pre className="bg-cream p-3 font-mono text-xs overflow-x-auto">{e.example_resp}</pre>
+                    <p className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-subtle mb-1">Exemple de réponse</p>
+                    <pre className="bg-surface border border-DEFAULT rounded-md p-3 font-mono text-xs overflow-x-auto text-ink">
+                      {e.example_resp}
+                    </pre>
                   </>
                 )}
               </article>
@@ -185,36 +208,37 @@ curl -X POST -H "Authorization: Bearer gp_live_xxx" \\
         </div>
       </Section>
 
-      <Section py="md" tone="cream">
+      <Section py="md" tone="white">
         <div className="max-w-4xl">
-          <p className="font-mono text-xs uppercase tracking-widest text-navy-light mb-3">Format de réponse</p>
-          <p className="text-sm mb-3">Toutes les réponses suivent ce format :</p>
-          <pre className="bg-white p-4 font-mono text-xs overflow-x-auto">{`{
+          <Eyebrow className="mb-3">Format de réponse</Eyebrow>
+          <p className="text-sm text-ink mb-3">Toutes les réponses suivent ce format :</p>
+          <pre className="bg-surface border border-DEFAULT rounded-lg p-4 font-mono text-xs overflow-x-auto text-ink">{`{
   "ok": true | false,
   "data": <result>,        // si ok=true
   "error": "<message>",    // si ok=false
   "hint": "<help text>"    // si applicable
 }`}</pre>
           <p className="text-xs text-ink-muted mt-3">
-            Codes HTTP : <code className="font-mono">200</code> succès, <code className="font-mono">202</code> snapshot triggered, <code className="font-mono">401</code> auth, <code className="font-mono">403</code> tier ou scope, <code className="font-mono">404</code> not found, <code className="font-mono">429</code> rate limit, <code className="font-mono">500</code> server.
+            Codes HTTP : <code className="font-mono">200</code> succès, <code className="font-mono">202</code> snapshot triggered,{" "}
+            <code className="font-mono">401</code> auth, <code className="font-mono">403</code> tier ou scope,{" "}
+            <code className="font-mono">404</code> not found, <code className="font-mono">429</code> rate limit,{" "}
+            <code className="font-mono">500</code> server.
           </p>
         </div>
       </Section>
 
-      <Section py="lg" tone="navy">
+      <Section py="lg" tone="dark">
         <div className="max-w-2xl">
-          <p className="font-mono text-xs tracking-widest text-amber uppercase mb-3">Prêt à intégrer ?</p>
-          <h2 className="font-serif text-3xl text-white mb-4">Active ton plan Agency pour ouvrir l&apos;API.</h2>
-          <p className="text-sm text-white/85 mb-6">
+          <Eyebrow variant="muted" className="mb-3 text-amber">Prêt à intégrer ?</Eyebrow>
+          <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-white mb-4 leading-tight">
+            Active ton plan Agency pour ouvrir l&apos;API.
+          </h2>
+          <p className="text-sm text-white/85 mb-6 leading-relaxed">
             L&apos;API REST est une feature exclusive Agency (799€/mois HT). Inclut aussi : 10 marques, 7 LLMs, white-label, support prioritaire.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Link href="/signup?next=/app/billing" className="bg-amber text-navy px-5 py-2.5 text-sm font-medium hover:bg-amber/90 transition">
-              Créer un compte
-            </Link>
-            <Link href="/saas" className="border border-white/40 text-white px-5 py-2.5 text-sm font-medium hover:bg-white/10 transition">
-              Voir les plans
-            </Link>
+            <Button href="/signup?next=/app/billing" variant="primary" size="lg">Créer un compte</Button>
+            <Button href="/saas" variant="outline-light" size="lg">Voir les plans</Button>
           </div>
         </div>
       </Section>

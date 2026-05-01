@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
@@ -68,39 +69,46 @@ const FAQ: Array<{ q: string; a: string }> = [
 
 export default function FaqPage() {
   return (
-    <main className="min-h-screen flex flex-col bg-cream">
+    <main className="min-h-screen flex flex-col bg-white">
       <Header
         rightSlot={
           <div className="flex items-center gap-4">
-            <Link href="/saas" className="font-mono text-xs text-ink-muted hover:text-navy">Geoperf SaaS</Link>
-            <Link href="/login" className="font-mono text-xs text-ink-muted hover:text-navy">Connexion</Link>
+            <Link href="/saas" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">Geoperf SaaS</Link>
+            <Link href="/login" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">Connexion</Link>
             <Button href="/signup" variant="primary" size="sm">Créer un compte</Button>
           </div>
         }
       />
 
-      <Section py="lg" tone="cream">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">FAQ</p>
-        <h1 className="font-serif text-4xl text-navy mb-2">Questions fréquentes</h1>
-        <p className="text-sm text-ink-muted mb-10 max-w-2xl">
-          Pas de réponse ici ? Écris-nous : <a href="mailto:hello@geoperf.com" className="text-navy underline">hello@geoperf.com</a>.
+      <Section py="lg" tone="white">
+        <Eyebrow className="mb-3">FAQ</Eyebrow>
+        <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-ink mb-3 leading-tight">
+          Questions fréquentes
+        </h1>
+        <p className="text-sm text-ink-muted mb-12 max-w-2xl">
+          Pas de réponse ici ? Écris-nous :{" "}
+          <a href="mailto:hello@geoperf.com" className="text-brand-500 hover:underline">hello@geoperf.com</a>.
         </p>
 
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-3xl space-y-4">
           {FAQ.map((item, i) => (
-            <article key={i} className="bg-white p-6 border-l-2 border-amber">
-              <p className="font-mono text-xs uppercase tracking-widest text-amber mb-2">Question {String(i + 1).padStart(2, "0")}</p>
-              <h2 className="font-serif text-xl text-navy mb-3">{item.q}</h2>
-              <p className="text-sm leading-relaxed text-ink">{item.a}</p>
+            <article key={i} className="bg-white rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 shadow-card p-6">
+              <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500 mb-2">
+                Question {String(i + 1).padStart(2, "0")}
+              </p>
+              <h2 className="text-xl font-medium text-ink mb-3 tracking-tightish leading-tight">{item.q}</h2>
+              <p className="text-sm leading-relaxed text-ink-muted">{item.a}</p>
             </article>
           ))}
         </div>
       </Section>
 
-      <Section py="lg" tone="navy">
+      <Section py="lg" tone="dark">
         <div className="max-w-2xl">
-          <p className="font-mono text-xs tracking-widest text-amber uppercase mb-3">Reste une question ?</p>
-          <h2 className="font-serif text-2xl text-white mb-4">On répond sous 24h ouvrées.</h2>
+          <Eyebrow variant="muted" className="mb-3 text-amber">Reste une question ?</Eyebrow>
+          <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-white mb-4 leading-tight">
+            On répond sous 24h ouvrées.
+          </h2>
           <div className="flex flex-wrap gap-3">
             <Button href="mailto:hello@geoperf.com" variant="primary" size="md">hello@geoperf.com</Button>
             <Button href="/contact" variant="outline-light" size="md">Page contact</Button>

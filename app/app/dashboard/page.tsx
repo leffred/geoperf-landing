@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
 import { BrandEvolutionChart, type Point } from "@/components/saas/BrandEvolutionChart";
 import { AlertBanner } from "@/components/saas/AlertBanner";
+import { EmptyState } from "@/components/saas/EmptyState";
 import { loadSaasContext, tierLimits, relativeVisibility } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 
@@ -54,7 +57,6 @@ export default async function DashboardPage() {
   const alertList = (alerts as any[] | null) ?? [];
   const evolutionRows = (evolution as any[] | null) ?? [];
 
-  // Pick the brand with most data points for the headline chart
   const evoByBrand: Record<string, Point[]> = {};
   const nameByBrand: Record<string, string> = {};
   for (const e of evolutionRows) {
@@ -72,65 +74,71 @@ export default async function DashboardPage() {
 
   const limits = tierLimits(ctx.tier);
   const brandsUsed = brandList.length;
+  const firstName = ctx.profile?.full_name?.split(" ")[0] || ctx.user.email?.split("@")[0];
 
   return (
-    <Section py="md" tone="cream">
-      <div className="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+    <Section py="md" tone="white">
+      <div className="flex items-baseline justify-between mb-8 flex-wrap gap-3">
         <div>
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase">Dashboard</p>
-          <h1 className="font-serif text-3xl text-navy">Bonjour {ctx.profile?.full_name?.split(" ")[0] || ctx.user.email?.split("@")[0]}</h1>
+          <Eyebrow className="mb-2">Tableau de bord</Eyebrow>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
+            Bonjour {firstName}
+          </h1>
         </div>
-        <Link href="/app/brands/new" className="bg-amber text-navy px-4 py-2 text-sm font-medium hover:bg-amber/90 transition">
-          + Suivre une marque
-        </Link>
+        <Button href="/app/brands/new" variant="primary" size="md">+ Suivre une marque</Button>
       </div>
 
       {alertList.length > 0 && (
-        <div className="mb-6">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-2">Alertes non lues ({alertList.length})</p>
+        <div className="mb-8">
+          <Eyebrow className="mb-3">Alertes non lues ({alertList.length})</Eyebrow>
           <AlertBanner alerts={alertList} />
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <Stat label="Marques suivies" value={`${brandsUsed} / ${limits.brands}`} variant="highlight" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+        <Stat label="Marques suivies" value={`${brandsUsed} / ${limits.brands}`} variant="dark" />
         <Stat label="Cadence" value={limits.cadence === "weekly" ? "Hebdo" : "Mensuel"} />
         <Stat label="LLMs" value={String(limits.llms)} />
-        <Stat label="Plan" value={ctx.tier.toUpperCase()} variant={ctx.tier === "free" ? "default" : "highlight"} />
+        <Stat label="Plan" value={ctx.tier.toUpperCase()} variant={ctx.tier === "free" ? "default" : "dark"} />
       </div>
 
       {brandList.length === 0 ? (
-        <div className="bg-white p-8 text-center">
-          <h2 className="font-serif text-xl text-navy mb-2">Aucune marque suivie</h2>
-          <p className="text-sm text-ink-muted mb-4">Commence par ajouter ta marque pour voir comment les LLM la perçoivent.</p>
-          <Link href="/app/brands/new" className="inline-block bg-amber text-navy px-6 py-2.5 text-sm font-medium hover:bg-amber/90 transition">
-            Suivre ma 1re marque
-          </Link>
-        </div>
+        <EmptyState
+          icon="brands"
+          eyebrow="Démarrer"
+          title="Aucune marque suivie"
+          body="Commence par ajouter ta marque pour voir comment les LLM la perçoivent."
+          ctaLabel="Suivre ma 1re marque"
+          ctaHref="/app/brands/new"
+        />
       ) : (
         <>
           {featuredPoints.length > 0 && (
-            <div className="mb-8">
+            <div className="mb-10">
               <BrandEvolutionChart points={featuredPoints} brandName={featuredName} />
             </div>
           )}
 
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-2">Mes marques</p>
-          <div className="grid gap-3 md:grid-cols-2">
+          <Eyebrow className="mb-4">Mes marques</Eyebrow>
+          <div className="grid gap-4 md:grid-cols-2">
             {brandList.map(b => (
-              <Link key={b.id} href={`/app/brands/${b.id}`} className="bg-white p-5 hover:bg-navy/5 transition border border-transparent hover:border-navy/10">
+              <Link
+                key={b.id}
+                href={`/app/brands/${b.id}`}
+                className="bg-white rounded-lg border border-DEFAULT shadow-card p-5 transition-all duration-150 ease-out hover:shadow-cardHover hover:border-strong"
+              >
                 <div className="flex items-baseline justify-between mb-3">
                   <div>
-                    <h3 className="font-serif text-lg text-navy">{b.name}</h3>
+                    <h3 className="text-lg font-medium text-ink tracking-tightish">{b.name}</h3>
                     <p className="font-mono text-xs text-ink-muted">{b.domain}</p>
                   </div>
                   <div className="text-right">
-                    <span className="font-serif text-2xl text-navy">{fmtScore(b.visibility_score)}</span>
+                    <span className="text-2xl font-medium text-ink">{fmtScore(b.visibility_score)}</span>
                     <span className="text-xs text-ink-muted ml-1">/100</span>
                     {(() => {
                       const rv = relativeVisibility(b.visibility_score, b.citation_rate);
                       return rv !== null ? (
-                        <div className="text-[10px] text-ink-muted font-mono mt-0.5" title="visibility / citation_rate — quand effectivement cité">
+                        <div className="text-[10px] text-ink-subtle font-mono mt-0.5" title="visibility / citation_rate — quand effectivement cité">
                           {rv.toFixed(0)} quand cité
                         </div>
                       ) : null;
@@ -138,14 +146,14 @@ export default async function DashboardPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs">
-                  <div><div className="text-ink-muted">Rang moy.</div><div className="font-mono">{b.avg_rank?.toFixed(1) ?? "—"}</div></div>
-                  <div><div className="text-ink-muted">Citation</div><div className="font-mono">{b.citation_rate?.toFixed(0) ?? "0"}%</div></div>
-                  <div><div className="text-ink-muted">SOV</div><div className="font-mono">{b.share_of_voice?.toFixed(0) ?? "0"}%</div></div>
+                  <div><div className="text-ink-subtle">Rang moy.</div><div className="font-mono text-ink">{b.avg_rank?.toFixed(1) ?? "—"}</div></div>
+                  <div><div className="text-ink-subtle">Citation</div><div className="font-mono text-ink">{b.citation_rate?.toFixed(0) ?? "0"}%</div></div>
+                  <div><div className="text-ink-subtle">SOV</div><div className="font-mono text-ink">{b.share_of_voice?.toFixed(0) ?? "0"}%</div></div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-navy/5 flex items-center justify-between text-xs text-ink-muted">
+                <div className="mt-3 pt-3 border-t border-DEFAULT flex items-center justify-between text-xs text-ink-muted">
                   <span>Maj {fmtDate(b.last_snapshot_at)}</span>
                   <div className="flex gap-3">
-                    {b.unread_alerts > 0 && <span className="text-amber font-medium">{b.unread_alerts} alerte{b.unread_alerts > 1 ? "s" : ""}</span>}
+                    {b.unread_alerts > 0 && <span className="text-warning font-medium">{b.unread_alerts} alerte{b.unread_alerts > 1 ? "s" : ""}</span>}
                     {b.unread_recos > 0 && <span>{b.unread_recos} reco{b.unread_recos > 1 ? "s" : ""}</span>}
                   </div>
                 </div>

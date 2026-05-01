@@ -1,22 +1,12 @@
-// Empty state visuel + CTA. Remplace les "Aucune donnée" plats.
-// Spec : SPRINTS_S8_S9_S10_PLAN.md S8.4
-//
-// Usage :
-//   <EmptyState
-//     icon="brands"
-//     title="Aucune marque suivie"
-//     body="Commence par ajouter ta marque pour voir comment les LLM la perçoivent."
-//     ctaLabel="Suivre ma 1re marque"
-//     ctaHref="/app/brands/new"
-//   />
+// Empty state visuel + CTA. Style design system "Tech crisp" — eyebrow + H2 + body + Button DS.
 
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
 
 type IconKey = "brands" | "snapshot" | "sources" | "alerts" | "topics" | "team" | "search" | "calm" | "chart";
 
 const ICONS: Record<IconKey, ReactNode> = {
-  // SVG inline minimaliste, navy stroke. Tailwind classes pour size.
   brands: (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-12 h-12">
       <rect x="8" y="14" width="32" height="22" rx="2" />
@@ -87,20 +77,20 @@ const ICONS: Record<IconKey, ReactNode> = {
 
 type Props = {
   icon?: IconKey;
+  eyebrow?: string;
   title: string;
   body?: ReactNode;
   ctaLabel?: string;
   ctaHref?: string;
-  /** CTA secondaire optionnel */
   secondaryLabel?: string;
   secondaryHref?: string;
-  /** Tone clair (fond blanc) ou cream (fond cream) */
-  tone?: "white" | "cream";
+  tone?: "white" | "surface";
   className?: string;
 };
 
 export function EmptyState({
   icon = "search",
+  eyebrow,
   title,
   body,
   ctaLabel,
@@ -110,29 +100,24 @@ export function EmptyState({
   tone = "white",
   className = "",
 }: Props) {
-  const bg = tone === "cream" ? "bg-cream" : "bg-white";
+  const bg = tone === "surface" ? "bg-surface" : "bg-white";
   return (
-    <div className={`${bg} px-6 py-12 text-center flex flex-col items-center ${className}`}>
-      <div className="text-navy/60 mb-4">{ICONS[icon]}</div>
-      <h2 className="font-serif text-xl text-navy mb-2 max-w-md">{title}</h2>
-      {body && <div className="text-sm text-ink-muted max-w-md mb-5 leading-relaxed">{body}</div>}
+    <div className={`${bg} px-6 py-14 text-center flex flex-col items-center rounded-lg border border-DEFAULT ${className}`}>
+      <div className="text-ink-subtle mb-5">{ICONS[icon]}</div>
+      {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
+      <h2 className="text-2xl font-medium tracking-tight text-ink mb-2 max-w-md leading-tight">{title}</h2>
+      {body && <div className="text-sm text-ink-muted max-w-md mb-6 leading-relaxed">{body}</div>}
       {(ctaLabel || secondaryLabel) && (
         <div className="flex flex-wrap items-center justify-center gap-3">
           {ctaLabel && ctaHref && (
-            <Link
-              href={ctaHref}
-              className="bg-amber text-navy px-5 py-2.5 text-sm font-medium hover:bg-amber/90 transition"
-            >
+            <Button href={ctaHref} variant="primary" size="md">
               {ctaLabel}
-            </Link>
+            </Button>
           )}
           {secondaryLabel && secondaryHref && (
-            <Link
-              href={secondaryHref}
-              className="border border-navy/15 text-navy px-5 py-2.5 text-sm font-medium hover:bg-navy/5 transition"
-            >
+            <Button href={secondaryHref} variant="secondary" size="md">
               {secondaryLabel}
-            </Link>
+            </Button>
           )}
         </div>
       )}

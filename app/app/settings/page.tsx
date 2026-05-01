@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { TierBadge } from "@/components/saas/TierBadge";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { updateProfile, sendTestEmail } from "./actions";
@@ -16,6 +19,10 @@ const ERROR_LABELS: Record<string, string> = {
   test_insert_failed: "Impossible de créer l'alerte de test. Réessaie ou contacte le support.",
 };
 
+const FIELD_LABEL = "block text-xs font-mono uppercase tracking-eyebrow text-ink-subtle mb-1.5";
+const FIELD_INPUT = "w-full text-sm bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none transition-colors duration-150 ease-out";
+const FIELD_INPUT_DISABLED = "w-full text-sm bg-surface-2 px-3.5 py-2.5 rounded-md border border-DEFAULT text-ink-muted cursor-not-allowed";
+
 type Props = { searchParams: Promise<{ saved?: string; error?: string; test_sent?: string }> };
 
 export default async function SettingsPage({ searchParams }: Props) {
@@ -25,104 +32,108 @@ export default async function SettingsPage({ searchParams }: Props) {
   const testCanSend = ctx.tier !== "free" && ctx.profile?.email_notifs_enabled !== false;
 
   return (
-    <Section py="md" tone="cream">
+    <Section py="md" tone="white">
       <div className="max-w-xl">
-        <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-2">Réglages</p>
-        <h1 className="font-serif text-3xl text-navy mb-2">Mon compte</h1>
-        <p className="text-sm text-ink-muted mb-6">
-          <TierBadge tier={ctx.tier} /> — membre depuis {ctx.profile?.created_at ? new Date(ctx.profile.created_at).toLocaleDateString("fr-FR") : "—"}
+        <Eyebrow className="mb-2">Réglages</Eyebrow>
+        <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-3 leading-tight">
+          Mon compte
+        </h1>
+        <p className="text-sm text-ink-muted mb-8">
+          <TierBadge tier={ctx.tier} /> — membre depuis{" "}
+          {ctx.profile?.created_at ? new Date(ctx.profile.created_at).toLocaleDateString("fr-FR") : "—"}
         </p>
 
         {saved === "1" && (
-          <div className="mb-4 px-4 py-3 bg-amber/20 border-l-2 border-amber text-sm text-navy">
+          <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-success bg-emerald-50 px-4 py-3 text-sm text-success">
             Profil mis à jour.
           </div>
         )}
         {test_sent === "1" && (
-          <div className="mb-4 px-4 py-3 bg-amber/20 border-l-2 border-amber text-sm text-navy">
-            Email de test déclenché. Vérifie ta boîte ({ctx.user.email}) dans 30s. L&apos;alerte apparaît aussi dans <a href="/app/alerts" className="underline">tes alertes</a>.
+          <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 text-sm text-brand-600">
+            Email de test déclenché. Vérifie ta boîte ({ctx.user.email}) dans 30s. L&apos;alerte apparaît aussi dans{" "}
+            <a href="/app/alerts" className="underline">tes alertes</a>.
           </div>
         )}
         {errorMsg && (
-          <div className="mb-4 px-4 py-3 bg-red-50 border-l-2 border-red-600 text-sm text-red-900">{errorMsg}</div>
+          <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-danger bg-white px-4 py-3 text-sm text-danger">
+            {errorMsg}
+          </div>
         )}
 
-        <form action={updateProfile} className="bg-white p-6 space-y-5">
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Email</label>
-            <input
-              type="email"
-              value={ctx.user.email ?? ""}
-              disabled
-              className="w-full text-sm bg-cream/50 px-3 py-2.5 border border-navy/10 text-ink-muted"
-            />
-            <p className="text-xs text-ink-muted mt-1">Pour changer d&apos;email, contacte le support.</p>
-          </div>
-
-          <div>
-            <label htmlFor="full_name" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Nom complet</label>
-            <input
-              id="full_name"
-              name="full_name"
-              type="text"
-              defaultValue={ctx.profile?.full_name ?? ""}
-              className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="company" className="block text-xs font-mono uppercase tracking-widest text-ink-muted mb-1.5">Entreprise</label>
-            <input
-              id="company"
-              name="company"
-              type="text"
-              defaultValue={ctx.profile?.company ?? ""}
-              className="w-full text-sm bg-cream px-3 py-2.5 border border-navy/15 focus:border-navy outline-none"
-            />
-          </div>
-
-          <div className="pt-3 border-t border-navy/10">
-            <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-3">Notifications email</p>
-            <label className="flex items-start gap-3 cursor-pointer">
+        <Card variant="default">
+          <form action={updateProfile} className="space-y-5">
+            <div>
+              <label className={FIELD_LABEL}>Email</label>
               <input
-                type="checkbox"
-                name="email_notifs_enabled"
-                defaultChecked={ctx.profile?.email_notifs_enabled !== false}
-                className="mt-1 w-4 h-4 accent-navy"
+                type="email"
+                value={ctx.user.email ?? ""}
+                disabled
+                className={FIELD_INPUT_DISABLED}
               />
-              <span className="text-sm text-ink">
-                <span className="font-medium">Recevoir les alertes par email à <span className="font-mono text-xs">{ctx.user.email}</span></span>
-                <span className="block text-xs text-ink-muted mt-0.5">
-                  rank_drop, rank_gain, competitor_overtake, new_source, citation_loss/gain.
-                  {ctx.tier === "free" && " Réservé aux plans Solo et plus — actuellement Free, donc aucun email envoyé."}
+              <p className="text-xs text-ink-subtle mt-1.5">Pour changer d&apos;email, contacte le support.</p>
+            </div>
+
+            <div>
+              <label htmlFor="full_name" className={FIELD_LABEL}>Nom complet</label>
+              <input
+                id="full_name"
+                name="full_name"
+                type="text"
+                defaultValue={ctx.profile?.full_name ?? ""}
+                className={FIELD_INPUT}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="company" className={FIELD_LABEL}>Entreprise</label>
+              <input
+                id="company"
+                name="company"
+                type="text"
+                defaultValue={ctx.profile?.company ?? ""}
+                className={FIELD_INPUT}
+              />
+            </div>
+
+            <div className="pt-3 border-t border-DEFAULT">
+              <Eyebrow className="mb-3">Notifications email</Eyebrow>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="email_notifs_enabled"
+                  defaultChecked={ctx.profile?.email_notifs_enabled !== false}
+                  className="mt-1 w-4 h-4 accent-brand-500"
+                />
+                <span className="text-sm text-ink">
+                  <span className="font-medium">
+                    Recevoir les alertes par email à <span className="font-mono text-xs">{ctx.user.email}</span>
+                  </span>
+                  <span className="block text-xs text-ink-muted mt-0.5">
+                    rank_drop, rank_gain, competitor_overtake, new_source, citation_loss/gain.
+                    {ctx.tier === "free" && " Réservé aux plans Solo et plus — actuellement Free, donc aucun email envoyé."}
+                  </span>
                 </span>
-              </span>
-            </label>
-          </div>
+              </label>
+            </div>
 
-          <button type="submit" className="bg-navy text-white px-6 py-2.5 text-sm font-medium hover:bg-navy-light transition">
-            Sauvegarder
-          </button>
-        </form>
+            <Button type="submit" variant="primary" size="md">Sauvegarder</Button>
+          </form>
+        </Card>
 
-        <div className="mt-8 pt-6 border-t border-navy/10">
-          <p className="font-mono text-xs tracking-widest text-navy-light uppercase mb-2">Tester la deliverability</p>
-          <p className="text-sm text-ink-muted mb-3">
+        <div className="mt-10 pt-8 border-t border-DEFAULT">
+          <Eyebrow className="mb-2">Tester la deliverability</Eyebrow>
+          <p className="text-sm text-ink-muted mb-4">
             Crée une fausse alerte sur ton dernier snapshot pour vérifier que l&apos;email arrive bien dans ta boîte (et pas en spam).
           </p>
-          <form action={sendTestEmail}>
-            <button
-              type="submit"
-              disabled={!testCanSend}
-              className="bg-cream border border-navy/20 text-navy px-4 py-2 text-sm font-medium hover:bg-navy/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+          <form action={sendTestEmail} className="flex items-center gap-3 flex-wrap">
+            <Button type="submit" variant="secondary" size="md" disabled={!testCanSend}>
               Envoyer un email de test
-            </button>
+            </Button>
             {!testCanSend && ctx.tier === "free" && (
-              <span className="ml-3 text-xs text-ink-muted">Upgrade vers Solo pour activer.</span>
+              <span className="text-xs text-ink-muted">Upgrade vers Solo pour activer.</span>
             )}
             {!testCanSend && ctx.tier !== "free" && ctx.profile?.email_notifs_enabled === false && (
-              <span className="ml-3 text-xs text-ink-muted">Active d&apos;abord les notifs ci-dessus.</span>
+              <span className="text-xs text-ink-muted">Active d&apos;abord les notifs ci-dessus.</span>
             )}
           </form>
         </div>
