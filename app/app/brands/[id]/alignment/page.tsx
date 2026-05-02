@@ -234,7 +234,7 @@ export default async function AlignmentPage({ params }: Props) {
           </p>
           <div className="flex flex-wrap gap-1.5">
             {(gaps.unexpected_themes ?? []).map((t, i) => (
-              <span key={i} className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-amber/15 text-warning border border-warning/30">{t}</span>
+              <span key={i} className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-warning/10 text-warning border border-warning/30">{t}</span>
             ))}
           </div>
         </div>

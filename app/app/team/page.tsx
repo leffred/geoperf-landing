@@ -107,7 +107,7 @@ export default async function TeamPage({ searchParams }: Props) {
               <p className="font-medium text-ink">{ctx.profile?.full_name || ctx.user.email}</p>
               <p className="font-mono text-xs text-ink-subtle">{ctx.user.email}</p>
             </div>
-            <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-ink text-amber uppercase tracking-eyebrow">Owner</span>
+            <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-ink text-white uppercase tracking-eyebrow">Owner</span>
           </li>
           {acceptedMembers.map(m => (
             <li key={m.id} className="py-3 flex items-baseline justify-between flex-wrap gap-2">

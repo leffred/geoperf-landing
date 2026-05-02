@@ -105,11 +105,13 @@ export default async function DashboardPage() {
       {brandList.length === 0 ? (
         <EmptyState
           icon="brands"
-          eyebrow="Démarrer"
-          title="Aucune marque suivie"
-          body="Commence par ajouter ta marque pour voir comment les LLM la perçoivent."
-          ctaLabel="Suivre ma 1re marque"
-          ctaHref="/app/brands/new"
+          eyebrow="Onboarding · 60 secondes"
+          title="Bienvenue sur Geoperf"
+          body="Configure ta première marque avec le wizard pour voir comment les LLM la perçoivent. Le 1er snapshot tourne en 30 secondes après création."
+          ctaLabel="Démarrer l'onboarding"
+          ctaHref="/app/onboarding"
+          secondaryLabel="Form rapide"
+          secondaryHref="/app/brands/new"
         />
       ) : (
         <>

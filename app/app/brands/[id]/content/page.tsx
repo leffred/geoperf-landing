@@ -138,7 +138,7 @@ export default async function ContentStudioPage({ params, searchParams }: Props)
       <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5 mb-8">
         <Eyebrow className="mb-4">Générer un draft</Eyebrow>
         {!canGenerate ? (
-          <p className="text-sm text-warning bg-amber/10 rounded-md px-3 py-2">
+          <p className="text-sm text-warning bg-warning/10 rounded-md px-3 py-2">
             Quota mensuel atteint ({usedThisMonth}/{PRO_QUOTA}).{" "}
             <Link href="/app/billing" className="underline hover:text-ink">Upgrade Agency</Link> pour drafts illimités.
           </p>

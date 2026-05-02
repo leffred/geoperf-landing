@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +12,7 @@ export const metadata: Metadata = { title: "Abonnement — Geoperf", robots: { i
 
 const ERROR_LABELS: Record<string, string> = {
   bad_tier: "Tier invalide.",
+  bad_cycle: "Cycle de facturation invalide.",
   checkout_failed: "Impossible de créer la session Stripe. Réessaie ou contacte le support.",
   checkout_no_url: "Stripe n'a pas retourné d'URL de checkout.",
   portal_failed: "Impossible d'ouvrir le portail Stripe.",
@@ -55,15 +57,30 @@ const TIER_FEATURES: Record<Exclude<SaasTier, "solo">, string[]> = {
 
 const ORDER: Array<Exclude<SaasTier, "solo">> = ["free", "starter", "growth", "pro", "agency"];
 
-type Props = { searchParams: Promise<{ error?: string; success?: string; canceled?: string }> };
+type Props = { searchParams: Promise<{ error?: string; success?: string; canceled?: string; cycle?: string }> };
 
 export default async function BillingPage({ searchParams }: Props) {
-  const { error, success, canceled } = await searchParams;
+  const sp = await searchParams;
   const ctx = await loadSaasContext();
-  const errorMsg = error ? ERROR_LABELS[error] || "Erreur." : null;
+  const errorMsg = sp.error ? ERROR_LABELS[sp.error] || "Erreur." : null;
   const limits = ctx.limits;
+  const cycle: "monthly" | "annual" = sp.cycle === "annual" ? "annual" : "monthly";
 
   const currentTierKey: Exclude<SaasTier, "solo"> = ctx.tier === "solo" ? "starter" : (ctx.tier as Exclude<SaasTier, "solo">);
+
+  // Détecte trial actif (Stripe synchronise via saas_subscriptions.status='trialing')
+  const isTrialing = (ctx.subscription?.status as string | undefined) === "trialing";
+  const trialEnd = ctx.subscription?.current_period_end ? new Date(ctx.subscription.current_period_end) : null;
+  const trialDaysLeft = isTrialing && trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86400000)) : 0;
+
+  function priceLabel(monthly: number) {
+    if (cycle === "annual") {
+      const yearly = Math.round(monthly * 12 * 0.8);
+      const monthlyEquiv = Math.round(monthly * 0.8);
+      return { main: `${yearly}`, suffix: "€/an HT", hint: `≈ ${monthlyEquiv}€/mois · économisez ${Math.round(monthly * 12 * 0.2)}€/an` };
+    }
+    return { main: `${monthly}`, suffix: "€/mois HT", hint: null };
+  }
 
   return (
     <Section py="md" tone="white">
@@ -91,12 +108,19 @@ export default async function BillingPage({ searchParams }: Props) {
         </div>
       </div>
 
-      {success === "true" && (
+      {isTrialing && (
+        <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 text-sm text-brand-600">
+          <strong>Trial actif</strong> · {trialDaysLeft} jour{trialDaysLeft > 1 ? "s" : ""} restant{trialDaysLeft > 1 ? "s" : ""} jusqu&apos;au{" "}
+          {trialEnd?.toLocaleDateString("fr-FR")}. Aucun paiement avant cette date. Annulation gratuite via le portail Stripe.
+        </div>
+      )}
+
+      {sp.success === "true" && (
         <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-success bg-emerald-50 px-4 py-3 text-sm text-success">
           Paiement reçu. Ton plan se met à jour dans quelques secondes (synchro Stripe → Supabase via webhook).
         </div>
       )}
-      {canceled === "true" && (
+      {sp.canceled === "true" && (
         <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-ink/15 bg-surface px-4 py-3 text-sm text-ink-muted">
           Checkout annulé. Tu peux relancer quand tu veux.
         </div>
@@ -122,13 +146,32 @@ export default async function BillingPage({ searchParams }: Props) {
         </p>
       )}
 
-      <Eyebrow className="mb-4">5 plans</Eyebrow>
+      <div className="flex items-baseline justify-between mb-4 flex-wrap gap-3">
+        <Eyebrow>5 plans · facturation {cycle === "annual" ? "annuelle (-20%)" : "mensuelle"}</Eyebrow>
+        <div className="flex gap-1 rounded-md bg-surface p-1 text-xs">
+          <Link
+            href="/app/billing"
+            className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "monthly" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+          >
+            Mensuel
+          </Link>
+          <Link
+            href="/app/billing?cycle=annual"
+            className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "annual" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+          >
+            Annuel <span className="font-mono text-brand-500">-20%</span>
+          </Link>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         {ORDER.map(t => {
           const isCurrent = t === currentTierKey;
           const tLimits = TIER_LIMITS[t];
           const features = TIER_FEATURES[t];
           const recommended = t === "growth";
+          const price = priceLabel(tLimits.price_eur);
+          const isFreeTier = t === "free";
           return (
             <div
               key={t}
@@ -149,10 +192,18 @@ export default async function BillingPage({ searchParams }: Props) {
                   <span className="font-mono text-[10px] uppercase tracking-eyebrow text-brand-500">Recommandé</span>
                 )}
               </div>
-              <div className="mb-4">
-                <span className="text-3xl font-medium tracking-tightish">{tLimits.price_eur}</span>
-                <span className={`text-sm ml-1 ${isCurrent ? "opacity-70" : "text-ink-muted"}`}>€/mois HT</span>
+              <div className="mb-1">
+                <span className="text-3xl font-medium tracking-tightish tabular-nums">{isFreeTier ? "0" : price.main}</span>
+                <span className={`text-sm ml-1 ${isCurrent ? "opacity-70" : "text-ink-muted"}`}>
+                  {isFreeTier ? "€" : price.suffix}
+                </span>
               </div>
+              {!isFreeTier && price.hint && (
+                <p className={`text-[11px] mb-4 ${isCurrent ? "text-white/60" : "text-brand-500"}`}>
+                  {price.hint}
+                </p>
+              )}
+              {isFreeTier || !price.hint ? <div className="mb-4" /> : null}
               <ul className={`text-xs space-y-1.5 mb-5 ${isCurrent ? "" : "text-ink"}`}>
                 {features.map(f => (
                   <li key={f} className="flex items-baseline gap-2">
@@ -161,15 +212,31 @@ export default async function BillingPage({ searchParams }: Props) {
                   </li>
                 ))}
               </ul>
-              {ctx.is_owner && !isCurrent && t !== "free" && (
-                <form action={startCheckout}>
-                  <input type="hidden" name="tier" value={t} />
-                  <Button type="submit" variant={recommended ? "primary" : "secondary"} size="sm" className="w-full">
-                    {ctx.tier === "free" ? "Activer" : "Switcher vers"} {tierLabel(t)}
-                  </Button>
-                </form>
+              {ctx.is_owner && !isCurrent && !isFreeTier && (
+                <div className="space-y-2">
+                  <form action={startCheckout}>
+                    <input type="hidden" name="tier" value={t} />
+                    <input type="hidden" name="cycle" value={cycle} />
+                    <Button type="submit" variant={recommended ? "primary" : "secondary"} size="sm" className="w-full">
+                      {ctx.tier === "free" ? "Activer" : "Switcher vers"} {tierLabel(t)}
+                    </Button>
+                  </form>
+                  {t === "pro" && ctx.tier !== "pro" && !isTrialing && (
+                    <form action={startCheckout}>
+                      <input type="hidden" name="tier" value="pro" />
+                      <input type="hidden" name="cycle" value={cycle} />
+                      <input type="hidden" name="trial" value="1" />
+                      <button
+                        type="submit"
+                        className="w-full text-xs px-3 py-1.5 rounded-md text-brand-500 border border-brand-500/30 hover:bg-brand-50 transition-colors duration-150 ease-out font-medium"
+                      >
+                        Essayer 14 jours gratuit
+                      </button>
+                    </form>
+                  )}
+                </div>
               )}
-              {ctx.is_owner && !isCurrent && t === "free" && ctx.subscription?.stripe_subscription_id && (
+              {ctx.is_owner && !isCurrent && isFreeTier && ctx.subscription?.stripe_subscription_id && (
                 <form action={openCustomerPortal}>
                   <Button type="submit" variant="secondary" size="sm" className="w-full">
                     Downgrade (via Stripe)
@@ -184,6 +251,7 @@ export default async function BillingPage({ searchParams }: Props) {
       <p className="text-xs text-ink-subtle mt-6">
         Paiement géré par Stripe (PCI-DSS). TVA UE auto-calculée. Carte test :{" "}
         <code className="font-mono">4242 4242 4242 4242</code> · 12/34 · 123.
+        {" "}Annual = -20% sur le prix mensuel × 12. Trial Pro = 14 jours sans CB requise.
       </p>
     </Section>
   );

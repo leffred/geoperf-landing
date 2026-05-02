@@ -84,6 +84,8 @@ type Props = {
   ctaHref?: string;
   secondaryLabel?: string;
   secondaryHref?: string;
+  /** Slot custom rendu sous les CTA — utile pour des forms actions (refreshBrand, etc.) */
+  actionSlot?: ReactNode;
   tone?: "white" | "surface";
   className?: string;
 };
@@ -97,17 +99,19 @@ export function EmptyState({
   ctaHref,
   secondaryLabel,
   secondaryHref,
+  actionSlot,
   tone = "white",
   className = "",
 }: Props) {
   const bg = tone === "surface" ? "bg-surface" : "bg-white";
+  const hasButtons = ctaLabel || secondaryLabel || actionSlot;
   return (
     <div className={`${bg} px-6 py-14 text-center flex flex-col items-center rounded-lg border border-DEFAULT ${className}`}>
       <div className="text-ink-subtle mb-5">{ICONS[icon]}</div>
       {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
       <h2 className="text-2xl font-medium tracking-tight text-ink mb-2 max-w-md leading-tight">{title}</h2>
       {body && <div className="text-sm text-ink-muted max-w-md mb-6 leading-relaxed">{body}</div>}
-      {(ctaLabel || secondaryLabel) && (
+      {hasButtons && (
         <div className="flex flex-wrap items-center justify-center gap-3">
           {ctaLabel && ctaHref && (
             <Button href={ctaHref} variant="primary" size="md">
@@ -119,6 +123,7 @@ export function EmptyState({
               {secondaryLabel}
             </Button>
           )}
+          {actionSlot}
         </div>
       )}
     </div>

@@ -5,9 +5,11 @@ import { Section } from "@/components/ui/Section";
 import { Stat } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { EmptyState } from "@/components/saas/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { SentimentDonut } from "@/components/saas/SentimentDonut";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
+import { refreshBrand } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Sentiment — Geoperf", robots: { index: false, follow: false } };
@@ -94,8 +96,14 @@ export default async function SentimentPage({ params }: Props) {
           body={pending
             ? "Le snapshot le plus récent a été complété mais l'analyse Haiku tourne encore. Reviens dans 30s à 1 minute."
             : "Lance un snapshot pour cette marque. L'analyse sentiment se déclenche automatiquement post-snapshot pour les plans Growth+."}
-          ctaLabel="Retour à la marque"
-          ctaHref={`/app/brands/${id}`}
+          secondaryLabel="Retour à la marque"
+          secondaryHref={`/app/brands/${id}`}
+          actionSlot={!pending && ctx.is_owner ? (
+            <form action={refreshBrand}>
+              <input type="hidden" name="brand_id" value={id} />
+              <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
+            </form>
+          ) : null}
         />
       </Section>
     );

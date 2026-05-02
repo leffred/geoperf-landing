@@ -99,12 +99,27 @@ const DIFFERENTIATORS = [
   },
 ];
 
-export default function SaasMarketingPage() {
+type Props = { searchParams: Promise<{ cycle?: string }> };
+
+export default async function SaasMarketingPage({ searchParams }: Props) {
+  const sp = await searchParams;
+  const cycle: "monthly" | "annual" = sp.cycle === "annual" ? "annual" : "monthly";
+
+  function priceLabel(monthly: number) {
+    if (cycle === "annual") {
+      const yearly = Math.round(monthly * 12 * 0.8);
+      const monthlyEquiv = Math.round(monthly * 0.8);
+      return { main: `${yearly}`, suffix: "€/an HT", hint: `≈ ${monthlyEquiv}€/mois · économisez ${Math.round(monthly * 12 * 0.2)}€/an` };
+    }
+    return { main: `${monthly}`, suffix: "€/mois HT", hint: null };
+  }
+
   return (
     <main className="min-h-screen flex flex-col bg-white">
       <Header
         rightSlot={
           <div className="flex items-center gap-4">
+            <Link href="/saas/vs-getmint" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors hidden md:inline">vs GetMint</Link>
             <Link href="/saas/faq" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">FAQ</Link>
             <Link href="/login" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">Connexion</Link>
             <Button href="/signup" variant="primary" size="sm">Créer un compte</Button>
@@ -166,52 +181,79 @@ export default function SaasMarketingPage() {
         <h2 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-3 leading-tight max-w-2xl text-balance">
           Tarifs simples, sans engagement.
         </h2>
-        <p className="text-sm text-ink-muted mb-10 max-w-2xl leading-relaxed">
+        <p className="text-sm text-ink-muted mb-8 max-w-2xl leading-relaxed">
           Tous les plans incluent : prompts FR, monitoring multi-LLM (à partir de Starter), recos Haiku, alertes email. Annulation en 1 clic depuis le portail Stripe.
         </p>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
-          {TIERS.map(t => (
-            <div
-              key={t.key}
-              className={`rounded-lg p-6 transition-all duration-150 ease-out ${
-                t.highlight
-                  ? "bg-ink text-white shadow-card"
-                  : "bg-white border border-DEFAULT shadow-card hover:shadow-cardHover"
-              }`}
+        <div className="flex items-baseline gap-3 mb-8">
+          <span className="text-xs font-mono uppercase tracking-eyebrow text-ink-subtle">Cycle</span>
+          <div className="flex gap-1 rounded-md bg-surface p-1 text-xs">
+            <Link
+              href="/saas#pricing"
+              className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "monthly" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
             >
-              <div className="flex items-baseline justify-between mb-3">
-                <p className={`font-mono text-xs uppercase tracking-eyebrow ${t.highlight ? "text-brand-500" : "text-brand-500"}`}>{t.name}</p>
-                {t.highlight && (
-                  <span className="font-mono text-[10px] uppercase tracking-eyebrow text-brand-500">Recommandé</span>
-                )}
-              </div>
-              <div className="mb-4">
-                <span className="text-4xl font-medium tracking-tightish">{t.price}</span>
-                <span className={`text-sm ml-1 ${t.highlight ? "opacity-70" : "text-ink-muted"}`}>€/mois HT</span>
-              </div>
-              <ul className={`text-xs space-y-2 mb-6 ${t.highlight ? "" : "text-ink"}`}>
-                {t.bullets.map(b => (
-                  <li key={b} className="flex items-baseline gap-2">
-                    <span className={t.highlight ? "text-brand-500" : "text-brand-500"}>·</span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                href={t.href}
-                variant={t.highlight ? "primary" : "secondary"}
-                size="md"
-                className="w-full"
+              Mensuel
+            </Link>
+            <Link
+              href="/saas?cycle=annual#pricing"
+              className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "annual" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+            >
+              Annuel <span className="font-mono text-brand-500">-20%</span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+          {TIERS.map(t => {
+            const price = priceLabel(t.price);
+            const isFreeTier = t.key === "free";
+            return (
+              <div
+                key={t.key}
+                className={`rounded-lg p-6 transition-all duration-150 ease-out ${
+                  t.highlight
+                    ? "bg-ink text-white shadow-card"
+                    : "bg-white border border-DEFAULT shadow-card hover:shadow-cardHover"
+                }`}
               >
-                {t.cta}
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-baseline justify-between mb-3">
+                  <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500">{t.name}</p>
+                  {t.highlight && (
+                    <span className="font-mono text-[10px] uppercase tracking-eyebrow text-brand-500">Recommandé</span>
+                  )}
+                </div>
+                <div className="mb-1">
+                  <span className="text-4xl font-medium tracking-tightish tabular-nums">{isFreeTier ? "0" : price.main}</span>
+                  <span className={`text-sm ml-1 ${t.highlight ? "opacity-70" : "text-ink-muted"}`}>{isFreeTier ? "€" : price.suffix}</span>
+                </div>
+                {!isFreeTier && price.hint ? (
+                  <p className={`text-[11px] mb-4 ${t.highlight ? "text-brand-500" : "text-brand-500"}`}>{price.hint}</p>
+                ) : (
+                  <div className="mb-4" />
+                )}
+                <ul className={`text-xs space-y-2 mb-6 ${t.highlight ? "" : "text-ink"}`}>
+                  {t.bullets.map(b => (
+                    <li key={b} className="flex items-baseline gap-2">
+                      <span className="text-brand-500">·</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  href={cycle === "annual" && !isFreeTier ? `${t.href}&cycle=annual` : t.href}
+                  variant={t.highlight ? "primary" : "secondary"}
+                  size="md"
+                  className="w-full"
+                >
+                  {t.cta}
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
         <p className="text-xs text-ink-subtle mt-6">
-          TVA UE auto-calculée par Stripe. Carte test :{" "}
+          TVA UE auto-calculée par Stripe. Annual = -20% sur le prix mensuel × 12 (économie cumulée). Trial 14 jours gratuit dispo sur Pro depuis ton compte. Carte test :{" "}
           <code className="font-mono text-xs bg-surface px-2 py-0.5 rounded">4242 4242 4242 4242</code>
         </p>
       </Section>

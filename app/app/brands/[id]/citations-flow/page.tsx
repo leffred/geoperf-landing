@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { EmptyState } from "@/components/saas/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { CitationsSankey } from "@/components/saas/CitationsSankey";
 import { TopicSelector } from "@/components/saas/TopicSelector";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
+import { refreshBrand } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Citations Flow — Geoperf", robots: { index: false, follow: false } };
@@ -79,8 +81,14 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
           icon="snapshot"
           title="Pas encore de snapshot pour visualiser le flow"
           body="Lance un snapshot sur cette marque. La visualisation Sankey s'affichera ensuite avec les flux Prompt → LLM → Mention → Sources."
-          ctaLabel="Retour à la marque"
-          ctaHref={`/app/brands/${id}`}
+          secondaryLabel="Retour à la marque"
+          secondaryHref={`/app/brands/${id}`}
+          actionSlot={ctx.is_owner ? (
+            <form action={refreshBrand}>
+              <input type="hidden" name="brand_id" value={id} />
+              <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
+            </form>
+          ) : null}
         />
       </Section>
     );

@@ -1,4 +1,4 @@
-// Layout commun à toutes les pages /app/*. Ajoute le header user + nav top.
+// Layout commun à toutes les pages /app/*. Header user + nav top. Tech crisp.
 
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -16,7 +16,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <span className="font-mono text-xs text-ink-muted hidden md:inline">{ctx.user.email}</span>
       <TierBadge tier={ctx.tier} />
       <form action={logout}>
-        <button type="submit" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy transition">
+        <button
+          type="submit"
+          className="font-mono text-xs px-3 py-1.5 rounded-md bg-surface hover:bg-surface-2 text-ink transition-colors duration-150 ease-out"
+        >
           Logout
         </button>
       </form>
@@ -35,16 +38,16 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <main className="min-h-screen flex flex-col bg-cream">
+    <main className="min-h-screen flex flex-col bg-white">
       <Header rightSlot={right} />
 
-      <nav className="bg-white border-b border-navy/10 px-8">
+      <nav className="bg-white border-b border-DEFAULT px-6 md:px-8 sticky top-14 z-30 backdrop-blur-md bg-white/85">
         <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto">
           {navItems.map(item => (
             <Link
               key={item.href}
               href={item.href}
-              className="px-4 py-3 text-sm font-medium text-navy hover:bg-cream transition border-b-2 border-transparent hover:border-amber whitespace-nowrap"
+              className="px-4 py-3 text-sm font-medium text-ink hover:bg-surface transition-colors duration-150 ease-out border-b-2 border-transparent hover:border-brand-500 whitespace-nowrap"
             >
               {item.label}
             </Link>

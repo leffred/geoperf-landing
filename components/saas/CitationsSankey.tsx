@@ -132,21 +132,22 @@ function buildSankeyData(rs: Response[], brandName: string, mapping: Record<stri
   return { nodes, links };
 }
 
-const NODE_COLORS = ["#042C53", "#0C447C", "#EF9F27", "#1D9E75"];
+// Tech crisp palette : ink → brand-600 → brand-500 → success
+const NODE_COLORS = ["#0A0E1A", "#1D4ED8", "#2563EB", "#059669"];
 
 function SankeyNode({ x, y, width, height, index, payload }: any) {
   const col = (payload as any).col ?? 0;
   const fill = NODE_COLORS[col % NODE_COLORS.length];
   return (
     <g>
-      <rect x={x} y={y} width={width} height={height} fill={fill} fillOpacity={0.9} />
+      <rect x={x} y={y} width={width} height={height} fill={fill} fillOpacity={0.9} rx={1} />
       <text
         x={x + width + 6}
         y={y + height / 2}
         dominantBaseline="middle"
         fontSize={10}
-        fontFamily="ui-sans-serif, system-ui"
-        fill="#2C2C2A"
+        fontFamily="Inter, system-ui, sans-serif"
+        fill="#0A0E1A"
       >
         {(payload as any).name}
       </text>
@@ -159,23 +160,23 @@ export function CitationsSankey({ responses, brandName, promptCategoryByText = {
 
   if (locked) {
     return (
-      <div className="relative bg-white p-6">
-        <div className="absolute inset-0 bg-cream/95 flex flex-col items-center justify-center text-center px-6 z-10">
-          <p className="font-mono text-xs uppercase tracking-widest text-amber mb-2">Pro / Agency</p>
-          <h3 className="font-serif text-xl text-navy mb-2">Citations Flow</h3>
-          <p className="text-sm text-ink-muted mb-4 max-w-md">
+      <div className="relative bg-white rounded-lg border border-DEFAULT shadow-card p-6">
+        <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center text-center px-6 z-10 rounded-lg">
+          <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500 mb-3">Pro / Agency</p>
+          <h3 className="text-xl font-medium text-ink mb-2 tracking-tightish">Citations Flow</h3>
+          <p className="text-sm text-ink-muted mb-5 max-w-md leading-relaxed">
             Visualise le flux complet : catégorie de prompt → LLM → mention de la marque → sources autorité citées. 4 colonnes Sankey.
           </p>
-          <a href="/app/billing" className="bg-amber text-navy px-4 py-2 text-sm font-medium hover:bg-amber/90 transition">
+          <a href="/app/billing" className="bg-brand-500 text-white px-5 py-2.5 text-sm font-medium rounded-md hover:bg-brand-600 transition-colors duration-150 ease-out shadow-card">
             Upgrade vers Pro
           </a>
         </div>
         <div aria-hidden className="opacity-30 select-none pointer-events-none" style={{ height }}>
           <div className="grid grid-cols-4 gap-12 h-full">
-            <div className="bg-navy/30" />
-            <div className="bg-navy-light/30" />
-            <div className="bg-amber/30" />
-            <div className="bg-emerald-600/30" />
+            <div className="bg-ink/30" />
+            <div className="bg-brand-600/30" />
+            <div className="bg-brand-500/30" />
+            <div className="bg-success/30" />
           </div>
         </div>
       </div>
@@ -184,17 +185,19 @@ export function CitationsSankey({ responses, brandName, promptCategoryByText = {
 
   if (data.nodes.length === 0 || data.links.length === 0) {
     return (
-      <div className="bg-white p-8 text-center text-ink-muted text-sm">
+      <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-8 text-center text-ink-muted text-sm">
         Pas assez de données pour la visualisation Sankey (snapshot completed avec ≥1 LLM requis).
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-5">
-      <div className="flex items-baseline justify-between mb-3 flex-wrap gap-2">
-        <p className="font-mono text-xs uppercase tracking-widest text-navy-light">Citations Flow</p>
-        <p className="text-xs text-ink-muted">{responses.length} réponses · {data.nodes.length} nodes · {data.links.length} flux</p>
+    <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5">
+      <div className="flex items-baseline justify-between mb-4 flex-wrap gap-2">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500">Citations Flow</p>
+        <p className="text-xs text-ink-subtle font-mono">
+          {responses.length} réponses · {data.nodes.length} nodes · {data.links.length} flux
+        </p>
       </div>
       <div style={{ width: "100%", height }}>
         <ResponsiveContainer>
@@ -203,22 +206,22 @@ export function CitationsSankey({ responses, brandName, promptCategoryByText = {
             nodePadding={28}
             nodeWidth={14}
             margin={{ top: 8, right: 140, bottom: 8, left: 8 }}
-            link={{ stroke: "#0C447C", strokeOpacity: 0.25 } as any}
+            link={{ stroke: "#1D4ED8", strokeOpacity: 0.25 } as any}
             node={SankeyNode as any}
           >
             <Tooltip
-              contentStyle={{ background: "#FFFFFF", border: "1px solid #042C53", padding: "6px 10px", fontSize: 12 }}
+              contentStyle={{ background: "#FFFFFF", border: "1px solid rgba(10,14,26,0.14)", borderRadius: 6, padding: "6px 10px", fontSize: 12, color: "#0A0E1A" }}
               formatter={(v) => [`${v} flux`, ""]}
             />
           </Sankey>
         </ResponsiveContainer>
       </div>
-      <div className="flex flex-wrap items-center gap-3 mt-3 text-[10px] text-ink-muted font-mono">
+      <div className="flex flex-wrap items-center gap-3 mt-3 text-[10px] text-ink-subtle font-mono">
         <span>Colonnes :</span>
-        <span><span className="inline-block w-2.5 h-2.5 bg-navy mr-1 align-middle" />Catégorie prompt</span>
-        <span><span className="inline-block w-2.5 h-2.5 bg-navy-light mr-1 align-middle" />LLM</span>
-        <span><span className="inline-block w-2.5 h-2.5 bg-amber mr-1 align-middle" />Mention {brandName}</span>
-        <span><span className="inline-block w-2.5 h-2.5 bg-emerald-600 mr-1 align-middle" />Sources citées</span>
+        <span><span className="inline-block w-2.5 h-2.5 bg-ink mr-1 align-middle rounded-sm" />Catégorie prompt</span>
+        <span><span className="inline-block w-2.5 h-2.5 bg-brand-600 mr-1 align-middle rounded-sm" />LLM</span>
+        <span><span className="inline-block w-2.5 h-2.5 bg-brand-500 mr-1 align-middle rounded-sm" />Mention {brandName}</span>
+        <span><span className="inline-block w-2.5 h-2.5 bg-success mr-1 align-middle rounded-sm" />Sources citées</span>
       </div>
     </div>
   );

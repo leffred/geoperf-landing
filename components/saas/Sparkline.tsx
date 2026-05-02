@@ -15,7 +15,7 @@ type Props = {
   className?: string;
 };
 
-export function Sparkline({ values, width = 80, height = 22, color = "#042C53", maxValue, className = "" }: Props) {
+export function Sparkline({ values, width = 80, height = 22, color = "#2563EB", maxValue, className = "" }: Props) {
   if (!values || values.length < 2) {
     return <span className={`inline-block text-[10px] font-mono text-ink-muted ${className}`} style={{ width, height }} aria-hidden="true">—</span>;
   }

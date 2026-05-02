@@ -26,7 +26,7 @@ const SIZE_CLASS: Record<NonNullable<Props["size"]>, string> = {
 
 export function BrandPill({ name, domain, size = "sm", asOwner = false, className = "", dotOnly = false }: Props) {
   const color = asOwner
-    ? { hex: "#042C53", bg: "bg-navy", text: "text-white", label: "navy" as const }
+    ? { hex: "#0A0E1A", bg: "bg-ink", text: "text-white", label: "ink" as const }
     : assignBrandColor(domain || name);
 
   if (dotOnly) {
