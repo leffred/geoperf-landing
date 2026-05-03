@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
-import { Stat } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { BrandEvolutionChart, type Point } from "@/components/saas/BrandEvolutionChart";
@@ -10,6 +9,14 @@ import { AlertBanner } from "@/components/saas/AlertBanner";
 import { RecommendationList } from "@/components/saas/RecommendationList";
 import { CompetitorMatrix } from "@/components/saas/CompetitorMatrix";
 import { TopicSelector } from "@/components/saas/TopicSelector";
+import {
+  CompetitorRankingBars,
+  type VisibilityEntry,
+  type ShareOfVoiceEntry,
+} from "@/components/saas/CompetitorRankingBars";
+import { Top10ShareOfVoice, type ShareOfVoiceRow } from "@/components/saas/Top10ShareOfVoice";
+import { Top10CitedDomains, type CitedDomainRow } from "@/components/saas/Top10CitedDomains";
+import { Top10CitedUrls, type CitedUrlRow } from "@/components/saas/Top10CitedUrls";
 import { loadSaasContext, relativeVisibility } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand, markAlertsRead } from "./actions";
@@ -64,7 +71,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
 
   const [{ data: snapshots }, { data: alerts }, { data: evolution }] = await Promise.all([
     sb.from("saas_brand_snapshots")
-      .select("id, status, visibility_score, avg_rank, citation_rate, share_of_voice, total_cost_usd, raw_response_count, prompts_count, error_message, created_at, completed_at")
+      .select("id, status, visibility_score, avg_rank, citation_rate, share_of_voice, total_cost_usd, raw_response_count, prompts_count, brand_mention_count, total_mention_count, error_message, created_at, completed_at")
       .eq("brand_id", id)
       .order("created_at", { ascending: false })
       .limit(20),
@@ -93,13 +100,48 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
 
   let recos: any[] = [];
   let matrixResponses: any[] = [];
+  let visibilityEntries: VisibilityEntry[] = [];
+  let sovEntries: ShareOfVoiceEntry[] = [];
+  let topSov: ShareOfVoiceRow[] = [];
+  let topDomains: CitedDomainRow[] = [];
+  let topUrls: CitedUrlRow[] = [];
+
   if (latestSnapshot) {
-    const [{ data: recosData }, { data: respData }] = await Promise.all([
-      sb.from("saas_recommendations").select("id, priority, category, title, body, authority_sources, is_read, created_at").eq("snapshot_id", latestSnapshot.id).order("priority", { ascending: true }),
-      sb.from("saas_snapshot_responses").select("llm, brand_mentioned, competitors_mentioned").eq("snapshot_id", latestSnapshot.id),
+    const [
+      { data: recosData },
+      { data: respData },
+      { data: visibilityData },
+      { data: sovData },
+      { data: domainsData },
+      { data: urlsData },
+    ] = await Promise.all([
+      sb.from("saas_recommendations")
+        .select("id, priority, category, title, body, authority_sources, is_read, created_at")
+        .eq("snapshot_id", latestSnapshot.id)
+        .order("priority", { ascending: true }),
+      sb.from("saas_snapshot_responses")
+        .select("llm, brand_mentioned, competitors_mentioned")
+        .eq("snapshot_id", latestSnapshot.id),
+      sb.from("v_saas_competitor_visibility")
+        .select("entity_name, is_self, visibility_score, mention_count, rank")
+        .eq("snapshot_id", latestSnapshot.id)
+        .order("rank", { ascending: true })
+        .limit(20),
+      sb.from("v_saas_competitor_share_of_voice")
+        .select("entity_name, is_self, mention_count, share_pct, rank")
+        .eq("snapshot_id", latestSnapshot.id)
+        .order("rank", { ascending: true })
+        .limit(20),
+      sb.rpc("saas_top_cited_domains", { p_snapshot_id: latestSnapshot.id, p_limit: 10 }),
+      sb.rpc("saas_top_cited_urls", { p_snapshot_id: latestSnapshot.id, p_limit: 10 }),
     ]);
     recos = (recosData as any[] | null) ?? [];
     matrixResponses = (respData as any[] | null) ?? [];
+    visibilityEntries = (visibilityData as any[] | null) ?? [];
+    sovEntries = (sovData as any[] | null) ?? [];
+    topSov = sovEntries.slice(0, 10) as ShareOfVoiceRow[];
+    topDomains = (domainsData as any[] | null) ?? [];
+    topUrls = (urlsData as any[] | null) ?? [];
   }
 
   function humanizeDomain(d: string): string {
@@ -109,6 +151,10 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
   const competitorHumans = ((brand.competitor_domains as string[] | null) ?? []).map(humanizeDomain);
 
   const errorMsg = error ? ERROR_LABELS[error] || "Erreur." : null;
+
+  const llmsCount = (latestSnapshot && latestSnapshot.raw_response_count && latestSnapshot.prompts_count)
+    ? Math.max(1, Math.round(latestSnapshot.raw_response_count / latestSnapshot.prompts_count))
+    : 0;
 
   return (
     <Section py="md" tone="white">
@@ -146,13 +192,11 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         />
       )}
 
-      <div className="bg-white rounded-lg border border-DEFAULT p-3 mb-6 flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono uppercase tracking-eyebrow text-brand-500 shrink-0">Vues</span>
-        <Link href={`/app/brands/${id}/sources`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Sources</Link>
-        <Link href={`/app/brands/${id}/by-model`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Par LLM</Link>
-        <Link href={`/app/brands/${id}/by-prompt`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Par prompt</Link>
-        <Link href={`/app/brands/${id}/topics`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Topics</Link>
-      </div>
+      {alertList.some(a => !a.is_read) && (
+        <div className="mb-6">
+          <AlertBanner alerts={alertList.filter(a => !a.is_read)} />
+        </div>
+      )}
 
       {refreshed === "1" && (
         <div className="mb-6 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 text-sm text-brand-600">
@@ -167,32 +211,75 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
 
       {latestSnapshot ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-            <Stat label="Visibility absolue" value={Number(latestSnapshot.visibility_score).toFixed(0)} variant="dark" />
-            <Stat label="Rang moy." value={latestSnapshot.avg_rank?.toFixed(1) ?? "—"} />
-            <Stat label="Citation" value={`${latestSnapshot.citation_rate?.toFixed(0) ?? 0}%`} />
-            <Stat label="Share-of-voice" value={`${latestSnapshot.share_of_voice?.toFixed(0) ?? 0}%`} />
-          </div>
-          {(() => {
-            const rv = relativeVisibility(latestSnapshot.visibility_score, latestSnapshot.citation_rate);
-            if (rv === null) return null;
-            return (
-              <p className="text-xs text-ink-muted mb-8">
-                <span className="font-mono uppercase tracking-eyebrow text-brand-500 mr-2">Performance quand cité :</span>
-                <span className="text-base text-ink font-medium mr-2">{rv.toFixed(0)} / 100</span>
-                <span>(visibility absolue {Number(latestSnapshot.visibility_score).toFixed(0)} normalisée par citation rate {latestSnapshot.citation_rate?.toFixed(0)}%)</span>
+          {/* ROW 1 — Visibility panel + Evolution */}
+          <div className="grid lg:grid-cols-5 gap-6 mb-6">
+            <div className="lg:col-span-3 bg-white rounded-lg border border-ink/[0.08] p-6">
+              <Eyebrow className="mb-2">Visibility Score</Eyebrow>
+              <div className="flex items-baseline gap-3 mb-1">
+                <span className="text-5xl md:text-6xl font-medium tracking-tight text-brand-500 tabular-nums">
+                  {Number(latestSnapshot.visibility_score).toFixed(0)}
+                </span>
+                <span className="text-2xl text-ink-subtle">/100</span>
+              </div>
+              <p className="text-xs text-ink-muted font-mono mb-1">
+                Basé sur {latestSnapshot.raw_response_count ?? 0} réponses · {latestSnapshot.prompts_count ?? 0} prompts × {llmsCount} LLMs
               </p>
-            );
-          })()}
+              {(() => {
+                const rv = relativeVisibility(latestSnapshot.visibility_score, latestSnapshot.citation_rate);
+                if (rv === null) return null;
+                return (
+                  <p className="text-[11px] text-ink-subtle mb-5">
+                    Performance quand cité : <span className="text-ink font-medium tabular-nums">{rv.toFixed(0)}/100</span> (visibility absolue normalisée par citation rate {latestSnapshot.citation_rate?.toFixed(0)}%)
+                  </p>
+                );
+              })()}
 
-          {points.length > 0 && (
-            <div className="mb-8">
-              <BrandEvolutionChart points={points} brandName={brand.name} />
+              <div className="grid grid-cols-3 gap-3 mb-6 pt-4 border-t border-ink/[0.06]">
+                <MiniStat label="Rang moy." value={latestSnapshot.avg_rank?.toFixed(1) ?? "—"} />
+                <MiniStat label="Citation" value={`${latestSnapshot.citation_rate?.toFixed(0) ?? 0}%`} />
+                <MiniStat label="Share of Voice" value={`${latestSnapshot.share_of_voice?.toFixed(0) ?? 0}%`} />
+              </div>
+
+              <CompetitorRankingBars
+                brandName={brand.name}
+                entries={visibilityEntries}
+                fallback={sovEntries}
+                limit={7}
+              />
             </div>
-          )}
 
+            <div className="lg:col-span-2 bg-white rounded-lg border border-ink/[0.08] p-6">
+              <Eyebrow className="mb-2">Visibility Evolution</Eyebrow>
+              <h3 className="text-base font-medium text-ink tracking-tight mb-4">Trajectoire dans le temps</h3>
+              {points.length > 0 ? (
+                <BrandEvolutionChart points={points} brandName={brand.name} />
+              ) : (
+                <p className="text-sm text-ink-muted italic">Le graph apparaîtra après le 2e snapshot.</p>
+              )}
+            </div>
+          </div>
+
+          {/* ROW 2 — Top10 widgets */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <Top10ShareOfVoice rows={topSov} />
+            <Top10CitedDomains rows={topDomains} />
+            <Top10CitedUrls rows={topUrls} />
+          </div>
+
+          {/* ROW 3 — drill-down links */}
+          <div className="bg-white rounded-lg border border-ink/[0.08] p-4 mb-6 flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-mono uppercase tracking-eyebrow text-brand-500 shrink-0">Drill-down</span>
+            <Link href={`/app/brands/${id}/sources`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Sources →</Link>
+            <Link href={`/app/brands/${id}/by-model`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Par LLM →</Link>
+            <Link href={`/app/brands/${id}/by-prompt`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Par prompt →</Link>
+            <Link href={`/app/brands/${id}/citations-flow`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Citations flow →</Link>
+            <Link href={`/app/brands/${id}/sentiment`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Sentiment →</Link>
+            <Link href={`/app/brands/${id}/topics`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Topics →</Link>
+          </div>
+
+          {/* ROW 4 — Competitor Matrix (Pro+ lock) */}
           {matrixResponses.length > 0 && (
-            <div className="mb-8">
+            <div className="mb-6">
               <CompetitorMatrix
                 responses={matrixResponses}
                 brandName={brand.name}
@@ -203,7 +290,8 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* ROW 5 — Recommandations + Alertes */}
+          <div className="grid lg:grid-cols-2 gap-6 mb-8">
             <div>
               <div className="flex items-baseline justify-between mb-4">
                 <Eyebrow>Recommandations</Eyebrow>
@@ -310,5 +398,14 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         </ul>
       </div>
     </Section>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-subtle mb-1">{label}</div>
+      <div className="text-xl font-medium text-ink tabular-nums tracking-tight">{value}</div>
+    </div>
   );
 }
