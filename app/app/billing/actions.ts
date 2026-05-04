@@ -19,13 +19,18 @@ export async function startCheckout(formData: FormData) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
-  // Trial 14j actif uniquement pour Pro (S13). Sinon ignoré côté Edge Function.
-  const trialDays = trial && tier === "pro" ? 14 : 0;
-
+  // S16.2 fix : aligner le contrat avec l'Edge Function (qui attend
+  // `billing_cycle` et `trial: boolean`, pas `cycle` et `trial_period_days`).
+  // Les bugs étaient silencieux — l'Edge Function fallback sur les defaults
+  // monthly/false, donc l'user payait toujours le monthly même en annuel.
   const resp = await fetch(`${SUPABASE_URL}/functions/v1/saas_create_checkout_session`, {
     method: "POST",
     headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ tier, cycle, trial_period_days: trialDays }),
+    body: JSON.stringify({
+      tier,
+      billing_cycle: cycle,
+      trial: trial && tier === "pro",
+    }),
   });
 
   if (!resp.ok) {
