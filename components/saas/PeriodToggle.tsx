@@ -2,11 +2,11 @@
 
 // Toggle horizontal 1m / 3m / 6m / 12m. Géré via URL param ?period=...
 // Default = 3m si pas de param.
+// Note : la fonction utilitaire periodToDays vit dans @/lib/period (isomorphique).
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-
-export type Period = "1m" | "3m" | "6m" | "12m";
+import type { Period } from "@/lib/period";
 
 const OPTIONS: { value: Period; label: string }[] = [
   { value: "1m", label: "1 mois" },
@@ -53,10 +53,6 @@ export function PeriodToggle() {
   );
 }
 
-// Helper côté server pour résoudre la période en days depuis searchParams.
-export function periodToDays(p: string | undefined): { days: number; label: string; period: Period } {
-  const period: Period = (p === "1m" || p === "3m" || p === "6m" || p === "12m") ? (p as Period) : "3m";
-  const days = period === "1m" ? 30 : period === "3m" ? 90 : period === "6m" ? 180 : 365;
-  const label = period === "1m" ? "1 mois" : period === "3m" ? "3 mois" : period === "6m" ? "6 mois" : "12 mois";
-  return { days, label, period };
-}
+// `periodToDays` et `Period` sont déplacés dans `@/lib/period` (isomorphique).
+// Réexport pour ne pas casser les imports existants ailleurs dans le code.
+export { periodToDays, type Period } from "@/lib/period";

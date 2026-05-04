@@ -17,7 +17,8 @@ import {
 import { Top10ShareOfVoice, type ShareOfVoiceRow } from "@/components/saas/Top10ShareOfVoice";
 import { Top10CitedDomains, type CitedDomainRow } from "@/components/saas/Top10CitedDomains";
 import { Top10CitedUrls, type CitedUrlRow } from "@/components/saas/Top10CitedUrls";
-import { PeriodToggle, periodToDays } from "@/components/saas/PeriodToggle";
+import { PeriodToggle } from "@/components/saas/PeriodToggle";
+import { periodToDays } from "@/lib/period";
 import { loadSaasContext, relativeVisibility } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand, markAlertsRead } from "./actions";
