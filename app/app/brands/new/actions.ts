@@ -76,6 +76,47 @@ export async function createBrand(formData: FormData) {
     redirect(`/app/brands/new?error=unknown`);
   }
 
+  // Si l'user a coché des prompts suggérés (PromptSuggestionPicker), on les
+  // ajoute au topic par défaut (créé automatiquement par trigger DB).
+  // Format DB : saas_topics.prompts JSONB array de {id, category, uses_brand, template}.
+  const suggestedJson = String(formData.get("suggested_prompts_json") || "").trim();
+  if (suggestedJson && suggestedJson !== "[]") {
+    try {
+      const suggestions = JSON.parse(suggestedJson) as Array<{ category: string; template: string }>;
+      if (Array.isArray(suggestions) && suggestions.length > 0) {
+        const promptsToInsert = suggestions
+          .filter(s => s && typeof s.template === "string" && s.template.trim().length > 0)
+          .slice(0, 5)
+          .map((s, idx) => ({
+            id: `suggested_${Date.now()}_${idx}`,
+            category: s.category || "direct_search",
+            uses_brand: false,
+            template: s.template,
+          }));
+
+        if (promptsToInsert.length > 0) {
+          // Attendre brièvement que le trigger crée le default topic, puis update
+          // (le trigger handle_brand_default_topic est synchrone à l'insert brand).
+          const { data: defaultTopic } = await sb
+            .from("saas_topics")
+            .select("id, prompts")
+            .eq("brand_id", data!.id)
+            .eq("is_default", true)
+            .maybeSingle();
+
+          if (defaultTopic) {
+            const existing = Array.isArray((defaultTopic as any).prompts) ? (defaultTopic as any).prompts : [];
+            const merged = [...existing, ...promptsToInsert];
+            await sb.from("saas_topics").update({ prompts: merged }).eq("id", (defaultTopic as any).id);
+          }
+        }
+      }
+    } catch (e) {
+      // Silencieux : si parse fail, on ne bloque pas la création de la marque.
+      console.warn("[createBrand] suggested_prompts_json parse fail:", e);
+    }
+  }
+
   revalidatePath("/app/dashboard");
   revalidatePath("/app/brands");
   redirect(`/app/brands/${data!.id}`);

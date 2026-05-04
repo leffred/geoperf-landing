@@ -17,6 +17,7 @@ import {
 import { Top10ShareOfVoice, type ShareOfVoiceRow } from "@/components/saas/Top10ShareOfVoice";
 import { Top10CitedDomains, type CitedDomainRow } from "@/components/saas/Top10CitedDomains";
 import { Top10CitedUrls, type CitedUrlRow } from "@/components/saas/Top10CitedUrls";
+import { PeriodToggle, periodToDays } from "@/components/saas/PeriodToggle";
 import { loadSaasContext, relativeVisibility } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand, markAlertsRead } from "./actions";
@@ -26,7 +27,7 @@ export const metadata: Metadata = { title: "Marque — Geoperf", robots: { index
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ refreshed?: string; error?: string }>;
+  searchParams: Promise<{ refreshed?: string; error?: string; period?: string }>;
 };
 
 const ERROR_LABELS: Record<string, string> = {
@@ -48,7 +49,9 @@ function fmtDate(iso: string | null): string {
 
 export default async function BrandDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { refreshed, error } = await searchParams;
+  const { refreshed, error, period: periodParam } = await searchParams;
+  const period = periodToDays(periodParam);
+  const periodCutoff = new Date(Date.now() - period.days * 86400000).toISOString();
   const ctx = await loadSaasContext();
   const user = ctx.user;
   const sb = getServiceClient();
@@ -83,6 +86,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
     sb.from("v_saas_brand_evolution")
       .select("snapshot_date, visibility_score, citation_rate, avg_rank")
       .eq("brand_id", id)
+      .gte("snapshot_date", periodCutoff)
       .order("snapshot_date", { ascending: true }),
   ]);
 
@@ -156,6 +160,16 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
     ? Math.max(1, Math.round(latestSnapshot.raw_response_count / latestSnapshot.prompts_count))
     : 0;
 
+  // Delta visibility sur la période sélectionnée : compare le snapshot le plus
+  // ancien dans la fenêtre vs le plus récent.
+  const periodDelta = (() => {
+    if (points.length < 2 || !latestSnapshot) return null;
+    const oldest = points[0];
+    const newest = points[points.length - 1];
+    if (oldest.visibility_score === null || newest.visibility_score === null) return null;
+    return Number(newest.visibility_score) - Number(oldest.visibility_score);
+  })();
+
   return (
     <Section py="md" tone="white">
       <div className="flex items-baseline justify-between mb-8 flex-wrap gap-3">
@@ -192,6 +206,8 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         />
       )}
 
+      <PeriodToggle />
+
       {alertList.some(a => !a.is_read) && (
         <div className="mb-6">
           <AlertBanner alerts={alertList.filter(a => !a.is_read)} />
@@ -224,6 +240,14 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
               <p className="text-xs text-ink-muted font-mono mb-1">
                 Basé sur {latestSnapshot.raw_response_count ?? 0} réponses · {latestSnapshot.prompts_count ?? 0} prompts × {llmsCount} LLMs
               </p>
+              {periodDelta !== null && (
+                <p className="text-[11px] text-ink-subtle mb-1">
+                  <span className={periodDelta >= 0 ? "text-success" : "text-danger"}>
+                    {periodDelta >= 0 ? "+" : ""}{periodDelta.toFixed(1)} pt
+                  </span>{" "}
+                  vs il y a {period.label}
+                </p>
+              )}
               {(() => {
                 const rv = relativeVisibility(latestSnapshot.visibility_score, latestSnapshot.citation_rate);
                 if (rv === null) return null;

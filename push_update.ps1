@@ -1,5 +1,11 @@
 ﻿# GEOPERF Landing - push des updates vers GitHub
-# Usage : powershell -ExecutionPolicy Bypass -File .\push_update.ps1
+# Usage :
+#   powershell -ExecutionPolicy Bypass -File .\push_update.ps1 -Msg "S14: dashboard refonte"
+#   powershell -ExecutionPolicy Bypass -File .\push_update.ps1                  (utilise message par defaut)
+
+param(
+  [string]$Msg = ""
+)
 
 $ErrorActionPreference = "Stop"
 Set-Location -Path $PSScriptRoot
@@ -20,27 +26,14 @@ Write-Host ""
 
 Write-Host "=== Commit ===" -ForegroundColor Cyan
 
-$msgLines = @(
-  "Night build : front complet + features bonus",
-  "",
-  "Front :",
-  "- 7 pages publiques + 2 noindex (admin, merci)",
-  "- Composants UI reutilisables",
-  "- Routes API : /og, /pixel, /click, /track",
-  "- Sitemap + robots auto-generes",
-  "- generateMetadata sur landings personnalisees",
-  "- Backoffice admin token-protected",
-  "",
-  "Backend (deploye sur Supabase) :",
-  "- Edge Function v5 (PDFShift fix)",
-  "- Trigger pg_net auto-chain Phase 1 vers Synthesis",
-  "- Trigger engagement auto sur prospect_events",
-  "- Score saturation IA",
-  "",
-  "Quality : Build local valide (16 routes, 0 erreur). Next.js 15.5.",
-  "Test mode : aucun envoi email."
-)
-$commitMsg = ($msgLines -join "`n")
+if ([string]::IsNullOrWhiteSpace($Msg)) {
+  $stamp = Get-Date -Format "yyyy-MM-dd HH:mm"
+  $commitMsg = "chore(landing): update $stamp"
+  Write-Host "  Pas de -Msg fourni, utilisation message par defaut : $commitMsg" -ForegroundColor Yellow
+} else {
+  $commitMsg = $Msg
+  Write-Host "  Message commit : $commitMsg" -ForegroundColor Green
+}
 
 git commit -m $commitMsg
 if ($LASTEXITCODE -ne 0) {

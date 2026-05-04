@@ -11,6 +11,7 @@ export async function updateProfile(formData: FormData) {
   const company = String(formData.get("company") || "").trim();
   // Checkbox HTML : la valeur n'est envoyée que si cochée → "on" si activée, undefined sinon
   const emailNotifsEnabled = formData.get("email_notifs_enabled") === "on";
+  const digestWeeklyEnabled = formData.get("digest_weekly_enabled") === "on";
 
   const sb = getServiceClient();
   const { error } = await sb
@@ -19,6 +20,7 @@ export async function updateProfile(formData: FormData) {
       full_name: fullName || null,
       company: company || null,
       email_notifs_enabled: emailNotifsEnabled,
+      digest_weekly_enabled: digestWeeklyEnabled,
     })
     .eq("id", user.id);
 

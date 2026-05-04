@@ -4,6 +4,7 @@ import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { PromptSuggestionPicker } from "@/components/saas/PromptSuggestionPicker";
 import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { createBrand } from "./actions";
@@ -137,6 +138,8 @@ export default async function NewBrandPage({ searchParams }: Props) {
                 </p>
               )}
             </div>
+
+            <PromptSuggestionPicker />
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" variant="primary" size="md" className="flex-1">

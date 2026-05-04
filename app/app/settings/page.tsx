@@ -95,8 +95,8 @@ export default async function SettingsPage({ searchParams }: Props) {
               />
             </div>
 
-            <div className="pt-3 border-t border-DEFAULT">
-              <Eyebrow className="mb-3">Notifications email</Eyebrow>
+            <div className="pt-3 border-t border-DEFAULT space-y-4">
+              <Eyebrow className="mb-1">Notifications email</Eyebrow>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -109,8 +109,26 @@ export default async function SettingsPage({ searchParams }: Props) {
                     Recevoir les alertes par email à <span className="font-mono text-xs">{ctx.user.email}</span>
                   </span>
                   <span className="block text-xs text-ink-muted mt-0.5">
-                    rank_drop, rank_gain, competitor_overtake, new_source, citation_loss/gain.
+                    rank_drop, rank_gain, competitor_overtake, competitor_emerged, new_source, citation_loss/gain.
                     {ctx.tier === "free" && " Réservé aux plans Solo et plus — actuellement Free, donc aucun email envoyé."}
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="digest_weekly_enabled"
+                  defaultChecked={ctx.profile?.digest_weekly_enabled !== false}
+                  className="mt-1 w-4 h-4 accent-brand-500"
+                />
+                <span className="text-sm text-ink">
+                  <span className="font-medium">
+                    Recevoir le digest hebdo (lundi 8h CET)
+                  </span>
+                  <span className="block text-xs text-ink-muted mt-0.5">
+                    Résumé compact de la semaine : visibility delta, top concurrents qui montent, action recommandée.
+                    {ctx.tier === "free" && " Réservé aux plans Solo et plus."}
                   </span>
                 </span>
               </label>
