@@ -20,7 +20,7 @@ const ERROR_LABELS: Record<string, string> = {
   bad_domain: "Le domaine doit ressembler à \"axa.fr\" ou \"blackrock.com\".",
   missing_category: "La catégorie est requise.",
   limit_reached: "Tu as atteint la limite de marques pour ton plan.",
-  cadence_locked: "La cadence hebdomadaire est réservée aux plans Solo et plus.",
+  cadence_locked: "La cadence hebdomadaire est réservée aux plans Starter et plus.",
   duplicate: "Tu suis déjà ce domaine.",
   unknown: "Une erreur est survenue. Réessaie.",
 };
@@ -154,13 +154,15 @@ export default async function OnboardingPage({ searchParams }: Props) {
             </div>
             <div>
               <label htmlFor="cadence" className={FIELD_LABEL}>Cadence des snapshots</label>
+              {/* S16.1 fix #1.2 : pas de `disabled` sur le <select> entier
+                  (sinon HTML ne soumet pas la valeur en plan Free). On disable
+                  juste l'option weekly. */}
               <select
                 id="cadence" name="cadence"
                 defaultValue={limits.cadence}
-                disabled={isFree}
-                className={`${FIELD_INPUT} disabled:opacity-60 disabled:cursor-not-allowed`}
+                className={FIELD_INPUT}
               >
-                <option value="weekly" disabled={isFree}>Hebdomadaire (Starter+)</option>
+                <option value="weekly" disabled={isFree}>Hebdomadaire {isFree ? "(Starter+)" : ""}</option>
                 <option value="monthly">Mensuelle</option>
               </select>
               {isFree && (

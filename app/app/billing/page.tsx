@@ -69,7 +69,8 @@ export default async function BillingPage({ searchParams }: Props) {
   const currentTierKey: Exclude<SaasTier, "solo"> = ctx.tier === "solo" ? "starter" : (ctx.tier as Exclude<SaasTier, "solo">);
 
   // Détecte trial actif (Stripe synchronise via saas_subscriptions.status='trialing')
-  const isTrialing = (ctx.subscription?.status as string | undefined) === "trialing";
+  // S16 : type SaasSubStatus inclut désormais 'trialing', plus besoin de cast.
+  const isTrialing = ctx.subscription?.status === "trialing";
   const trialEnd = ctx.subscription?.current_period_end ? new Date(ctx.subscription.current_period_end) : null;
   const trialDaysLeft = isTrialing && trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86400000)) : 0;
 
@@ -163,6 +164,13 @@ export default async function BillingPage({ searchParams }: Props) {
           </Link>
         </div>
       </div>
+
+      <p className="text-xs text-ink-muted mb-4 max-w-3xl">
+        En souscrivant, vous acceptez les <a href="/terms" className="text-brand-500 underline hover:text-brand-600">Conditions Générales</a>{" "}
+        et la <a href="/privacy" className="text-brand-500 underline hover:text-brand-600">Politique de Confidentialité</a>.
+        Vos données de paiement sont traitées par <strong>Stripe</strong> (PCI-DSS) ; les données SaaS sont stockées sur{" "}
+        <strong>Supabase Frankfurt (UE)</strong>.
+      </p>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         {ORDER.map(t => {

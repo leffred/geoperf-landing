@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Réglages — Geoperf", robots: { in
 
 const ERROR_LABELS: Record<string, string> = {
   update_failed: "Impossible de sauvegarder. Réessaie ou contacte le support.",
-  test_free_tier: "L'envoi d'email est réservé aux plans Solo et plus. Upgrade pour activer les notifications.",
+  test_free_tier: "L'envoi d'email est réservé aux plans Starter et plus. Upgrade pour activer les notifications.",
   test_opt_out: "Tes notifications email sont désactivées. Active la case ci-dessus puis sauvegarde avant de tester.",
   test_no_brand: "Ajoute d'abord une marque pour pouvoir tester l'email.",
   test_no_snapshot: "Aucun snapshot completed sur ta dernière marque — lance un snapshot puis re-teste.",
@@ -110,7 +110,7 @@ export default async function SettingsPage({ searchParams }: Props) {
                   </span>
                   <span className="block text-xs text-ink-muted mt-0.5">
                     rank_drop, rank_gain, competitor_overtake, competitor_emerged, new_source, citation_loss/gain.
-                    {ctx.tier === "free" && " Réservé aux plans Solo et plus — actuellement Free, donc aucun email envoyé."}
+                    {ctx.tier === "free" && " Réservé aux plans Starter et plus — actuellement Free, donc aucun email envoyé."}
                   </span>
                 </span>
               </label>
@@ -128,7 +128,7 @@ export default async function SettingsPage({ searchParams }: Props) {
                   </span>
                   <span className="block text-xs text-ink-muted mt-0.5">
                     Résumé compact de la semaine : visibility delta, top concurrents qui montent, action recommandée.
-                    {ctx.tier === "free" && " Réservé aux plans Solo et plus."}
+                    {ctx.tier === "free" && " Réservé aux plans Starter et plus."}
                   </span>
                 </span>
               </label>
@@ -148,7 +148,7 @@ export default async function SettingsPage({ searchParams }: Props) {
               Envoyer un email de test
             </Button>
             {!testCanSend && ctx.tier === "free" && (
-              <span className="text-xs text-ink-muted">Upgrade vers Solo pour activer.</span>
+              <span className="text-xs text-ink-muted">Upgrade vers Starter pour activer.</span>
             )}
             {!testCanSend && ctx.tier !== "free" && ctx.profile?.email_notifs_enabled === false && (
               <span className="text-xs text-ink-muted">Active d&apos;abord les notifs ci-dessus.</span>

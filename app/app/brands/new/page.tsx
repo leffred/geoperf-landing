@@ -17,7 +17,7 @@ const ERROR_LABELS: Record<string, string> = {
   bad_domain: "Le domaine doit ressembler à \"axa.fr\" ou \"blackrock.com\".",
   missing_category: "La catégorie est requise.",
   limit_reached: "Tu as atteint la limite de marques pour ton plan. Upgrade pour en suivre plus.",
-  cadence_locked: "La cadence hebdomadaire est réservée aux plans Solo et plus.",
+  cadence_locked: "La cadence hebdomadaire est réservée aux plans Starter et plus.",
   duplicate: "Tu suis déjà ce domaine.",
   unknown: "Une erreur est survenue. Réessaie.",
 };
@@ -120,20 +120,22 @@ export default async function NewBrandPage({ searchParams }: Props) {
 
             <div>
               <label htmlFor="cadence" className={FIELD_LABEL}>Cadence des snapshots</label>
+              {/* S16.1 fix #1.2 : on ne disable plus le <select> entier (sinon HTML
+                  n'envoie pas la valeur dans le FormData côté Free). On disable
+                  juste l'option "weekly" qui reste non-sélectionnable. */}
               <select
                 id="cadence"
                 name="cadence"
                 defaultValue={limits.cadence}
-                disabled={isFree}
-                className={`${FIELD_INPUT} disabled:opacity-60 disabled:cursor-not-allowed`}
+                className={FIELD_INPUT}
               >
-                <option value="weekly" disabled={isFree}>Hebdomadaire (Solo+)</option>
+                <option value="weekly" disabled={isFree}>Hebdomadaire {isFree ? "(Starter+)" : ""}</option>
                 <option value="monthly">Mensuelle</option>
               </select>
               {isFree && (
                 <p className="text-xs text-ink-subtle mt-1.5">
                   Le plan Free est limité au mensuel.{" "}
-                  <Link href="/app/billing" className="text-brand-500 hover:underline">Upgrade vers Solo</Link>{" "}
+                  <Link href="/app/billing" className="text-brand-500 hover:underline">Upgrade vers Starter</Link>{" "}
                   pour passer à hebdomadaire.
                 </p>
               )}

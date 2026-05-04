@@ -14,14 +14,16 @@ export default function PrivacyPage() {
       <Header />
       <Section eyebrow="Confidentialité" py="lg">
         <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-2">Politique de confidentialité</h1>
-        <p className="text-ink-muted text-sm mb-12">Dernière mise à jour : 28 avril 2026</p>
+        <p className="text-ink-muted text-sm mb-12">Dernière mise à jour : 4 mai 2026</p>
 
         <div className="prose-lg space-y-8 text-ink leading-relaxed">
           <section>
             <h2 className="text-xl font-medium text-ink mb-3">1. Responsable du traitement</h2>
             <p>
               Le responsable du traitement des données collectées via geoperf.com est <strong>Jourdechance SAS</strong>,
-              SIREN 838 114 619, dont le siège est situé au 31 rue Diaz, 92100 Boulogne-Billancourt, France.
+              SIREN 838&nbsp;114&nbsp;619, TVA intracommunautaire <strong>FR 79 838114619</strong>{" "}
+              <span className="text-ink-subtle">(numéro complet à confirmer)</span>, dont le siège est situé
+              au 31 rue Diaz, 92100 Boulogne-Billancourt, France.
             </p>
             <p>
               Pour toute question relative à la protection de vos données : <a href="mailto:contact@geoperf.com" className="text-brand-500 underline hover:text-brand-600">contact@geoperf.com</a>.
@@ -78,20 +80,39 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-medium text-ink mb-3">6. Hébergement des données</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">6. Hébergement et sous-traitants</h2>
             <p>
               Les données sont hébergées par <strong>Supabase Inc.</strong> sur l'infrastructure AWS région
               <strong> EU-Central-1 (Francfort, Allemagne)</strong>. Aucun transfert hors Union européenne n'est
               effectué pour le stockage primaire.
             </p>
+            <p>Sous-traitants techniques :</p>
+            <ul className="list-disc ml-6 mt-3 space-y-2">
+              <li><strong>Stripe Inc.</strong> (États-Unis) — traitement des paiements SaaS, conformité PCI-DSS niveau&nbsp;1, transfert encadré par les Clauses Contractuelles Types (SCC) de la Commission européenne.</li>
+              <li><strong>Resend</strong> — envoi des emails transactionnels (alertes, digest hebdo, notifications de paiement).</li>
+              <li><strong>Apollo.io</strong> — enrichissement de prospects B2B (lead-magnet uniquement, pas le SaaS).</li>
+              <li><strong>n8n Cloud</strong> — orchestration des workflows de production des études sectorielles (lead-magnet).</li>
+              <li><strong>OpenRouter</strong> — accès aux modèles LLM (OpenAI, Anthropic, Google, Perplexity, Mistral, xAI, Meta) pour la production des études et des snapshots SaaS.</li>
+              <li><strong>Vercel</strong> — hébergement de l'application web (région Frankfurt).</li>
+              <li><strong>PDFShift</strong> — rendu PDF des études sectorielles.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-medium text-ink mb-3">7. Data Processing Agreement (DPA)</h2>
             <p>
-              Sous-traitants techniques : Apollo.io (enrichissement), n8n Cloud (automatisation), OpenRouter
-              (génération de texte), Vercel (hébergement web), PDFShift (rendu PDF).
+              Pour les clients SaaS Pro et Agency qui en font la demande, un <strong>DPA standard</strong> conforme
+              à l'article 28 du RGPD est disponible. Il encadre le rôle de Geoperf en tant que sous-traitant pour
+              les données traitées au sein du SaaS (marques suivies, snapshots, recommandations).
+            </p>
+            <p>
+              Demande à : <a href="mailto:dpa@geoperf.com" className="text-brand-500 underline hover:text-brand-600">dpa@geoperf.com</a>.
+              Délai de réponse&nbsp;: 5 jours ouvrés.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-medium text-ink mb-3">7. Vos droits</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">8. Vos droits</h2>
             <p>Conformément au RGPD, vous disposez à tout moment des droits suivants :</p>
             <ul className="list-disc ml-6 mt-3 space-y-2">
               <li><strong>Droit d'accès :</strong> obtenir la liste de vos données.</li>
@@ -111,7 +132,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-medium text-ink mb-3">8. Cookies</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">9. Cookies</h2>
             <p>
               Geoperf n'utilise <strong>aucun cookie de tracking publicitaire</strong>. Seuls des cookies techniques
               strictement nécessaires au fonctionnement du site sont déposés (préférences de langue, session).
@@ -120,7 +141,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-medium text-ink mb-3">9. Sécurité</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">10. Sécurité</h2>
             <p>
               Les données sont chiffrées en transit (TLS 1.3) et au repos (AES-256). L'accès aux données prospects
               est restreint aux membres autorisés de Jourdechance et tracé via les logs Supabase. Les emails sont
@@ -129,7 +150,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-medium text-ink mb-3">10. Modifications</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">11. Modifications</h2>
             <p>
               Cette politique peut évoluer. La date de dernière mise à jour figure en haut de page. En cas de
               modification substantielle, les prospects actifs seront informés par email.

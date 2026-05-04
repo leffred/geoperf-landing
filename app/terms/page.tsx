@@ -14,7 +14,7 @@ export default function TermsPage() {
       <Header />
       <Section eyebrow="Mentions légales" py="lg">
         <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-2">Conditions générales d'utilisation</h1>
-        <p className="text-ink-muted text-sm mb-12">Dernière mise à jour : 28 avril 2026</p>
+        <p className="text-ink-muted text-sm mb-12">Dernière mise à jour : 4 mai 2026</p>
 
         <div className="prose-lg space-y-8 text-ink leading-relaxed">
           <section>
@@ -25,7 +25,7 @@ export default function TermsPage() {
               dont le siège social est situé au 31 rue Diaz, 92100 Boulogne-Billancourt, France.
             </p>
             <p>
-              Numéro de TVA intracommunautaire : FR (à compléter).<br />
+              Numéro de TVA intracommunautaire : <strong>FR 79 838114619</strong> <span className="text-ink-subtle">(numéro complet à confirmer)</span>.<br />
               Directeur de la publication : Frédéric Lefebvre, Président.<br />
               Email : <a href="mailto:contact@geoperf.com" className="text-brand-500 underline hover:text-brand-600">contact@geoperf.com</a>
             </p>
@@ -91,11 +91,34 @@ export default function TermsPage() {
             <h2 className="text-xl font-medium text-ink mb-3">7. Données personnelles</h2>
             <p>
               Le traitement des données personnelles est détaillé dans notre <a href="/privacy" className="text-brand-500 underline hover:text-brand-600">politique de confidentialité</a>.
+              Pour les clients SaaS Pro et Agency, un Data Processing Agreement (DPA) est disponible sur demande à{" "}
+              <a href="mailto:dpa@geoperf.com" className="text-brand-500 underline hover:text-brand-600">dpa@geoperf.com</a>.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-medium text-ink mb-3">8. Droit applicable</h2>
+            <h2 className="text-xl font-medium text-ink mb-3">8. Conditions du SaaS Geoperf</h2>
+            <p><strong>Abonnement et durée.</strong> Les plans SaaS (Starter, Growth, Pro, Agency) sont souscrits
+              à la carte, en cycle <strong>mensuel ou annuel</strong> selon le choix de l'utilisateur lors du checkout.
+              L'abonnement est tacitement renouvelé à chaque échéance jusqu'à résiliation.</p>
+            <p><strong>Résiliation.</strong> L'utilisateur peut résilier à tout moment via son espace de facturation
+              (portail Stripe). La résiliation est effective <strong>à la fin de la période payée en cours</strong> ;
+              l'accès aux features payantes reste actif jusqu'à cette date, puis le compte bascule automatiquement
+              sur le plan Free.</p>
+            <p><strong>Remboursements.</strong> Les paiements sont non-remboursables, y compris pour les abonnements annuels,
+              sauf dans les cas suivants : (i) défaut technique majeur empêchant l'usage du service pendant plus de 7 jours
+              consécutifs, (ii) erreur de facturation (double prélèvement, prélèvement après résiliation). Les demandes de remboursement
+              exceptionnel sont à adresser à <a href="mailto:contact@geoperf.com" className="text-brand-500 underline hover:text-brand-600">contact@geoperf.com</a>.</p>
+            <p><strong>Paiement et facturation.</strong> Les paiements sont traités par Stripe Inc. (PCI-DSS niveau 1).
+              Les factures HT/TTC sont accessibles depuis le portail Stripe. La TVA française (20%) s'applique aux clients
+              français&nbsp;; mécanisme d'autoliquidation pour les clients UE assujettis.</p>
+            <p><strong>Trial Pro.</strong> Le plan Pro propose un essai gratuit de 14 jours, sans prélèvement immédiat.
+              À l'issue du trial, le prélèvement est effectué automatiquement sauf résiliation par l'utilisateur depuis
+              le portail Stripe avant la fin de la période d'essai.</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-medium text-ink mb-3">9. Droit applicable</h2>
             <p>
               Les présentes CGU sont soumises au droit français. Tout litige relatif à leur interprétation ou leur
               exécution relève de la compétence exclusive des tribunaux du ressort de la Cour d'appel de Versailles,

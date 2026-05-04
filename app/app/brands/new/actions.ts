@@ -27,14 +27,22 @@ export async function createBrand(formData: FormData) {
   const domainRaw = String(formData.get("domain") || "").trim();
   const categoryRaw = String(formData.get("category") || "").trim();
   const competitorsRaw = String(formData.get("competitors") || "").trim();
-  const cadence = String(formData.get("cadence") || "weekly") === "monthly" ? "monthly" : "weekly";
 
   if (!name) redirect("/app/brands/new?error=missing_name");
   const domain = normalizeDomain(domainRaw);
   if (!domain || !domain.includes(".")) redirect("/app/brands/new?error=bad_domain");
   if (!categoryRaw) redirect("/app/brands/new?error=missing_category");
 
+  // S16.1 fix #1.2 : si le <select> est disabled côté UI (plan Free), HTML ne
+  // soumet PAS la valeur dans le FormData — `formData.get("cadence")` retourne null.
+  // On fallback alors sur le default du tier (limits.cadence) au lieu de "weekly"
+  // hardcodé, ce qui causait un redirect cadence_locked en boucle pour Free.
   const limits = tierLimits(ctx.tier);
+  const cadenceRaw = formData.get("cadence");
+  const cadence: "weekly" | "monthly" = cadenceRaw === "monthly" ? "monthly"
+    : cadenceRaw === "weekly" ? "weekly"
+    : limits.cadence;
+
   if (limits.cadence === "monthly" && cadence === "weekly") {
     redirect("/app/brands/new?error=cadence_locked");
   }

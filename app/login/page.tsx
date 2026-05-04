@@ -72,6 +72,14 @@ export default async function LoginPage({ searchParams }: Props) {
               </div>
 
               <Button type="submit" variant="primary" size="md" className="w-full">Se connecter</Button>
+
+              {/* S16.1 fix #1.4 : CTA "Créer un compte" inline pour discoverability. */}
+              <p className="text-sm text-ink-muted text-center mt-4">
+                Pas encore de compte ?{" "}
+                <Link href="/signup" className="text-brand-500 hover:underline font-medium">
+                  Créer un compte
+                </Link>
+              </p>
             </form>
 
             <div className="mt-6 pt-6 border-t border-DEFAULT">

@@ -21,11 +21,13 @@ export type SaasProfile = {
   created_at: string;
 };
 
+export type SaasSubStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete";
+
 export type SaasSubscription = {
   id: string;
   user_id: string;
   tier: SaasTier;
-  status: "active" | "past_due" | "canceled" | "incomplete";
+  status: SaasSubStatus;
   stripe_subscription_id: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
@@ -126,7 +128,7 @@ export async function loadSaasContext() {
   const [{ data: subRow }, { data: ownerProfileRow }] = await Promise.all([
     sb.from("saas_subscriptions")
       .select("id, user_id, tier, status, stripe_subscription_id, current_period_end, cancel_at_period_end")
-      .eq("user_id", accountOwnerId).eq("status", "active").maybeSingle(),
+      .eq("user_id", accountOwnerId).in("status", ["active", "trialing"]).maybeSingle(),
     !isOwner
       ? sb.from("saas_profiles").select("id, email, full_name, company").eq("id", accountOwnerId).maybeSingle()
       : Promise.resolve({ data: null }),
