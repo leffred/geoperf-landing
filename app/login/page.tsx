@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 const ERROR_LABELS: Record<string, string> = {
   missing: "Email et mot de passe requis.",
   invalid: "Identifiants invalides.",
+  email_not_confirmed: "Tu dois d'abord confirmer ton email avant de te connecter. Vérifie ta boîte de réception (et tes spams) — l'email de confirmation est arrivé juste après ton inscription.",
   unknown: "Une erreur est survenue. Réessaie.",
 };
 

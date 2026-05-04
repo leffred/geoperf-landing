@@ -3,7 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
+import { getSupabaseServerClient } from "@/lib/supabase-server-auth";
 import { getServiceClient } from "@/lib/supabase";
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 function normalizeDomain(input: string): string {
   return input.trim().toLowerCase()
@@ -125,7 +128,41 @@ export async function createBrand(formData: FormData) {
     }
   }
 
+  // S16.2 fix #1.8 : déclencher automatiquement le 1er snapshot.
+  // L'UI onboarding promet "le 1er snapshot tournera dès la création" mais
+  // ce n'était pas le cas — l'user devait cliquer manuellement.
+  // Pattern : on dispatche l'Edge Function avec un timeout de 2.5s pour garantir
+  // que le HTTP request part bien du serveur Vercel avant que le container
+  // soit GC'd au redirect, sans attendre la complétion (~30-60s).
+  try {
+    const supabase = await getSupabaseServerClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    try {
+      await fetch(`${SUPABASE_URL}/functions/v1/saas_run_brand_snapshot`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ brand_id: data!.id, mode: "auto-onboarding" }),
+        signal: controller.signal,
+      });
+    } catch (e) {
+      // Timeout ou erreur réseau attendu — l'Edge Function continue en background.
+      // On log mais on ne bloque pas le flow utilisateur.
+      const msg = e instanceof Error ? e.message : String(e);
+      if (!msg.includes("aborted")) {
+        console.warn("[createBrand] auto-snapshot dispatch warning:", msg);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch (e) {
+    console.warn("[createBrand] auto-snapshot setup failed:", e);
+  }
+
   revalidatePath("/app/dashboard");
   revalidatePath("/app/brands");
-  redirect(`/app/brands/${data!.id}`);
+  redirect(`/app/brands/${data!.id}?refreshed=1`);
 }

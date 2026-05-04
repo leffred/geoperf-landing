@@ -15,8 +15,19 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    const code = error.message.toLowerCase().includes("invalid") ? "invalid" : "unknown";
-    redirect(`/login?error=${code}`);
+    // S16.2 fix #1.7 : message clair quand l'email n'est pas encore confirmé
+    // (typiquement après signup avant click sur le mail de confirmation).
+    const msg = error.message.toLowerCase();
+    const errCode = (error as { code?: string }).code?.toLowerCase() ?? "";
+    let code: string;
+    if (msg.includes("email not confirmed") || msg.includes("email_not_confirmed") || errCode === "email_not_confirmed") {
+      code = "email_not_confirmed";
+    } else if (msg.includes("invalid")) {
+      code = "invalid";
+    } else {
+      code = "unknown";
+    }
+    redirect(`/login?error=${code}&email=${encodeURIComponent(email)}`);
   }
 
   redirect(next);
