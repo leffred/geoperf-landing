@@ -287,11 +287,9 @@ export default async function DashboardPage() {
           icon="brands"
           eyebrow="Onboarding · 60 secondes"
           title="Bienvenue sur Geoperf"
-          body="Configure ta première marque avec le wizard pour voir comment les LLM la perçoivent. Le 1er snapshot tourne en 30 secondes après création."
-          ctaLabel="Démarrer l'onboarding"
+          body="Configure ta première marque pour voir comment les LLM la perçoivent. Le 1er snapshot tourne en 30 secondes après création."
+          ctaLabel="Créer ma première marque"
           ctaHref="/app/onboarding"
-          secondaryLabel="Form rapide"
-          secondaryHref="/app/brands/new"
         />
       ) : (
         <>
