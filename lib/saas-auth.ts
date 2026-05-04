@@ -126,9 +126,18 @@ export async function loadSaasContext() {
 
   // 3. Charger sub active de l'account_owner (et profile owner si différent du user)
   const [{ data: subRow }, { data: ownerProfileRow }] = await Promise.all([
+    // S16.2 fix : ordre par tier-priority desc + created_at desc + limit(1) pour gérer
+    // gracefully le cas transient où l'user a plusieurs subs actives (ex: pendant un upgrade,
+    // l'ancienne row n'est pas encore déclassée). Sinon .maybeSingle() retournait null sur
+    // multi-row, et le `?? "free"` faisait fallback silencieux → l'user payait Pro mais
+    // voyait son interface en Free.
     sb.from("saas_subscriptions")
       .select("id, user_id, tier, status, stripe_subscription_id, current_period_end, cancel_at_period_end")
-      .eq("user_id", accountOwnerId).in("status", ["active", "trialing"]).maybeSingle(),
+      .eq("user_id", accountOwnerId)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
     !isOwner
       ? sb.from("saas_profiles").select("id, email, full_name, company").eq("id", accountOwnerId).maybeSingle()
       : Promise.resolve({ data: null }),
