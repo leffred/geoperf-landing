@@ -52,15 +52,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const latest: any = data.latest;
   const score = latest?.visibility_score ?? 0;
   const cat = latest?.reports?.sous_categorie || "B2B";
+  const rank = latest?.rank ?? null;
+  // S17 §4.4 : OG image dynamique avec score visibility (type=profile).
+  const ogUrl = `/api/og?type=profile&title=${encodeURIComponent(c.nom)}&score=${encodeURIComponent(String(score))}`;
   return {
-    title: `${c.nom} dans les LLM IA — Étude ${cat} | Geoperf`,
-    description: `Score de visibilité IA ${score}/4 pour ${c.nom}. Comment ChatGPT, Gemini, Claude et Perplexity citent ${c.nom} sur le secteur ${cat}.`,
+    title: `${c.nom} — Visibilité LLM ${score}/4 | Geoperf`,
+    description: `Comment ${c.nom} apparaît dans ChatGPT, Claude, Gemini et Perplexity. ${rank ? `Rang ${rank} dans la catégorie ${cat}. ` : ""}Étude indépendante Jourdechance.`,
     robots: { index: true, follow: true },
     alternates: { canonical: `/profile/${c.domain}` },
     openGraph: {
-      title: `${c.nom} — Visibilité dans les LLM IA`,
-      description: `Score ${score}/4 sur ${cat}. Étude Geoperf trimestrielle.`,
+      title: `${c.nom} dans les LLMs — score ${score}/4`,
+      description: `Score visibility, citation rate, saturation IA pour ${c.nom}.`,
       type: "article",
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${c.nom} — score visibility ${score}/4` }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${c.nom} dans les LLMs`,
+      description: `Score ${score}/4 — analyse Geoperf.`,
+      images: [ogUrl],
     },
   };
 }

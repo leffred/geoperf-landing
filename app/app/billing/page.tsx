@@ -5,6 +5,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { TierBadge } from "@/components/saas/TierBadge";
 import { loadSaasContext, tierLabel, TIER_LIMITS, type SaasTier } from "@/lib/saas-auth";
+import { priceDisplay, TIERS as PRICING_TIERS, fmtHT, type TierKey } from "@/lib/saas-pricing";
 import { startCheckout, openCustomerPortal } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -74,14 +75,7 @@ export default async function BillingPage({ searchParams }: Props) {
   const trialEnd = ctx.subscription?.current_period_end ? new Date(ctx.subscription.current_period_end) : null;
   const trialDaysLeft = isTrialing && trialEnd ? Math.max(0, Math.ceil((trialEnd.getTime() - Date.now()) / 86400000)) : 0;
 
-  function priceLabel(monthly: number) {
-    if (cycle === "annual") {
-      const yearly = Math.round(monthly * 12 * 0.8);
-      const monthlyEquiv = Math.round(monthly * 0.8);
-      return { main: `${yearly}`, suffix: "€/an HT", hint: `≈ ${monthlyEquiv}€/mois · économisez ${Math.round(monthly * 12 * 0.2)}€/an` };
-    }
-    return { main: `${monthly}`, suffix: "€/mois HT", hint: null };
-  }
+  // S17 §4.9 : pricing canonique via lib/saas-pricing.ts (TIERS constants partagés).
 
   return (
     <Section py="md" tone="white">
@@ -147,23 +141,26 @@ export default async function BillingPage({ searchParams }: Props) {
         </p>
       )}
 
-      <div className="flex items-baseline justify-between mb-4 flex-wrap gap-3">
-        <Eyebrow>5 plans · facturation {cycle === "annual" ? "annuelle (-20%)" : "mensuelle"}</Eyebrow>
-        <div className="flex gap-1 rounded-md bg-surface p-1 text-xs">
+      <div className="flex items-baseline justify-between mb-2 flex-wrap gap-3">
+        <Eyebrow>5 plans · facturation {cycle === "annual" ? "annuelle (3 mois offerts)" : "mensuelle"}</Eyebrow>
+        <div className="inline-flex rounded-md bg-surface p-1 text-xs">
           <Link
             href="/app/billing"
-            className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "monthly" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+            className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "monthly" ? "bg-white text-ink shadow-card font-medium" : "text-ink-muted hover:text-ink"}`}
           >
             Mensuel
           </Link>
           <Link
             href="/app/billing?cycle=annual"
-            className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "annual" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+            className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "annual" ? "bg-white text-ink shadow-card font-medium" : "text-ink-muted hover:text-ink"}`}
           >
-            Annuel <span className="font-mono text-brand-500">-20%</span>
+            Annuel
           </Link>
         </div>
       </div>
+      {cycle === "annual" && (
+        <p className="text-xs text-success mb-4 font-mono">Économisez 25% — 3 mois offerts sur tous les plans payants.</p>
+      )}
 
       <p className="text-xs text-ink-muted mb-4 max-w-3xl">
         En souscrivant, vous acceptez les <a href="/terms" className="text-brand-500 underline hover:text-brand-600">Conditions Générales</a>{" "}
@@ -175,15 +172,16 @@ export default async function BillingPage({ searchParams }: Props) {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         {ORDER.map(t => {
           const isCurrent = t === currentTierKey;
-          const tLimits = TIER_LIMITS[t];
           const features = TIER_FEATURES[t];
           const recommended = t === "growth";
-          const price = priceLabel(tLimits.price_eur);
           const isFreeTier = t === "free";
+          const price = isFreeTier ? null : priceDisplay(t as Exclude<TierKey, "free">, cycle);
+          // Affichage prix : extrait juste le montant numérique (ex: "59" depuis "59€ HT/mois")
+          const priceMain = isFreeTier ? "0" : String(Math.round(PRICING_TIERS[t as Exclude<TierKey, "free">][cycle === "monthly" ? "monthly_ht" : "yearly_eq_mo_ht"] / 100));
           return (
             <div
               key={t}
-              className={`rounded-lg p-5 transition-all duration-150 ease-out ${
+              className={`relative rounded-lg p-5 transition-all duration-150 ease-out ${
                 isCurrent
                   ? "bg-ink text-white shadow-card"
                   : recommended
@@ -191,27 +189,40 @@ export default async function BillingPage({ searchParams }: Props) {
                     : "bg-white border border-DEFAULT shadow-card hover:shadow-cardHover"
               }`}
             >
+              {!isFreeTier && cycle === "annual" && !isCurrent && (
+                <span className="absolute top-3 right-3 text-[10px] font-mono uppercase tracking-eyebrow bg-brand-50 text-brand-600 px-2 py-0.5 rounded">
+                  3 mois offerts
+                </span>
+              )}
               <div className="flex items-baseline justify-between mb-3">
                 <TierBadge tier={t} size="md" />
                 {isCurrent && (
                   <span className="font-mono text-[10px] uppercase tracking-eyebrow opacity-70">Actuel</span>
                 )}
-                {recommended && !isCurrent && (
+                {recommended && !isCurrent && cycle === "monthly" && (
                   <span className="font-mono text-[10px] uppercase tracking-eyebrow text-brand-500">Recommandé</span>
                 )}
               </div>
-              <div className="mb-1">
-                <span className="text-3xl font-medium tracking-tightish tabular-nums">{isFreeTier ? "0" : price.main}</span>
-                <span className={`text-sm ml-1 ${isCurrent ? "opacity-70" : "text-ink-muted"}`}>
-                  {isFreeTier ? "€" : price.suffix}
-                </span>
+              <div className="mb-1 flex items-baseline gap-1">
+                <span className="text-4xl font-medium tracking-tight tabular-nums">{priceMain}</span>
+                <span className={`text-sm ${isCurrent ? "opacity-70" : "text-ink-muted"}`}>€ HT/mois</span>
               </div>
-              {!isFreeTier && price.hint && (
-                <p className={`text-[11px] mb-4 ${isCurrent ? "text-white/60" : "text-brand-500"}`}>
-                  {price.hint}
-                </p>
+              {!isFreeTier && (
+                <>
+                  <p className={`text-[11px] mb-1 ${isCurrent ? "opacity-70" : "text-ink-subtle"}`}>
+                    {price!.secondary}
+                  </p>
+                  {price!.savingHint && (
+                    <p className={`text-[11px] mb-3 font-medium ${isCurrent ? "text-brand-500" : "text-success"}`}>
+                      {price!.savingHint}
+                    </p>
+                  )}
+                  {!price!.savingHint && <div className="mb-3" />}
+                </>
               )}
-              {isFreeTier || !price.hint ? <div className="mb-4" /> : null}
+              {isFreeTier && (
+                <p className={`text-[11px] mb-4 ${isCurrent ? "opacity-70" : "text-ink-subtle"}`}>Sans CB · à vie</p>
+              )}
               <ul className={`text-xs space-y-1.5 mb-5 ${isCurrent ? "" : "text-ink"}`}>
                 {features.map(f => (
                   <li key={f} className="flex items-baseline gap-2">
@@ -257,9 +268,10 @@ export default async function BillingPage({ searchParams }: Props) {
       </div>
 
       <p className="text-xs text-ink-subtle mt-6">
-        Paiement géré par Stripe (PCI-DSS). TVA UE auto-calculée. Carte test :{" "}
+        Prix HT, TVA française 20% calculée automatiquement par Stripe (autoliquidation pour clients UE assujettis).
+        Annuel = équivalent à 9 mois facturés (3 mois offerts vs mensuel).
+        Trial Pro = 14 jours sans CB requise. Carte test :{" "}
         <code className="font-mono">4242 4242 4242 4242</code> · 12/34 · 123.
-        {" "}Annual = -20% sur le prix mensuel × 12. Trial Pro = 14 jours sans CB requise.
       </p>
     </Section>
   );

@@ -6,8 +6,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        // Allow public pages
-        allow: ["/", "/sample", "/about", "/contact", "/privacy", "/terms"],
+        // Allow public pages (S17 : ajout /saas, /leaderboard, /profile)
+        allow: ["/", "/sample", "/about", "/contact", "/privacy", "/terms", "/saas", "/leaderboard", "/profile"],
         // Disallow personalized landings, admin, API routes
         disallow: [
           "/admin",

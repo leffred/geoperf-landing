@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -13,4 +15,16 @@ const nextConfig = {
     serverActions: { bodySizeLimit: "2mb" },
   },
 };
-export default nextConfig;
+
+// S17 §4.8 : Sentry wrap pour error tracking + source maps upload (production).
+// Si SENTRY_DSN / SENTRY_AUTH_TOKEN absents (dev local), Sentry skip silently
+// les uploads et l'init runtime no-op — pas d'erreur de build.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  hideSourceMaps: true,
+});

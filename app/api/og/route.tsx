@@ -162,10 +162,109 @@ function PersonalizedOG({ ctx }: { ctx: ProspectCtx }) {
   );
 }
 
+// S17 §4.4 : OG cards Tech crisp pour /profile et /leaderboard.
+// Palette ink/surface/brand-500/Inter (cohérent avec emails post-S16 §4.7),
+// glyphe `·` ambré préservé sur le wordmark.
+const INK = "#0A0E1A";
+const BRAND = "#2563EB";
+const SURFACE = "#F7F8FA";
+const INK_MUTED_TC = "#5B6478";
+
+function ProfileOG({ title, score }: { title: string; score: string | null }) {
+  return (
+    <div
+      style={{
+        width: 1200, height: 630, background: "#FFFFFF",
+        display: "flex", flexDirection: "column", fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ padding: "40px 64px", borderBottom: `1px solid ${SURFACE}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", fontSize: 36, color: INK, fontWeight: 500 }}>
+          Ge<span style={{ color: AMBER, padding: "0 4px" }}>·</span>perf
+        </div>
+        <div style={{ fontFamily: "monospace", fontSize: 14, letterSpacing: 3, textTransform: "uppercase", color: BRAND }}>
+          Profil de marque · 2026
+        </div>
+      </div>
+      <div style={{ flex: 1, display: "flex", padding: "60px 64px" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div style={{ fontFamily: "monospace", fontSize: 16, letterSpacing: 3, textTransform: "uppercase", color: BRAND, marginBottom: 20 }}>
+            Étude Geoperf
+          </div>
+          <div style={{ fontSize: 64, lineHeight: 1.1, color: INK, fontWeight: 500, marginBottom: 28, display: "flex", letterSpacing: "-0.025em" }}>
+            {title}
+          </div>
+          <div style={{ fontSize: 22, color: INK_MUTED_TC, lineHeight: 1.4, display: "flex", flexWrap: "wrap" }}>
+            <span>Comment cette marque est citée par ChatGPT, Claude, Gemini et Perplexity.</span>
+          </div>
+        </div>
+        {score !== null && (
+          <div style={{ width: 280, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: INK, padding: 24 }}>
+            <div style={{ fontFamily: "monospace", fontSize: 14, letterSpacing: 3, textTransform: "uppercase", color: BRAND, marginBottom: 12 }}>
+              Visibility
+            </div>
+            <div style={{ fontSize: 180, fontWeight: 500, color: "#FFFFFF", lineHeight: 1, letterSpacing: "-0.025em" }}>
+              {score}
+            </div>
+            <div style={{ fontSize: 28, color: "#FFFFFF", opacity: 0.7, marginTop: 4 }}>/ 4 LLM</div>
+          </div>
+        )}
+      </div>
+      <div style={{ background: SURFACE, padding: "20px 64px", display: "flex", justifyContent: "space-between", fontSize: 14, color: INK_MUTED_TC, fontFamily: "monospace" }}>
+        <span>geoperf.com/profile</span>
+        <span>Étude indépendante Jourdechance</span>
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardOG({ title }: { title: string }) {
+  return (
+    <div
+      style={{
+        width: 1200, height: 630, background: INK, color: "#FFFFFF",
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: 80, fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", fontSize: 32, fontWeight: 500 }}>
+        Ge<span style={{ color: AMBER, padding: "0 4px" }}>·</span>perf
+      </div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ fontFamily: "monospace", fontSize: 18, letterSpacing: 4, textTransform: "uppercase", color: BRAND, marginBottom: 24 }}>
+          Leaderboard sectoriel · 2026
+        </div>
+        <div style={{ fontSize: 84, lineHeight: 1.05, fontWeight: 500, marginBottom: 24, display: "flex", flexWrap: "wrap", letterSpacing: "-0.025em" }}>
+          <span>{title}</span>
+        </div>
+        <div style={{ fontSize: 24, opacity: 0.85 }}>
+          Selon ChatGPT, Claude, Gemini et Perplexity. Étude gratuite Jourdechance.
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 18, opacity: 0.7, fontFamily: "monospace" }}>
+        <span>geoperf.com/leaderboard</span>
+        <span>Édition 2026</span>
+      </div>
+    </div>
+  );
+}
+
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const token = url.searchParams.get("t") || "";
+    const type = url.searchParams.get("type");
+
+    if (type === "profile") {
+      const title = url.searchParams.get("title") || "Marque";
+      const score = url.searchParams.get("score");
+      return new ImageResponse(<ProfileOG title={title} score={score} />, { width: 1200, height: 630 });
+    }
+    if (type === "leaderboard") {
+      const title = url.searchParams.get("title") || "Top 10 par secteur";
+      return new ImageResponse(<LeaderboardOG title={title} />, { width: 1200, height: 630 });
+    }
+
     const ctx = token ? await fetchProspect(token) : null;
     return new ImageResponse(ctx ? <PersonalizedOG ctx={ctx} /> : <GenericOG />, {
       width: 1200,

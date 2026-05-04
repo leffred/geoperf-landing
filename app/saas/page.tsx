@@ -6,6 +6,7 @@ import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { priceDisplay, type TierKey } from "@/lib/saas-pricing";
 
 export const metadata: Metadata = {
   title: "Geoperf SaaS — Monitoring de visibilité dans les LLM",
@@ -105,14 +106,7 @@ export default async function SaasMarketingPage({ searchParams }: Props) {
   const sp = await searchParams;
   const cycle: "monthly" | "annual" = sp.cycle === "annual" ? "annual" : "monthly";
 
-  function priceLabel(monthly: number) {
-    if (cycle === "annual") {
-      const yearly = Math.round(monthly * 12 * 0.8);
-      const monthlyEquiv = Math.round(monthly * 0.8);
-      return { main: `${yearly}`, suffix: "€/an HT", hint: `≈ ${monthlyEquiv}€/mois · économisez ${Math.round(monthly * 12 * 0.2)}€/an` };
-    }
-    return { main: `${monthly}`, suffix: "€/mois HT", hint: null };
-  }
+  // S17 §4.9 : pricing canonique via lib/saas-pricing.ts (TIERS constants partagés).
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
@@ -185,51 +179,76 @@ export default async function SaasMarketingPage({ searchParams }: Props) {
           Tous les plans incluent : prompts FR, monitoring multi-LLM (à partir de Starter), recos Haiku, alertes email. Annulation en 1 clic depuis le portail Stripe.
         </p>
 
-        <div className="flex items-baseline gap-3 mb-8">
+        <div className="flex items-baseline gap-3 mb-3">
           <span className="text-xs font-mono uppercase tracking-eyebrow text-ink-subtle">Cycle</span>
-          <div className="flex gap-1 rounded-md bg-surface p-1 text-xs">
+          <div className="inline-flex rounded-md bg-surface p-1 text-xs">
             <Link
               href="/saas#pricing"
-              className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "monthly" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "monthly" ? "bg-white text-ink shadow-card font-medium" : "text-ink-muted hover:text-ink"}`}
             >
               Mensuel
             </Link>
             <Link
               href="/saas?cycle=annual#pricing"
-              className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "annual" ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors duration-150 ease-out ${cycle === "annual" ? "bg-white text-ink shadow-card font-medium" : "text-ink-muted hover:text-ink"}`}
             >
-              Annuel <span className="font-mono text-brand-500">-20%</span>
+              Annuel
             </Link>
           </div>
         </div>
+        {cycle === "annual" && (
+          <p className="text-xs text-success mb-8 font-mono">Économisez 25% — 3 mois offerts sur tous les plans.</p>
+        )}
+        {cycle === "monthly" && <div className="mb-8" />}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
           {TIERS.map(t => {
-            const price = priceLabel(t.price);
             const isFreeTier = t.key === "free";
+            const price = isFreeTier ? null : priceDisplay(t.key as Exclude<TierKey, "free">, cycle);
             return (
               <div
                 key={t.key}
-                className={`rounded-lg p-6 transition-all duration-150 ease-out ${
+                className={`relative rounded-lg p-6 transition-all duration-150 ease-out ${
                   t.highlight
                     ? "bg-ink text-white shadow-card"
                     : "bg-white border border-DEFAULT shadow-card hover:shadow-cardHover"
                 }`}
               >
+                {!isFreeTier && cycle === "annual" && (
+                  <span className="absolute top-3 right-3 text-[10px] font-mono uppercase tracking-eyebrow bg-brand-50 text-brand-600 px-2 py-0.5 rounded">
+                    3 mois offerts
+                  </span>
+                )}
                 <div className="flex items-baseline justify-between mb-3">
                   <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500">{t.name}</p>
                   {t.highlight && (
                     <span className="font-mono text-[10px] uppercase tracking-eyebrow text-brand-500">Recommandé</span>
                   )}
                 </div>
-                <div className="mb-1">
-                  <span className="text-4xl font-medium tracking-tightish tabular-nums">{isFreeTier ? "0" : price.main}</span>
-                  <span className={`text-sm ml-1 ${t.highlight ? "opacity-70" : "text-ink-muted"}`}>{isFreeTier ? "€" : price.suffix}</span>
-                </div>
-                {!isFreeTier && price.hint ? (
-                  <p className={`text-[11px] mb-4 ${t.highlight ? "text-brand-500" : "text-brand-500"}`}>{price.hint}</p>
+                {isFreeTier ? (
+                  <>
+                    <div className="mb-1">
+                      <span className="text-5xl font-medium tracking-tight tabular-nums">0</span>
+                      <span className={`text-sm ml-1 ${t.highlight ? "opacity-70" : "text-ink-muted"}`}>€ HT/mois</span>
+                    </div>
+                    <p className={`text-[11px] mb-4 ${t.highlight ? "opacity-70" : "text-ink-subtle"}`}>Sans CB · à vie</p>
+                  </>
                 ) : (
-                  <div className="mb-4" />
+                  <>
+                    <div className="mb-1 flex items-baseline gap-1">
+                      <span className="text-5xl font-medium tracking-tight tabular-nums">{price!.primaryHT.split(" ")[0].replace("€", "")}</span>
+                      <span className={`text-sm ${t.highlight ? "opacity-70" : "text-ink-muted"}`}>€ HT/mois</span>
+                    </div>
+                    <p className={`text-[11px] mb-1 ${t.highlight ? "opacity-70" : "text-ink-subtle"}`}>
+                      {price!.secondary}
+                    </p>
+                    {price!.savingHint && (
+                      <p className={`text-[11px] mb-3 font-medium ${t.highlight ? "text-brand-500" : "text-success"}`}>
+                        {price!.savingHint}
+                      </p>
+                    )}
+                    {!price!.savingHint && <div className="mb-3" />}
+                  </>
                 )}
                 <ul className={`text-xs space-y-2 mb-6 ${t.highlight ? "" : "text-ink"}`}>
                   {t.bullets.map(b => (
@@ -253,7 +272,9 @@ export default async function SaasMarketingPage({ searchParams }: Props) {
         </div>
 
         <p className="text-xs text-ink-subtle mt-6">
-          TVA UE auto-calculée par Stripe. Annual = -20% sur le prix mensuel × 12 (économie cumulée). Trial 14 jours gratuit dispo sur Pro depuis ton compte. Carte test :{" "}
+          Prix HT, TVA française 20% calculée automatiquement par Stripe au checkout (autoliquidation pour les clients UE assujettis).
+          Annuel = équivalent à 9 mois de mensuel facturés (3 mois offerts).
+          Trial 14 jours gratuit dispo sur Pro. Carte test :{" "}
           <code className="font-mono text-xs bg-surface px-2 py-0.5 rounded">4242 4242 4242 4242</code>
         </p>
       </Section>

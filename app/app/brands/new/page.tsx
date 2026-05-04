@@ -5,6 +5,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PromptSuggestionPicker } from "@/components/saas/PromptSuggestionPicker";
+import { CompetitorSuggestionPicker } from "@/components/saas/CompetitorSuggestionPicker";
 import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { createBrand } from "./actions";
@@ -105,6 +106,8 @@ export default async function NewBrandPage({ searchParams }: Props) {
               </datalist>
               <p className="text-xs text-ink-subtle mt-1.5">Utilisée dans les prompts adressés aux LLM pour cadrer le contexte.</p>
             </div>
+
+            <CompetitorSuggestionPicker />
 
             <div>
               <label htmlFor="competitors" className={FIELD_LABEL}>Concurrents (jusqu&apos;à 10 domaines)</label>

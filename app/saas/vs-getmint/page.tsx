@@ -28,8 +28,9 @@ type Cell = {
 };
 
 const FEATURES: Cell[] = [
-  { feature: "Prix de base", getmint: "$99/mois", geoperf: "79€/mois", edge: "geoperf" },
-  { feature: "Plan le plus cher", getmint: "$499+/mois (Enterprise)", geoperf: "799€/mois (Agency)", edge: "geoperf" },
+  { feature: "Prix de base mensuel", getmint: "$99/mois", geoperf: "79€ HT/mois", edge: "geoperf" },
+  { feature: "Prix de base annuel (équiv. mensuel)", getmint: "$79/mois (-20%)", geoperf: "59€ HT/mois (-25%, ~50% moins cher)", edge: "geoperf" },
+  { feature: "Plan le plus cher", getmint: "$499+/mois (Enterprise)", geoperf: "799€ HT/mois (Agency, 599€ HT en annuel)", edge: "geoperf" },
   { feature: "Marché cible", getmint: "US/UK enterprise", geoperf: "France + Europe francophone", edge: "tie" },
   { feature: "Langues prompts", getmint: "EN principal", geoperf: "FR principal (EN à venir)", edge: "tie" },
   { feature: "LLMs supportés", getmint: "9 (incl. AI Overviews, Copilot, Meta AI)", geoperf: "7 (AI Overviews/Copilot à venir S14)", edge: "getmint" },
@@ -39,7 +40,7 @@ const FEATURES: Cell[] = [
   { feature: "Content Studio", getmint: "✅", geoperf: "✅ (10 drafts/mois Pro, ∞ Agency)", edge: "tie" },
   { feature: "Citations Flow Sankey", getmint: "✅", geoperf: "✅", edge: "tie" },
   { feature: "Multi-seats", getmint: "2-∞ selon plan", geoperf: "1-∞ selon plan", edge: "tie" },
-  { feature: "API publique REST", getmint: "Enterprise only ($499+)", geoperf: "Agency (799€)", edge: "geoperf" },
+  { feature: "API publique REST", getmint: "Enterprise only ($499+)", geoperf: "Agency (599€ HT en annuel)", edge: "geoperf" },
   { feature: "Webhooks Slack/Teams", getmint: "✅", geoperf: "✅ (Slack Growth+, Teams Pro+)", edge: "tie" },
   { feature: "Publisher Network", getmint: "✅ (150k+ médias indexés)", geoperf: "❌ (à investiguer via aggrégateur)", edge: "getmint" },
   { feature: "Études sectorielles gratuites", getmint: "❌", geoperf: "✅ (lead-magnet trimestriel)", edge: "geoperf" },
@@ -56,8 +57,8 @@ const REASONS_GEOPERF = [
     body: "Prompts en FR rédigés par des marketeurs français, secteurs mappés sur la nomenclature française (asset management, banque retail, fintech B2B, mutuelles santé, etc.). Détection brand-name fine sur les variantes francophones (BNP Paribas vs BNP Real Estate, AXA vs AXA IM).",
   },
   {
-    title: "Prix accessibles",
-    body: "20% moins cher en moyenne sur les tiers de base. Plan Free permanent (vs trial 14j seulement chez GetMint). Pas de markup enterprise sur le tier de base — 79€/mois pour 4 LLMs et 50 prompts vs $99 pour la même chose chez GetMint.",
+    title: "Prix accessibles, ~50% moins cher en annuel",
+    body: "79€ HT/mois en mensuel (vs $99 chez GetMint), et seulement 59€ HT/mois en annuel grâce aux 3 mois offerts (vs ~$79 chez GetMint avec leur réduction annuelle 20%). Sur le plan Pro : 299€ HT/mois en annuel chez Geoperf vs ~$399 chez GetMint. Plan Free permanent (vs trial 14j seulement chez GetMint).",
   },
   {
     title: "Funnel intégré (étude → audit → SaaS)",
@@ -211,7 +212,7 @@ export default function VsGetMintPage() {
             Essayez Geoperf — gratuit, permanent, sans CB.
           </h2>
           <p className="text-base text-white/85 mb-6 leading-relaxed">
-            Plan Free permanent (1 marque, 1 LLM, snapshot mensuel). Upgrade Starter à 79€/mois si vous voulez 4 LLMs et la cadence hebdo. Annulation en 1 clic.
+            Plan Free permanent (1 marque, 1 LLM, snapshot mensuel). Upgrade Starter à 79€ HT/mois (ou 59€ HT/mois en annuel — 3 mois offerts) si vous voulez 4 LLMs et la cadence hebdo. Annulation en 1 clic.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button href="/signup" variant="primary" size="lg">Créer mon compte</Button>
