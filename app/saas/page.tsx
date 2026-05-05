@@ -132,6 +132,7 @@ export default async function SaasMarketingPage({ searchParams }: Props) {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button href="/signup" variant="primary" size="lg">Créer mon compte gratuit</Button>
+            <Button href="/etude-sectorielle" variant="outline-light" size="lg">Recevoir une étude sectorielle</Button>
             <Button href="#pricing" variant="outline-light" size="lg">Voir les plans</Button>
           </div>
           <p className="text-xs text-white/60 mt-6 font-mono">

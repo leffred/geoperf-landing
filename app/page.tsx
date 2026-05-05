@@ -121,7 +121,7 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button href="/signup" size="lg">Suivre ma marque dans les LLM</Button>
-              <Button href="/signup?source=etude" variant="secondary" size="lg">Recevoir l&apos;étude sectorielle gratuite</Button>
+              <Button href="/etude-sectorielle" variant="secondary" size="lg">Recevoir l&apos;étude sectorielle gratuite</Button>
             </div>
             <p className="mt-4 text-xs font-mono text-ink-subtle">
               Sans carte bancaire · Plan Free permanent · Hébergé Frankfurt (UE)
@@ -287,7 +287,7 @@ export default function Home() {
             <Link href="/signup" className="bg-amber text-navy px-6 py-3 text-base font-medium hover:bg-amber/90 transition">
               Suivre ma marque
             </Link>
-            <Link href="/signup?source=etude" className="border border-white/40 text-white px-6 py-3 text-base font-medium hover:bg-white/10 transition">
+            <Link href="/etude-sectorielle" className="border border-white/40 text-white px-6 py-3 text-base font-medium hover:bg-white/10 transition">
               Recevoir l&apos;étude sectorielle
             </Link>
             <Link href="/contact" className="text-white/85 px-6 py-3 text-base font-medium hover:text-white transition underline-offset-4 hover:underline">
