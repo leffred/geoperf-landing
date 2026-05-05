@@ -65,6 +65,7 @@ export default async function AdminPage({ searchParams }: Props) {
   const headerRight = (
     <div className="flex items-center gap-4">
       <span className="font-mono text-xs text-ink-muted hidden sm:inline">{user.email}</span>
+      <a href="/admin/saas" className="font-mono text-xs px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-white rounded transition">Admin SaaS →</a>
       <a href="/admin/profiles" className="font-mono text-xs px-3 py-1.5 bg-navy/5 hover:bg-navy/10 text-navy">Profils SEO</a>
       <span className="font-mono text-xs text-ink-muted">{kpis.total} prospects</span>
       <form action={logout}>
