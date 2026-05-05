@@ -22,6 +22,10 @@ const STATUS_BADGE: Record<string, string> = {
 const ADMIN_TABS = [
   { href: "/admin/saas", label: "Overview" },
   { href: "/admin/saas/snapshots", label: "Snapshots" },
+  { href: "/admin/saas/reports", label: "Reports" },
+  { href: "/admin/saas/categories", label: "Categories" },
+  { href: "/admin/saas/coupons", label: "Coupons" },
+  { href: "/admin/prospects-list", label: "Prospects" },
   { href: "/admin/saas/cron", label: "Cron" },
 ];
 

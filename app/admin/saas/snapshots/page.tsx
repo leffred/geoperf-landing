@@ -28,6 +28,10 @@ const FIELD_INPUT = "w-full text-sm bg-white px-3 py-1.5 rounded-md border borde
 const ADMIN_TABS = [
   { href: "/admin/saas", label: "Overview" },
   { href: "/admin/saas/snapshots", label: "Snapshots" },
+  { href: "/admin/saas/reports", label: "Reports" },
+  { href: "/admin/saas/categories", label: "Categories" },
+  { href: "/admin/saas/coupons", label: "Coupons" },
+  { href: "/admin/prospects-list", label: "Prospects" },
   { href: "/admin/saas/cron", label: "Cron" },
 ];
 
