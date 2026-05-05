@@ -5,11 +5,14 @@ import Link from "next/link";
 import { Header } from "@/components/ui/Header";
 import { Footer } from "@/components/ui/Footer";
 import { TierBadge } from "@/components/saas/TierBadge";
+import { DemoBanner } from "@/components/ui/DemoBanner";
 import { loadSaasContext } from "@/lib/saas-auth";
+import { isDemoMode } from "@/lib/demo-mode";
 import { logout } from "../login/actions";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const ctx = await loadSaasContext();
+  const demo = await isDemoMode();
 
   const right = (
     <div className="flex items-center gap-3">
@@ -39,6 +42,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
+      {demo && <DemoBanner />}
       <Header rightSlot={right} />
 
       <nav className="bg-white border-b border-DEFAULT px-6 md:px-8 sticky top-14 z-30 backdrop-blur-md bg-white/85">

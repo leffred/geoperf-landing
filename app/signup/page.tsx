@@ -23,14 +23,15 @@ const ERROR_LABELS: Record<string, string> = {
 const FIELD_LABEL = "block text-xs font-mono uppercase tracking-eyebrow text-ink-subtle mb-1.5";
 const FIELD_INPUT = "w-full text-sm bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none transition-colors duration-150 ease-out";
 
-type Props = { searchParams: Promise<{ error?: string; check_email?: string; source?: string; category?: string; invitation_token?: string; email?: string }> };
+type Props = { searchParams: Promise<{ error?: string; check_email?: string; source?: string; category?: string; invitation_token?: string; email?: string; coupon?: string }> };
 
 export default async function SignupPage({ searchParams }: Props) {
-  const { error, check_email, source, category, invitation_token, email: prefilledEmail } = await searchParams;
+  const { error, check_email, source, category, invitation_token, email: prefilledEmail, coupon } = await searchParams;
   const errorMsg = error ? ERROR_LABELS[error] || ERROR_LABELS.unknown : null;
   const checkEmail = check_email === "1";
   const isEtude = source === "etude";
   const isInvitation = !!invitation_token;
+  const hasCoupon = !!coupon && /^[A-Z0-9_-]{3,40}$/.test(coupon.toUpperCase());
 
   let title = "Suivre ma marque dans les LLM";
   let subtitle = "Plan gratuit : 1 marque, 1 LLM, snapshot mensuel. Upgrade à tout moment.";
@@ -76,10 +77,21 @@ export default async function SignupPage({ searchParams }: Props) {
               </div>
             )}
 
+            {hasCoupon && (
+              <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-amber bg-amber/5 px-4 py-3 text-sm text-ink">
+                <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500 mb-1">Code de parrainage</p>
+                <p>
+                  Code <code className="font-mono bg-white px-1.5 py-0.5 rounded">{coupon!.toUpperCase()}</code> appliqué.
+                  Tu pourras l&apos;utiliser sur la page Billing pour activer un essai gratuit.
+                </p>
+              </div>
+            )}
+
             <form action={signup} className="space-y-4">
               {source && <input type="hidden" name="source" value={source} />}
               {category && <input type="hidden" name="category" value={category} />}
               {invitation_token && <input type="hidden" name="invitation_token" value={invitation_token} />}
+              {hasCoupon && <input type="hidden" name="coupon_code" value={coupon!.toUpperCase()} />}
               <div>
                 <label htmlFor="full_name" className={FIELD_LABEL}>Nom complet</label>
                 <input id="full_name" name="full_name" type="text" autoComplete="name" className={FIELD_INPUT} />

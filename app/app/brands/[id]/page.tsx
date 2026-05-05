@@ -379,7 +379,6 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
                 <th className="text-right py-3 px-4 font-mono uppercase tracking-eyebrow">Rang</th>
                 <th className="text-right py-3 px-4 font-mono uppercase tracking-eyebrow">Cit.%</th>
                 <th className="text-right py-3 px-4 hidden md:table-cell font-mono uppercase tracking-eyebrow">Réponses</th>
-                <th className="text-right py-3 px-4 hidden md:table-cell font-mono uppercase tracking-eyebrow">Coût</th>
               </tr>
             </thead>
             <tbody>
@@ -399,11 +398,10 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
                   <td className="py-3 px-4 text-right font-mono text-ink tabular-nums">{s.avg_rank?.toFixed(1) ?? "—"}</td>
                   <td className="py-3 px-4 text-right font-mono text-ink tabular-nums">{s.citation_rate?.toFixed(0) ?? "—"}</td>
                   <td className="py-3 px-4 text-right font-mono hidden md:table-cell text-xs text-ink-muted">{s.raw_response_count}</td>
-                  <td className="py-3 px-4 text-right font-mono hidden md:table-cell text-xs text-ink-muted">{s.total_cost_usd ? `$${Number(s.total_cost_usd).toFixed(4)}` : "—"}</td>
                 </tr>
               ))}
               {snapshotList.length === 0 && (
-                <tr><td colSpan={7} className="py-6 text-center text-ink-muted text-sm">Aucun snapshot.</td></tr>
+                <tr><td colSpan={6} className="py-6 text-center text-ink-muted text-sm">Aucun snapshot.</td></tr>
               )}
             </tbody>
           </table>

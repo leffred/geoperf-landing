@@ -13,6 +13,7 @@ export async function signup(formData: FormData) {
   const source = String(formData.get("source") || "").trim();          // ex: "etude"
   const category = String(formData.get("category") || "").trim();      // ex: "asset-management"
   const invitationToken = String(formData.get("invitation_token") || "").trim();
+  const couponCode = String(formData.get("coupon_code") || "").trim().toUpperCase() || null;
 
   if (!email || !password) redirect("/signup?error=missing");
   if (password.length < 8) redirect("/signup?error=password_too_short");
@@ -23,8 +24,12 @@ export async function signup(formData: FormData) {
 
   // Si invitation : redirect post-signup vers /auth/accept?token=... (qui lie au compte owner)
   // Sinon : redirect vers /app/dashboard
+  // S20 §4.1 : si coupon present, redirect post-signup vers /app/billing?coupon=...
+  // pour activer le trial Starter (au lieu de /app/dashboard).
   const nextPath = invitationToken
     ? `/auth/accept?token=${encodeURIComponent(invitationToken)}`
+    : couponCode
+    ? `/app/billing?coupon=${encodeURIComponent(couponCode)}&prefill_tier=starter`
     : `/app/dashboard${source === "etude" ? `?welcome_etude=1${category ? `&category=${encodeURIComponent(category)}` : ""}` : ""}`;
 
   const { data, error } = await supabase.auth.signUp({
@@ -39,6 +44,7 @@ export async function signup(formData: FormData) {
         source: source || null,
         category: category || null,
         invitation_token: invitationToken || null,
+        coupon_code: couponCode || null,
       },
     },
   });

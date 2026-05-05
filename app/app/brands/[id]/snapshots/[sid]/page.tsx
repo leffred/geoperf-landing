@@ -77,7 +77,7 @@ export default async function SnapshotDetailPage({ params }: Props) {
           Snapshot du {fmtDate(snap.created_at)}
         </h1>
         <p className="text-sm text-ink-muted mt-1">
-          {snap.status === "completed" ? "✓" : snap.status === "failed" ? "✗" : "…"} {snap.status} · {snap.prompts_count} prompts × {(snap.llms_used as string[]).length} LLMs · ${Number(snap.total_cost_usd || 0).toFixed(4)}
+          {snap.status === "completed" ? "✓" : snap.status === "failed" ? "✗" : "…"} {snap.status} · {snap.prompts_count} prompts × {(snap.llms_used as string[]).length} LLMs
           {snap.error_message && <span className="block text-danger mt-1">{snap.error_message}</span>}
         </p>
       </div>
@@ -90,7 +90,7 @@ export default async function SnapshotDetailPage({ params }: Props) {
       </div>
 
       <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5 mb-8">
-        <Eyebrow className="mb-4">Coût réparti par LLM ({respList.length} responses)</Eyebrow>
+        <Eyebrow className="mb-4">Réparti par LLM ({respList.length} responses)</Eyebrow>
         <table className="w-full text-sm">
           <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
             <tr>
@@ -98,7 +98,6 @@ export default async function SnapshotDetailPage({ params }: Props) {
               <th className="text-right py-2 font-mono uppercase tracking-eyebrow">Calls</th>
               <th className="text-right py-2 font-mono uppercase tracking-eyebrow">Citation</th>
               <th className="text-right py-2 hidden md:table-cell font-mono uppercase tracking-eyebrow">Latence moy.</th>
-              <th className="text-right py-2 font-mono uppercase tracking-eyebrow">Coût</th>
             </tr>
           </thead>
           <tbody>
@@ -111,7 +110,6 @@ export default async function SnapshotDetailPage({ params }: Props) {
                 <td className="py-2 text-right font-mono text-ink tabular-nums">{r.count}</td>
                 <td className="py-2 text-right font-mono text-ink tabular-nums">{r.citation_rate.toFixed(0)}%</td>
                 <td className="py-2 text-right font-mono hidden md:table-cell text-xs text-ink-muted tabular-nums">{r.avg_latency_ms}ms</td>
-                <td className="py-2 text-right font-mono text-ink tabular-nums">${r.cost.toFixed(4)}</td>
               </tr>
             ))}
           </tbody>
@@ -162,7 +160,7 @@ export default async function SnapshotDetailPage({ params }: Props) {
                 </div>
                 <p className="text-sm text-ink truncate">{r.prompt_text}</p>
               </div>
-              <span className="font-mono text-xs text-ink-subtle whitespace-nowrap">${Number(r.cost_usd || 0).toFixed(4)} · {r.latency_ms}ms</span>
+              <span className="font-mono text-xs text-ink-subtle whitespace-nowrap">{r.latency_ms}ms</span>
             </summary>
             <div className="mt-3 pt-3 border-t border-DEFAULT grid lg:grid-cols-2 gap-4">
               <div>

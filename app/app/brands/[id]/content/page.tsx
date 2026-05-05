@@ -190,7 +190,6 @@ export default async function ContentStudioPage({ params, searchParams }: Props)
                       {d.status}
                     </span>
                     <span className="font-mono text-[10px] text-ink-subtle">{new Date(d.created_at).toLocaleDateString("fr-FR")}</span>
-                    {d.cost_usd && <span className="font-mono text-[10px] text-ink-subtle">${Number(d.cost_usd).toFixed(4)}</span>}
                   </div>
                 </div>
                 <h2 className="text-lg font-medium text-ink mb-2 tracking-tightish">{d.title}</h2>

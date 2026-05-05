@@ -35,6 +35,15 @@ export async function middleware(req: NextRequest) {
   const saasLogin = path === "/login";
   const saasSignup = path === "/signup";
 
+  // S20 §4.5 : flag x-geoperf-demo propage si l'utilisateur est le compte demo seedé.
+  // Les server components / actions peuvent lire ce header pour bloquer les mutations.
+  const DEMO_USER_ID = "d3403d3e-d3d3-d3d3-d3d3-d3d3d3d30000";
+  const isDemoUser = data.user?.id === DEMO_USER_ID;
+  if (isDemoUser) {
+    res.headers.set("x-geoperf-demo", "1");
+    req.headers.set("x-geoperf-demo", "1");
+  }
+
   // /admin/* → /admin/login si non authentifié
   if (isAdminScope) {
     if (!data.user && !adminLogin) {
