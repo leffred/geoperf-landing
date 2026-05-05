@@ -1,0 +1,34 @@
+# Geoperf — Monitoring de visibilité dans les LLM
+
+> Geoperf est un SaaS français qui surveille comment ChatGPT, Claude, Gemini et Perplexity perçoivent votre marque. Cible B2B : CMO et Heads of Marketing de PME/ETI françaises (50-500 employés). Édité par Jourdechance SAS, hébergé sur Supabase Frankfurt (EU, RGPD natif).
+
+Geoperf propose 3 produits complémentaires : (1) des études sectorielles gratuites téléchargeables par email, (2) un audit GEO consulting one-shot pour les entreprises qui veulent une analyse approfondie, (3) un SaaS récurrent qui surveille en continu la visibilité de la marque dans 4 LLM avec recommandations IA.
+
+Le terme "GEO" signifie Generative Engine Optimization — l'équivalent du SEO mais pour les moteurs génératifs (LLM) plutôt que les moteurs de recherche traditionnels. La majorité des décideurs B2B consultent désormais ChatGPT ou Claude avant un achat ; être invisible pour ces LLM revient à être absent du top 10 Google il y a 15 ans.
+
+## Études sectorielles gratuites
+
+Geoperf publie chaque trimestre des études sectorielles sur la perception des marques par les 4 grands LLM. Format : PDF brandé, ~30 marques par sous-catégorie analysées. Distribué gratuitement en échange d'un email professionnel.
+
+- [Demander une étude sectorielle](https://geoperf.com/etude-sectorielle): formulaire de demande par catégorie/sous-catégorie
+- [Sample / aperçu d'étude](https://geoperf.com/sample): aperçu type d'une étude sectorielle Geoperf
+- [Sectoral leaderboard](https://geoperf.com/leaderboard): classement public des marques par sous-catégorie
+
+## SaaS Geoperf
+
+Le SaaS Geoperf suit en continu la visibilité d'une marque dans 4 LLM (ChatGPT GPT-4o, Claude Sonnet 4.6, Gemini 2.5 Pro, Perplexity Sonar Pro). Mesures : visibility score, citation rate, share of voice, sentiment, alignment vs concurrents, sources d'autorité, citations flow. Recommandations IA générées par Claude Haiku après chaque snapshot.
+
+- [Présentation produit et tarifs](https://geoperf.com/saas): plans Free (gratuit permanent), Starter (79€ HT/mois), Growth (199€ HT/mois), Pro (399€ HT/mois), Agency (799€ HT/mois). Annuel -25% (3 mois offerts).
+- [FAQ](https://geoperf.com/saas/faq): questions fréquentes sur le produit, l'utilisation, le pricing, la sécurité RGPD
+- [Comparaison vs GetMint.ai](https://geoperf.com/saas/vs-getmint): comparaison détaillée Geoperf vs GetMint avec table 20 critères
+
+## Profils publics par marque
+
+Geoperf publie un profil SEO public pour chaque marque analysée dans les études. URL pattern : `https://geoperf.com/profile/[domain]`. Exemple : `https://geoperf.com/profile/blackrock.com`. Chaque profil affiche le score de visibilité, le rang dans la catégorie, les sources autorités citées et les recommandations clés.
+
+## À propos et contact
+
+- [À propos](https://geoperf.com/about): Geoperf est un produit du cabinet Jourdechance SAS (RCS Nanterre 838 114 619), agence média B2B française fondée en 2018.
+- [Contact](https://geoperf.com/contact): pour un audit GEO consulting personnalisé (mission 5j, livrables analyse + plan d'action 6-12 mois)
+- [Politique de confidentialité](https://geoperf.com/privacy): RGPD, sous-traitants (Supabase, Stripe, Resend, Apollo), DPA disponible sur demande
+- [Conditions générales](https://geoperf.com/terms): CGV SaaS, droit français

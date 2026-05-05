@@ -1,0 +1,127 @@
+# Geoperf — Monitoring de visibilité dans les LLM
+
+## TL;DR
+
+Geoperf est un SaaS français qui mesure et améliore la visibilité d'une marque dans les réponses générées par les 4 grands modèles de langage (ChatGPT, Claude, Gemini, Perplexity). Édité par Jourdechance SAS (RCS Nanterre 838 114 619), basé sur Supabase Frankfurt (UE, RGPD natif). Cible : CMO et Heads of Marketing de PME/ETI françaises (50-500 employés). Plans à partir de 0€ (Free permanent) jusqu'à 799€ HT/mois (Agency, 10 marques).
+
+## Le problème adressé
+
+60% des décideurs B2B consultent désormais ChatGPT ou Claude avant un achat (source : étude Gartner 2025). Le SEO classique ne capture plus ces interactions. Une marque invisible dans les LLM est progressivement effacée du top of mind, comme l'absence du top 10 Google il y a 15 ans.
+
+Le défi : les LLM hallucinent, sont entraînés sur des corpus datant de 12-18 mois, et chaque modèle a sa propre vue du marché. Un benchmark cross-LLM est nécessaire pour mesurer objectivement.
+
+## Méthodologie Geoperf
+
+### Études sectorielles trimestrielles
+
+Pour chaque sous-catégorie d'industrie, Geoperf interroge 4 LLM avec 30 prompts standardisés (palmarès, comparaisons, recommandations sectorielles). Les réponses sont parsées, normalisées (déduplication par domaine racine, normalisation des noms officiels), puis consolidées en un classement unique avec un score de visibilité de 0 à 4 (= nombre de LLM ayant cité la marque spontanément).
+
+Chaque étude génère un PDF brandé incluant : top 30 marques, score visibility, citation rate, share of voice, sources d'autorité, recommandations sectorielles. Distribué gratuitement par email après captation lead-magnet.
+
+### Monitoring continu (SaaS)
+
+Une fois inscrit·e, l'utilisateur·trice configure sa marque (nom, domaine, catégorie, 2-3 concurrents). Geoperf lance immédiatement un premier snapshot : 30 prompts × N LLM (selon le tier) en parallèle via OpenRouter. Les résultats sont parsés et stockés.
+
+Snapshots récurrents (mensuel Free, hebdo Starter+) avec détection automatique d'anomalies (rank drops, citation losses, competitor overtake, new sources). Alertes par email + Slack/Teams (Pro+).
+
+### Recommandations IA
+
+Après chaque snapshot, Claude Haiku 4.5 analyse les résultats et propose 3 à 5 actions priorisées : sources autorité à cibler pour publication (Forbes Tech, Les Échos B2B, etc.), gaps de contenu à combler, menaces concurrentielles à surveiller. Pas de dashboard de chiffres opaques — chaque insight est actionnable.
+
+## Catalogue de plans (pricing 2026)
+
+Tous les prix en euros HT (TVA française 20% s'ajoute pour les particuliers ; les pros récupèrent la TVA).
+
+| Plan | Mensuel HT | Annuel HT/mois | Annuel total | Marques | LLM | Prompts | Topics | Seats |
+|---|---|---|---|---|---|---|---|---|
+| Free | 0€ | — | — | 1 | 1 (ChatGPT) | 30 | 1 | 1 |
+| Starter | 79€ | 59€ (-25%) | 708€ | 1 | 4 | 50 | 3 | 1 |
+| Growth | 199€ | 149€ (-25%) | 1788€ | 1 | 4 | 200 | 9 | 5 |
+| Pro | 399€ | 299€ (-25%) | 3588€ | 3 | 6 (+Mistral, +Grok) | 200 | ∞ | ∞ |
+| Agency | 799€ | 599€ (-25%) | 7188€ | 10 | 7 (+Llama 3.3) | 300 | ∞ | ∞ |
+
+Tous les plans incluent : prompts FR, recos Haiku, alertes email, snapshots mensuels minimum, hébergement EU, opt-out RGPD en 1 clic. L'annuel offre 3 mois équivalent (= -25%). Plan Free permanent sans CB requise.
+
+## Cas d'usage
+
+### CMO d'une PME tech B2B française
+
+Doit défendre la part de voix de sa marque face aux Big Tech US. Utilise Geoperf pour : (1) confirmer où sa marque est citée vs où elle ne l'est pas, (2) identifier les sources médias FR qui doivent absolument la citer, (3) suivre la progression mois après mois.
+
+### Head of Brand d'une scale-up SaaS
+
+Vient de lever en Série B, doit prouver à son board que la marque s'installe dans le top of mind. Geoperf fournit un score de visibility comparé aux concurrents directs (snapshot trimestriel pour le board pack).
+
+### Directeur de la Communication d'une ETI industrielle
+
+Veut suivre la perception de la marque par le marché et anticiper les angles RP. Reçoit le digest hebdo Geoperf avec les nouveautés et un alert si un concurrent monte significativement.
+
+### Agence de communication
+
+Gère plusieurs comptes clients. Plan Agency avec 10 marques + white-label optionnel + API REST 60 req/min pour intégrer Geoperf dans ses propres dashboards clients.
+
+## Différenciateurs vs concurrents (notamment GetMint.ai)
+
+1. **Spécialisation française et européenne** : prompts en français rédigés par marketeurs natifs, secteurs FR mappés sur la nomenclature française (asset management institutionnel, banque retail FR, fintech B2B FR, scale-ups SaaS FR, etc.). Détection brand-name fine sur variantes francophones (BNP Paribas vs BNP Real Estate, AXA vs AXA IM).
+2. **Hébergement et traitement EU natifs** : Supabase Frankfurt, aucune donnée transitant aux US. DPA standard fourni à la signature.
+3. **Funnel intégré étude → audit → SaaS** : Geoperf est le seul à combiner lead-magnet PDF gratuit + audit consulting one-shot 500€ + SaaS récurrent. Trois moments de capture lead.
+4. **Plan Free permanent** : aucun concurrent ne propose un plan gratuit sans limite de durée. GetMint propose juste 14 jours de trial.
+5. **Prix 20-50% moins cher que GetMint** sur tous les plans équivalents.
+
+## FAQ technique
+
+### Quels LLM sont monitorés ?
+
+Free : ChatGPT (GPT-4o). Starter+ : 4 LLM (ChatGPT GPT-4o, Claude Sonnet 4.6, Gemini 2.5 Pro, Perplexity Sonar Pro). Pro : 6 LLM (+Mistral Large, +Grok 2). Agency : 7 LLM (+Llama 3.3 70B). Roadmap S20+ : ajout Microsoft Copilot et Google AI Overviews dès que les slugs OpenRouter sont disponibles.
+
+### À quelle fréquence sont lancés les snapshots ?
+
+Free : 1 par mois (calendrier auto). Starter+ : 1 par semaine (calendrier auto). Pro : possibilité de snapshot manuel à la demande en plus du hebdo. Daily snapshots Pro+ en roadmap S20.
+
+### Comment garantir la qualité du parsing des réponses LLM ?
+
+Le parsing utilise plusieurs niveaux de validation : regex word-boundary case-insensitive sur les noms officiels et leurs variantes francophones, normalisation par domaine racine (ex: "BlackRock" et "blackrock.com" sont consolidés), extraction des rangs dans les listes ordonnées, dédoublonnage cross-LLM. Le code de consolidation est versionné dans le repo Geoperf et reproductible.
+
+### Que se passe-t-il quand un nouveau LLM sort ?
+
+Geoperf l'évalue en interne sur 1-2 sous-catégories pilotes. Si la qualité est suffisante (cohérence avec les autres LLM > 60%, latence < 60s, coût raisonnable), il est ajouté au plan Agency d'abord, puis Pro, puis Growth/Starter.
+
+### Comment exporter mes données ?
+
+Tous les plans payants ont un export CSV/PDF. Le plan Agency a en plus une API REST (60 req/min, scopes read/write) qui permet d'intégrer les snapshots Geoperf dans tout dashboard tiers (Looker, Metabase, custom).
+
+### RGPD et confidentialité
+
+Hébergement Supabase Frankfurt (UE). Aucun transfert de données aux US sans consentement explicite (Stripe pour le paiement étant la seule exception, encadré par les Standard Contractual Clauses). DPA standard téléchargeable sur demande à dpa@geoperf.com pour les clients Pro et Agency. Toutes les données sont chiffrées at rest (AES-256) et in transit (TLS 1.3). Suppression du compte = suppression complète des snapshots, recos et configurations sous 30 jours.
+
+## Roadmap publique
+
+- **S19 (en cours)** : Industrialisation du lead-magnet, page dédiée `/etude-sectorielle` avec formulaire, anti-abus 1 rapport/mois
+- **S20** : Cacher coûts snapshots côté user, page admin reports + création catégories UI, compte démo SaaS public avec historique 6 mois
+- **S21+** : AI Overviews + Copilot (Agency tier), daily snapshots Pro+, cross-brand benchmark anonymisé, Prompt Studio (créer ses propres prompts dans l'UI)
+
+## Contact
+
+- Email général : hello@geoperf.com
+- Audit consulting : contact@geoperf.com
+- DPA / RGPD : dpa@geoperf.com
+- Support : support@geoperf.com (clients SaaS)
+- Calendly direct : https://calendly.com/jourdechance/audit-geo
+- LinkedIn (équipe) : https://www.linkedin.com/in/fredericlefebvre
+- Adresse postale : Jourdechance SAS, 31 rue Diaz, 92100 Boulogne-Billancourt, France
+
+## Pages publiques principales
+
+- https://geoperf.com/ (homepage)
+- https://geoperf.com/saas (présentation produit SaaS et tarifs)
+- https://geoperf.com/saas/faq (FAQ produit)
+- https://geoperf.com/saas/vs-getmint (comparaison vs GetMint.ai)
+- https://geoperf.com/leaderboard (classement public par sous-catégorie)
+- https://geoperf.com/leaderboard/[slug] (page leaderboard détaillée d'une sous-catégorie)
+- https://geoperf.com/profile/[domain] (profil public d'une marque)
+- https://geoperf.com/etude-sectorielle (formulaire lead-magnet)
+- https://geoperf.com/sample (aperçu type d'une étude)
+- https://geoperf.com/about (à propos de Jourdechance et Geoperf)
+- https://geoperf.com/contact (audit consulting)
+- https://geoperf.com/privacy (politique de confidentialité)
+- https://geoperf.com/terms (conditions générales)
