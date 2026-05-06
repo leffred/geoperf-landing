@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function LimitReachedPage() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      <Header />
+      <Header logo="etudes" />
 
       <Section py="lg" tone="white">
         <div className="max-w-2xl">

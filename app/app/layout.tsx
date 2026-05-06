@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <main className="min-h-screen flex flex-col bg-white">
       {demo && <DemoBanner />}
-      <Header rightSlot={right} />
+      <Header logo="monitoring" rightSlot={right} />
 
       <nav className="bg-white border-b border-DEFAULT px-6 md:px-8 sticky top-14 z-30 backdrop-blur-md bg-white/85">
         <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto">

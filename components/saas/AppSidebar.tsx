@@ -157,8 +157,8 @@ export function AppSidebar({
     <div className="flex flex-col h-full bg-white border-r border-navy/10">
       {/* Header logo + user */}
       <div className="px-4 py-4 border-b border-navy/10">
-        <Link href="/app/dashboard" onClick={() => setMobileOpen(false)} className="font-serif text-lg text-navy block leading-tight">
-          Ge<span className="text-amber">·</span>perf
+        <Link href="/app/dashboard" onClick={() => setMobileOpen(false)} className="font-sans text-lg font-extrabold tracking-tight text-navy block leading-tight" style={{ letterSpacing: "-0.025em" }}>
+          geoperf
         </Link>
         <div className="mt-2 flex items-center gap-2">
           <TierBadge tier={tier} />

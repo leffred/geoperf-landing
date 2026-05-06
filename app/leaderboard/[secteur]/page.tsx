@@ -110,7 +110,7 @@ export default async function LeaderboardCategoryPage({ params }: Props) {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      <Header />
+      <Header logo="etudes" />
 
       <Section py="lg" tone="white">
         <div className="max-w-3xl">

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Geoperf LinkedIn avatar">
+  <title>Geoperf — avatar LinkedIn 400×400</title>
+  <desc>O signal géant cream sur fond navy avec point amber bullseye et eyebrow GEOPERF.</desc>
+  <rect x="0" y="0" width="400" height="400" fill="#042C53"/>
+  <!-- O signal centré géant -->
+  <circle cx="200" cy="190" r="115" fill="none" stroke="#F1EFE8" stroke-width="22"/>
+  <circle cx="200" cy="190" r="38" fill="#EF9F27"/>
+  <!-- Wordmark sous le O -->
+  <text x="200" y="350" font-family="'JetBrains Mono', monospace" font-size="20" font-weight="500" fill="#F1EFE8" text-anchor="middle" letter-spacing="6" opacity="0.85">G E O P E R F</text>
+</svg>

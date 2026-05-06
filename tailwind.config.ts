@@ -1,47 +1,85 @@
 import type { Config } from "tailwindcss";
+import { editorial, ui, semantic, borders, shadows, motion } from "./lib/design-tokens";
 
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
+        // UI tokens — pour app/dashboard/portail
         ink: {
-          DEFAULT: "#0A0E1A",
-          muted: "#5B6478",
-          subtle: "#8C94A6",
+          DEFAULT: ui.ink,
+          muted:   ui.inkMuted,
+          subtle:  ui.inkSubtle,
         },
         surface: {
-          DEFAULT: "#F7F8FA",
-          2: "#EEF1F5",
+          DEFAULT: ui.surface,
+          2: ui.surface2,
         },
         brand: {
-          50: "#EFF4FE",
-          500: "#2563EB",
-          600: "#1D4ED8",
+          50:  ui.brand50,
+          500: ui.brand500,
+          600: ui.brand600,
         },
-        success: "#059669",
-        warning: "#D97706",
-        danger: "#DC2626",
-        amber: { DEFAULT: "#EF9F27" },
-        navy: { DEFAULT: "#0A0E1A", light: "#1D4ED8" },
-        cream: { DEFAULT: "#F7F8FA" },
+
+        // Editorial tokens — pour logos, OG, covers, étude sectorielle
+        navy: {
+          DEFAULT: editorial.navy,
+          light:   editorial.navyLight,
+        },
+        amber: { DEFAULT: editorial.amber },
+        parchment: { DEFAULT: editorial.parchment },
+
+        // Sémantique
+        success: semantic.success,
+        warning: semantic.warning,
+        danger:  semantic.danger,
+
+        // Alias rétrocompatible — `cream` = parchment éditorial.
+        // À supprimer une fois `bg-parchment` adopté partout.
+        cream: { DEFAULT: editorial.parchment },
       },
       fontFamily: {
-        sans: ['"Inter"', "system-ui", "sans-serif"],
-        mono: ['"JetBrains Mono"', '"IBM Plex Mono"', "ui-monospace", "monospace"],
-        serif: ['"Inter"', "system-ui", "sans-serif"],
+        sans:  ['"Inter"', "system-ui", "sans-serif"],
+        serif: ['"Source Serif Pro"', '"Times New Roman"', "Georgia", "serif"],
+        mono:  ['"JetBrains Mono"', '"IBM Plex Mono"', "ui-monospace", "monospace"],
+      },
+      fontSize: {
+        // Micro-label — remplace les `text-[10px]` arbitraires
+        "2xs": ["10px", { lineHeight: "1.4" }],
       },
       borderColor: {
-        DEFAULT: "rgba(10,14,26,0.08)",
-        strong: "rgba(10,14,26,0.14)",
+        DEFAULT:  borders.default,
+        strong:   borders.strong,
+        hairline: borders.hairline,
       },
       boxShadow: {
-        card: "0 1px 2px rgba(10,14,26,0.04), 0 0 0 0.5px rgba(10,14,26,0.06)",
-        cardHover: "0 4px 12px rgba(10,14,26,0.06), 0 0 0 0.5px rgba(10,14,26,0.10)",
+        card:      shadows.card,
+        cardHover: shadows.cardHover,
+        popover:   shadows.popover,
+        modal:     shadows.modal,
       },
       letterSpacing: {
         tightish: "-0.015em",
-        eyebrow: "0.18em",
+        eyebrow:  "0.18em",
+      },
+      transitionDuration: {
+        fast: motion.duration.fast,
+        base: motion.duration.base,
+        slow: motion.duration.slow,
+      },
+      transitionTimingFunction: {
+        snappy: motion.easing.snappy,
+        smooth: motion.easing.smooth,
+      },
+      keyframes: {
+        amberpulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%":      { opacity: "0.55" },
+        },
+      },
+      animation: {
+        "amber-pulse": "amberpulse 2.4s ease-in-out infinite",
       },
     },
   },

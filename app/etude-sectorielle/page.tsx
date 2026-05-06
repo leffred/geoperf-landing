@@ -72,7 +72,7 @@ export default async function EtudeSectoriellePage({
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
-      <Header />
+      <Header logo="etudes" />
 
       <Section py="lg" tone="white">
         <div className="grid md:grid-cols-[1.2fr_1fr] gap-12 md:gap-16 items-start max-w-5xl">

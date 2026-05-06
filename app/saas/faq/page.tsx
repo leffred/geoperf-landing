@@ -151,6 +151,7 @@ export default function FaqPage() {
       />
 
       <Header
+        logo="monitoring"
         rightSlot={
           <div className="flex items-center gap-4">
             <Link href="/saas" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">Geoperf SaaS</Link>

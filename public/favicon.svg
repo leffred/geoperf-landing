@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="3" fill="#042C53"/>
-  <text x="16" y="22" font-family="Georgia, serif" font-size="22" font-weight="500" fill="#FFFFFF" text-anchor="middle">G</text>
-  <circle cx="24" cy="8" r="3" fill="#EF9F27"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Geoperf favicon">
+  <title>Geoperf favicon</title>
+  <rect x="0" y="0" width="32" height="32" rx="0" fill="#042C53"/>
+  <!-- O signal cream avec point amber bullseye -->
+  <circle cx="16" cy="16" r="10" fill="none" stroke="#F1EFE8" stroke-width="3"/>
+  <circle cx="16" cy="16" r="3.5" fill="#EF9F27"/>
 </svg>

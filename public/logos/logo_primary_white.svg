@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 110" role="img" aria-label="Geoperf (inversé)">
+  <title>Geoperf — logo principal sur fond navy</title>
+  <desc>Wordmark "geoperf" cream sur fond navy avec point amber bullseye dans le O.</desc>
+  <g>
+    <text x="20" y="22" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="500" fill="#EF9F27" letter-spacing="2.4">G E N E R A T I V E   E N G I N E   O P T I M I Z A T I O N   P E R F O R M A N C E</text>
+    <text x="20" y="74" font-family="'Source Serif Pro', 'Times New Roman', Georgia, serif" font-size="56" font-weight="500" fill="#F1EFE8" letter-spacing="-1.4">geoperf</text>
+    <circle cx="92" cy="58" r="6" fill="#EF9F27"/>
+    <line x1="20" y1="92" x2="200" y2="92" stroke="#F1EFE8" stroke-width="0.8" opacity="0.6"/>
+  </g>
+</svg>

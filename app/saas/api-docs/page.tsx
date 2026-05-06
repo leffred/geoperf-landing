@@ -94,6 +94,7 @@ export default function ApiDocsPage() {
   return (
     <main className="min-h-screen flex flex-col bg-white">
       <Header
+        logo="monitoring"
         rightSlot={
           <div className="flex items-center gap-4 text-sm">
             <Link href="/saas" className="font-mono text-xs text-ink-muted hover:text-ink transition-colors">

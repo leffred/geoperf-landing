@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
+import { editorial } from "@/lib/design-tokens";
 
 const TYPE_TIER_GATE: Record<string, ReadonlySet<string>> = {
   slack:          new Set(["growth", "pro", "agency"]),
@@ -112,7 +113,7 @@ export async function testIntegration(formData: FormData) {
   if (t === "slack") {
     payload = {
       attachments: [{
-        color: "#0C447C",
+        color: editorial.navyLight,
         blocks: [
           { type: "header", text: { type: "plain_text", text: "🧪 Test webhook Geoperf", emoji: true } },
           { type: "section", text: { type: "mrkdwn", text: `Si tu vois ce message, l'intégration *${(integ as any).name}* fonctionne.` } },
@@ -124,7 +125,7 @@ export async function testIntegration(formData: FormData) {
     payload = {
       "@type": "MessageCard",
       "@context": "https://schema.org/extensions",
-      themeColor: "0C447C",
+      themeColor: editorial.navyLight.replace("#", ""),
       summary: "Geoperf · Test",
       title: "🧪 Test webhook Geoperf",
       text: `Si tu vois ce message, l'intégration ${(integ as any).name} fonctionne. Envoyé par ${ctx.user.email}.`,
