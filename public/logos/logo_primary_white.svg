@@ -1,10 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 110" role="img" aria-label="Geoperf (inversé)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Geoperf (inversé)">
   <title>Geoperf — logo principal sur fond navy</title>
-  <desc>Wordmark "geoperf" cream sur fond navy avec point amber bullseye dans le O.</desc>
-  <g>
-    <text x="20" y="22" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="500" fill="#EF9F27" letter-spacing="2.4">G E N E R A T I V E   E N G I N E   O P T I M I Z A T I O N   P E R F O R M A N C E</text>
-    <text x="20" y="74" font-family="'Source Serif Pro', 'Times New Roman', Georgia, serif" font-size="56" font-weight="500" fill="#F1EFE8" letter-spacing="-1.4">geoperf</text>
-    <circle cx="92" cy="58" r="6" fill="#EF9F27"/>
-    <line x1="20" y1="92" x2="200" y2="92" stroke="#F1EFE8" stroke-width="0.8" opacity="0.6"/>
+  <desc>Wordmark "geoperf" cream + sparkline cream pour fond navy.</desc>
+  <g stroke="#F1EFE8" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="320" y1="160" x2="380" y2="120"/>
+    <line x1="380" y1="120" x2="440" y2="150"/>
+    <line x1="440" y1="150" x2="500" y2="100"/>
   </g>
+  <circle cx="320" cy="160" r="9" fill="#F1EFE8"/>
+  <circle cx="380" cy="120" r="9" fill="#F1EFE8"/>
+  <circle cx="440" cy="150" r="9" fill="#F1EFE8"/>
+  <circle cx="500" cy="100" r="9" fill="#EF9F27"/>
+  <text x="300" y="270" font-family="'Inter', system-ui, sans-serif" font-size="120" font-weight="800" fill="#F1EFE8" letter-spacing="-3" text-anchor="middle">geoperf</text>
 </svg>

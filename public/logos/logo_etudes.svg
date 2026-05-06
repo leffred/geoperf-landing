@@ -1,8 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 200" role="img" aria-label="Geoperf — Études">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Geoperf — Études">
   <title>Geoperf — Études sectorielles</title>
-  <desc>Logo principal + baseline contextuelle "ÉTUDES" en amber.</desc>
-  <text x="240" y="100" font-family="'Source Serif Pro', 'Times New Roman', Georgia, serif" font-size="76" font-weight="500" fill="#042C53" letter-spacing="-1.8" text-anchor="middle">geoperf</text>
-  <circle cx="212" cy="80" r="8" fill="#EF9F27"/>
-  <line x1="180" y1="128" x2="300" y2="128" stroke="#EF9F27" stroke-width="2"/>
-  <text x="240" y="160" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="500" fill="#EF9F27" letter-spacing="3.2" text-anchor="middle">É T U D E S</text>
+  <desc>Master + baseline "Études" en amber sous le wordmark.</desc>
+  <g stroke="#042C53" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="320" y1="160" x2="380" y2="120"/>
+    <line x1="380" y1="120" x2="440" y2="150"/>
+    <line x1="440" y1="150" x2="500" y2="100"/>
+  </g>
+  <circle cx="320" cy="160" r="9" fill="#042C53"/>
+  <circle cx="380" cy="120" r="9" fill="#042C53"/>
+  <circle cx="440" cy="150" r="9" fill="#042C53"/>
+  <circle cx="500" cy="100" r="9" fill="#042C53"/>
+  <text x="300" y="270" font-family="'Inter', system-ui, sans-serif" font-size="120" font-weight="800" fill="#042C53" letter-spacing="-3" text-anchor="middle">geoperf</text>
+  <text x="300" y="330" font-family="'Inter', system-ui, sans-serif" font-size="32" font-weight="500" fill="#EF9F27" text-anchor="middle">Études</text>
 </svg>
