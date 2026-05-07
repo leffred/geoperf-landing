@@ -112,7 +112,7 @@ export default async function BillingPage({ searchParams }: Props) {
 
       {sp.success === "true" && (
         <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-success bg-emerald-50 px-4 py-3 text-sm text-success">
-          Paiement reçu. Ton plan se met à jour dans quelques secondes (synchro Stripe → Supabase via webhook).
+          Paiement validé. Votre plan sera actif d&apos;ici quelques instants.
         </div>
       )}
       {sp.canceled === "true" && (
@@ -270,8 +270,7 @@ export default async function BillingPage({ searchParams }: Props) {
       <p className="text-xs text-ink-subtle mt-6">
         Prix HT, TVA française 20% calculée automatiquement par Stripe (autoliquidation pour clients UE assujettis).
         Annuel = équivalent à 9 mois facturés (3 mois offerts vs mensuel).
-        Trial Pro = 14 jours sans CB requise. Carte test :{" "}
-        <code className="font-mono">4242 4242 4242 4242</code> · 12/34 · 123.
+        Trial Pro = 14 jours sans CB requise.
       </p>
     </Section>
   );
