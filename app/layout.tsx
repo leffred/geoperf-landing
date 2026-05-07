@@ -1,11 +1,9 @@
-// S28 — Root layout : delegue `lang` a getLocale() de next-intl (server-side).
-// Pour les pages sous /admin et /app (hors [locale]), getLocale() retourne defaultLocale='fr'.
-// Pour les pages sous app/[locale]/, le middleware + setRequestLocale dans [locale]/layout.tsx
-// remontent la locale courante, donc <html lang={locale}> sera correct.
+// S28 hotfix — Root layout : lang fixe a 'fr' pour les routes hors [locale] (admin/app/login/signup).
+// Pour les pages sous app/[locale]/, leur propre layout surcharge avec la locale courante via NextIntlClientProvider.
+// On evite getLocale() ici car il crash sur les routes que le intl middleware ne traite pas (admin/*, app/*).
 
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { getLocale } from "next-intl/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,14 +19,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await getLocale();
   return (
-    <html lang={locale}>
+    <html lang="fr">
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&family=Source+Serif+Pro:wght@400;500;600&display=swap"
