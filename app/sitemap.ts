@@ -1,26 +1,73 @@
 import type { MetadataRoute } from "next";
 import { getServiceClient } from "@/lib/supabase";
+import { routing } from "@/i18n/routing";
+
+// S28 — sitemap multi-locale. Chaque route publique apparait 2× (FR + EN)
+// avec hreflang alternates pour que Google sache que les versions sont equivalentes.
+// localePrefix='as-needed' : la version FR est servie sans prefixe (canonical),
+// la version EN est sous /en/...
+
+const STATIC_ROUTES: Array<{
+  path: string;
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  priority: number;
+}> = [
+  { path: "", changeFrequency: "weekly", priority: 1 },
+  { path: "/sample", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/etude-sectorielle", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/about", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/contact", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/saas", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/saas/vs-getmint", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/saas/faq", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/leaderboard", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
+];
+
+function buildLocalizedEntries(
+  base: string,
+  path: string,
+  lastModified: Date,
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"],
+  priority: number,
+): MetadataRoute.Sitemap {
+  // FR (default) sans prefixe + EN avec /en
+  const frUrl = `${base}${path}`;
+  const enUrl = `${base}/en${path}`;
+  const languages: Record<string, string> = {
+    fr: frUrl,
+    en: enUrl,
+    "x-default": frUrl,
+  };
+  return [
+    {
+      url: frUrl,
+      lastModified,
+      changeFrequency,
+      priority,
+      alternates: { languages },
+    },
+    {
+      url: enUrl,
+      lastModified,
+      changeFrequency,
+      priority: priority * 0.95, // legere preference Google pour la canonical FR
+      alternates: { languages },
+    },
+  ];
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://geoperf.com";
   const now = new Date();
 
-  const staticEntries: MetadataRoute.Sitemap = [
-    { url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/sample`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/etude-sectorielle`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/saas`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/saas/vs-getmint`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/saas/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/leaderboard`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-  ];
+  const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.flatMap((r) =>
+    buildLocalizedEntries(base, r.path, now, r.changeFrequency, r.priority),
+  );
 
   // S17 §4.5 : leaderboard sectoriel — une entry par catégorie qui a un report ready.
-  let leaderboardEntries: MetadataRoute.Sitemap = [];
+  const leaderboardEntries: MetadataRoute.Sitemap = [];
   try {
     const sb = getServiceClient();
     const { data: reports } = await sb
@@ -29,29 +76,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq("status", "ready")
       .not("categories.parent_id", "is", null);
     const bySlug = new Map<string, string>();
-    for (const r of (reports || []) as any[]) {
+    for (const r of (reports || []) as Array<{
+      categories?: { slug?: string };
+      completed_at?: string | null;
+      created_at?: string | null;
+    }>) {
       const slug = r.categories?.slug;
       if (!slug) continue;
       const lastMod = r.completed_at ?? r.created_at;
-      // Garde la plus récente par slug
       if (!bySlug.has(slug) || (lastMod && lastMod > (bySlug.get(slug) ?? ""))) {
         bySlug.set(slug, lastMod ?? now.toISOString());
       }
     }
     for (const [slug, lastMod] of bySlug.entries()) {
-      leaderboardEntries.push({
-        url: `${base}/leaderboard/${slug}`,
-        lastModified: new Date(lastMod),
-        changeFrequency: "monthly",
-        priority: 0.7,
-      });
+      leaderboardEntries.push(
+        ...buildLocalizedEntries(
+          base,
+          `/leaderboard/${slug}`,
+          new Date(lastMod),
+          "monthly",
+          0.7,
+        ),
+      );
     }
   } catch {
-    // Si DB injoignable au build, on saute ces entries — sitemap reste valide.
+    // DB injoignable au build → skip
   }
 
-  // Generative SEO: one /profile/[domain] per company that has at least one ready report.
-  let profileEntries: MetadataRoute.Sitemap = [];
+  // Generative SEO: /profile/[domain] — 1 entry par company qui a un report ready.
+  // Profiles ne sont pas localises (data brut FR uniquement pour l'instant) —
+  // on emet uniquement la version FR canonique.
+  const profileEntries: MetadataRoute.Sitemap = [];
   try {
     const sb = getServiceClient();
     const { data } = await sb
@@ -59,16 +114,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select("companies(domain), reports!inner(status)")
       .eq("reports.status", "ready");
     const seen = new Set<string>();
-    for (const row of (data || []) as any[]) {
+    for (const row of (data || []) as Array<{
+      companies?: { domain?: string };
+    }>) {
       const d = row.companies?.domain?.toLowerCase();
       if (d && !seen.has(d)) {
         seen.add(d);
-        profileEntries.push({ url: `${base}/profile/${d}`, lastModified: now, changeFrequency: "monthly", priority: 0.5 });
+        profileEntries.push({
+          url: `${base}/profile/${d}`,
+          lastModified: now,
+          changeFrequency: "monthly",
+          priority: 0.5,
+        });
       }
     }
   } catch {
-    // If DB is unreachable at build time, skip profile entries — sitemap still valid.
+    // skip
   }
 
   return [...staticEntries, ...leaderboardEntries, ...profileEntries];
 }
+
+// Export pour reference (ESLint friendly + tests futurs)
+export { routing };

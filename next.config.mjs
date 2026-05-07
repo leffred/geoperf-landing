@@ -1,4 +1,8 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// S28 — i18n FR/EN : resout i18n/request.ts comme config server-side de next-intl.
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -23,7 +27,7 @@ const nextConfig = {
 // S17 §4.8 : Sentry wrap pour error tracking + source maps upload (production).
 // Si SENTRY_DSN / SENTRY_AUTH_TOKEN absents (dev local), Sentry skip silently
 // les uploads et l'init runtime no-op — pas d'erreur de build.
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,

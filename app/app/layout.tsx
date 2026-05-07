@@ -8,7 +8,7 @@ import { TierBadge } from "@/components/saas/TierBadge";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { isDemoMode } from "@/lib/demo-mode";
-import { logout } from "../login/actions";
+import { logout } from "../[locale]/login/actions";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const ctx = await loadSaasContext();
@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <main className="min-h-screen flex flex-col bg-white">
       {demo && <DemoBanner />}
-      <Header logo="monitoring" rightSlot={right} />
+      <Header logo="monitoring" rightSlot={right} showLanguageSwitcher={false} />
 
       <nav className="bg-white border-b border-DEFAULT px-6 md:px-8 sticky top-14 z-30 backdrop-blur-md bg-white/85">
         <div className="max-w-6xl mx-auto flex gap-1 overflow-x-auto">
