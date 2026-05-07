@@ -103,6 +103,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB injoignable au build → skip
   }
 
+  // S29 — Placeholders pour les 4 nouvelles surfaces SEO/GEO.
+  // Vides en Session 1, peuples en Sessions 2-4 :
+  //   /guide/[slug]      ← 10 pillars
+  //   /insights/[slug]   ← 50 clusters
+  //   /secteur/[slug]    ← 130 programmatic
+  //   /blog/[slug]       ← 20 blog posts
+  // Priority cible : pillar 0.9, cluster 0.7, programmatic 0.6, blog 0.7
+  const PILLAR_SLUGS: string[] = [];      // ← Session 2 : 10 entries
+  const CLUSTER_SLUGS: string[] = [];     // ← Session 2-3 : 50 entries
+  const PROGRAMMATIC_SLUGS: string[] = []; // ← Session 3 : 130 entries
+  const BLOG_SLUGS: string[] = [];        // ← Session 4 : 20 entries
+
+  const seoEntries: MetadataRoute.Sitemap = [
+    ...PILLAR_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/guide/${s}`, now, "monthly", 0.9)),
+    ...CLUSTER_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/insights/${s}`, now, "monthly", 0.7)),
+    ...PROGRAMMATIC_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/secteur/${s}`, now, "monthly", 0.6)),
+    ...BLOG_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/blog/${s}`, now, "monthly", 0.7)),
+  ];
+
   // Generative SEO: /profile/[domain] — 1 entry par company qui a un report ready.
   // Profiles ne sont pas localises (data brut FR uniquement pour l'instant) —
   // on emet uniquement la version FR canonique.
@@ -132,7 +151,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // skip
   }
 
-  return [...staticEntries, ...leaderboardEntries, ...profileEntries];
+  return [...staticEntries, ...leaderboardEntries, ...seoEntries, ...profileEntries];
 }
 
 // Export pour reference (ESLint friendly + tests futurs)

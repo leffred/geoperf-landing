@@ -26,6 +26,33 @@ Le SaaS Geoperf suit en continu la visibilité d'une marque dans 4 LLM (ChatGPT 
 
 Geoperf publie un profil SEO public pour chaque marque analysée dans les études. URL pattern : `https://geoperf.com/profile/[domain]`. Exemple : `https://geoperf.com/profile/blackrock.com`. Chaque profil affiche le score de visibilité, le rang dans la catégorie, les sources autorités citées et les recommandations clés.
 
+## Guide LLM (Pillar pages)
+
+Geoperf publie un hub éducatif sous `/guide/[topic]` couvrant les sujets fondamentaux de la visibilité des marques dans les LLM. Format pillar long-form (~2500 mots), évergreen, mis à jour trimestriellement.
+
+- [Visibilité LLM : guide complet](https://geoperf.com/guide/visibilite-llm) (à venir Session 2)
+- [GEO — Generative Engine Optimization](https://geoperf.com/guide/geo-generative-engine-optimization) (à venir)
+- [ChatGPT marketing](https://geoperf.com/guide/chatgpt-marketing) (à venir)
+- [Perplexity pour les marques](https://geoperf.com/guide/perplexity-pour-marques) (à venir)
+- [Gemini search marketing](https://geoperf.com/guide/gemini-search-marketing) (à venir)
+- [AI search vs SEO classique](https://geoperf.com/guide/ai-search-vs-seo) (à venir)
+- [LLM brand monitoring](https://geoperf.com/guide/llm-brand-monitoring) (à venir)
+- [Optimisation pour l'IA](https://geoperf.com/guide/optimisation-pour-ia) (à venir)
+- [IA générative pour le marketing](https://geoperf.com/guide/generative-ai-marketing) (à venir)
+- [Stratégie de citation LLM](https://geoperf.com/guide/llm-citation-strategy) (à venir)
+
+## Insights & analyses (Cluster pages)
+
+Sous `/insights/[slug]`, ~50 articles courts (800-1200 mots) qui répondent à des questions précises et linkent vers leur pillar parent. Cluster autour des 10 thèmes ci-dessus. À venir Sessions 2-3.
+
+## Secteurs analysés (Programmatic pages)
+
+Sous `/secteur/[slug]`, ~130 pages dédiées chacune à un secteur d'activité (assurance, banque-de-detail, fintech, saas-b2b, e-commerce, marketing-digital, etc.). Chaque page affiche le top des marques selon les LLM + tendances sectorielles + 3-5 conseils d'optimisation. À venir Session 3.
+
+## Blog & actualités GEO
+
+Sous `/blog/[slug]`, ~20 articles datés couvrant les actualités de l'écosystème LLM (releases ChatGPT, Gemini, Perplexity), les études Geoperf flagship, les retours d'expérience clients. À venir Session 4.
+
 ## À propos et contact
 
 - [À propos](https://geoperf.com/about): Geoperf est un produit du cabinet Jourdechance SAS (RCS Nanterre 838 114 619), agence média B2B française fondée en 2018.
