@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/ui/Header";
-import { Footer } from "@/components/ui/Footer";
+import { Header } from "@/components/ui/HeaderStatic";
+import { Footer } from "@/components/ui/FooterStatic";
 import { Section } from "@/components/ui/Section";
 import { getServiceClient } from "@/lib/supabase";
 import { getAdminUser } from "@/lib/supabase-server-auth";

@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Header } from "@/components/ui/Header";
-import { Footer } from "@/components/ui/Footer";
+import { Header } from "@/components/ui/HeaderStatic";
+import { Footer } from "@/components/ui/FooterStatic";
 import { TierBadge } from "@/components/saas/TierBadge";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { loadSaasContext } from "@/lib/saas-auth";

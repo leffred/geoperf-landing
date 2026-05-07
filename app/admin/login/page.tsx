@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Header } from "@/components/ui/Header";
-import { Footer } from "@/components/ui/Footer";
+import { Header } from "@/components/ui/HeaderStatic";
+import { Footer } from "@/components/ui/FooterStatic";
 import { Section } from "@/components/ui/Section";
 import { login } from "./actions";
 
