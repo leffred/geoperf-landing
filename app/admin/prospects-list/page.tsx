@@ -13,6 +13,7 @@ import { getAdminUser } from "@/lib/supabase-server-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { logout } from "../login/actions";
 import { ProspectsTable } from "./ProspectsTable";
+import { Combobox } from "@/components/ui/Combobox";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -157,17 +158,16 @@ export default async function ProspectsListPage({ searchParams }: { searchParams
 
           <div>
             <label className={FIELD_LABEL}>Sous-catégorie</label>
-            <select name="category" defaultValue={category ?? ""} className={FIELD_INPUT}>
-              <option value="">Toutes</option>
-              {subCats.map(c => {
-                const parent = parentCats.find(p => p.id === c.parent_id);
-                return (
-                  <option key={c.id} value={c.slug}>
-                    {parent?.nom ? `${parent.nom} — ` : ""}{c.nom}
-                  </option>
-                );
-              })}
-            </select>
+            <Combobox
+              name="category"
+              options={subCats.map(c => ({
+                value: c.slug,
+                label: c.nom,
+                group: parentCats.find(p => p.id === c.parent_id)?.nom,
+              }))}
+              placeholder="Toutes (ou recherche...)"
+              defaultValue={category ?? undefined}
+            />
           </div>
 
           <div>

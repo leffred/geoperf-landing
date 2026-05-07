@@ -11,6 +11,7 @@ import { getAdminUser } from "@/lib/supabase-server-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { logout } from "../../login/actions";
 import { launchExtraction, regenerateSynthesis } from "./actions";
+import { Combobox } from "@/components/ui/Combobox";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -164,17 +165,16 @@ export default async function ReportsAdminPage({ searchParams }: { searchParams:
           <form action={launchExtraction} className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-2">
               <label className={FIELD_LABEL}>Sous-catégorie</label>
-              <select name="category_slug" required className={FIELD_INPUT}>
-                <option value="">Sélectionner…</option>
-                {subCats.map(c => {
-                  const parent = parentCats.find(p => p.id === c.parent_id);
-                  return (
-                    <option key={c.id} value={c.slug}>
-                      {parent?.nom ? `${parent.nom} — ` : ""}{c.nom} ({c.slug})
-                    </option>
-                  );
-                })}
-              </select>
+              <Combobox
+                name="category_slug"
+                options={subCats.map(c => ({
+                  value: c.slug,
+                  label: c.nom,
+                  group: parentCats.find(p => p.id === c.parent_id)?.nom,
+                }))}
+                placeholder="Rechercher un secteur (ex: software, banking)..."
+                required
+              />
             </div>
             <div>
               <label className={FIELD_LABEL}>Top N</label>

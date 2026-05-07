@@ -1,10 +1,11 @@
 "use client";
 
-// S19 §4.1.a — Form 3 champs avec dropdown cascading.
-// Server preload toutes les categories + map availabilite report par sous_cat,
-// le client filtre au change sans round-trip DB.
+// S27 — Form lead-magnet avec Combobox autocomplete (sous-cat parmi 147 industries Apollo).
+// Plus de cascading dropdown parent → sous-cat : un seul Combobox qui filtre tout,
+// avec les industries groupees par macro-categorie (parent) dans la liste deroulante.
 
 import { useMemo, useState } from "react";
+import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { requestStudy } from "./actions";
 
 export type ParentCat = { id: string; slug: string; nom: string };
@@ -27,29 +28,34 @@ export function StudyForm({
   initialError?: string;
   initialSousCat?: string;
 }) {
-  const [parentId, setParentId] = useState<string>("");
   const [sousCatSlug, setSousCatSlug] = useState<string>(initialSousCat ?? "");
   const [submitting, setSubmitting] = useState(false);
 
-  const filteredSousCats = useMemo(
-    () => (parentId ? sousCats.filter((s) => s.parent_id === parentId) : []),
-    [parentId, sousCats]
-  );
+  // Construction des options Combobox : label = nom de la sous-cat, group = nom du parent
+  const parentMap = useMemo(() => {
+    const m = new Map<string, string>();
+    parents.forEach(p => m.set(p.id, p.nom));
+    return m;
+  }, [parents]);
 
-  // Si l'URL nous a donné une sous-cat initiale, on resolve son parent automatiquement
-  if (!parentId && initialSousCat) {
-    const found = sousCats.find((s) => s.slug === initialSousCat);
-    if (found) {
-      // setState dans le render = anti-pattern; on l'évite en mode controlled-uncontrolled.
-      // Pas critique : l'utilisateur peut re-sélectionner.
-    }
-  }
+  const options = useMemo<ComboboxOption[]>(() => {
+    return sousCats.map(s => ({
+      value: s.slug,
+      label: s.has_report ? s.nom : `${s.nom} (à venir)`,
+      group: parentMap.get(s.parent_id) ?? "Autre",
+    }));
+  }, [sousCats, parentMap]);
+
+  const selectedSousCat = useMemo(
+    () => sousCats.find(s => s.slug === sousCatSlug),
+    [sousCatSlug, sousCats]
+  );
 
   const errorMsg =
     initialError === "email_invalid"
       ? "Adresse email invalide. Vérifiez le format."
       : initialError === "missing_sous_cat"
-      ? "Sélectionnez une sous-catégorie."
+      ? "Sélectionnez un secteur."
       : null;
 
   return (
@@ -69,63 +75,25 @@ export function StudyForm({
         </div>
       )}
 
-      {/* Catégorie parent */}
-      <div>
-        <label
-          htmlFor="parent_id"
-          className="block font-mono text-xs uppercase tracking-eyebrow text-ink-muted mb-2"
-        >
-          Catégorie
-        </label>
-        <select
-          id="parent_id"
-          name="parent_id"
-          required
-          value={parentId}
-          onChange={(e) => {
-            setParentId(e.target.value);
-            setSousCatSlug("");
-          }}
-          className="w-full border border-DEFAULT rounded-md px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-        >
-          <option value="">Sélectionnez une catégorie…</option>
-          {parents.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nom}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Sous-catégorie cascadée */}
+      {/* Combobox autocomplete sur 147 industries */}
       <div>
         <label
           htmlFor="sous_categorie_slug"
           className="block font-mono text-xs uppercase tracking-eyebrow text-ink-muted mb-2"
         >
-          Sous-catégorie
+          Secteur d&apos;activité
         </label>
-        <select
-          id="sous_categorie_slug"
+        <Combobox
           name="sous_categorie_slug"
+          options={options}
+          placeholder="Tapez votre secteur (ex: software, banking, marketing...)"
+          defaultValue={initialSousCat}
           required
-          value={sousCatSlug}
-          onChange={(e) => setSousCatSlug(e.target.value)}
-          disabled={!parentId}
-          className="w-full border border-DEFAULT rounded-md px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-surface disabled:text-ink-subtle"
-        >
-          <option value="">
-            {parentId ? "Sélectionnez une sous-catégorie…" : "Choisissez d'abord une catégorie"}
-          </option>
-          {filteredSousCats.map((s) => (
-            <option key={s.id} value={s.slug}>
-              {s.nom} {s.has_report ? "— rapport disponible" : "— à venir"}
-            </option>
-          ))}
-        </select>
-        {sousCatSlug && (
+          onChange={setSousCatSlug}
+        />
+        {selectedSousCat && (
           <p className="mt-2 text-xs text-ink-muted">
-            {filteredSousCats.find((s) => s.slug === sousCatSlug)?.has_report
+            {selectedSousCat.has_report
               ? "Vous recevrez le PDF par email immédiatement."
               : "Cette étude n'est pas encore publiée. Nous lancerons sa génération à votre demande (24-48h)."}
           </p>
