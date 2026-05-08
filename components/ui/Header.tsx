@@ -67,25 +67,29 @@ export async function Header({
             className="h-8 w-auto md:h-10"
           />
         </Link>
-        <div className="flex items-center gap-4">
-          {showLanguageSwitcher && <LanguageSwitcher variant={variant} />}
-          {rightSlot ? (
-            <div className={`text-sm ${text}`}>{rightSlot}</div>
-          ) : (
-            <nav className="hidden md:flex items-center gap-6 text-sm">
-              {NAV.map((n) => (
-                <Link key={n.href} href={n.href} className={`${navMuted} transition-colors`}>
-                  {n.label}
-                </Link>
-              ))}
+        <div className="flex items-center gap-6">
+          {/* NAV principal (toujours visible sur desktop, FR-EN i18n) */}
+          <nav className="hidden md:flex items-center gap-5 text-sm">
+            {NAV.map((n) => (
+              <Link key={n.href} href={n.href} className={`${navMuted} transition-colors`}>
+                {n.label}
+              </Link>
+            ))}
+          </nav>
+          {/* Right slot : CTAs login/signup, ou bouton "Demander une étude" par défaut */}
+          <div className="flex items-center gap-4">
+            {showLanguageSwitcher && <LanguageSwitcher variant={variant} />}
+            {rightSlot ? (
+              <div className={`text-sm ${text}`}>{rightSlot}</div>
+            ) : (
               <Link
                 href="/contact"
                 className="bg-ink text-white text-sm font-medium px-3.5 py-2 rounded-md hover:bg-ink/90 transition-colors"
               >
                 {t("demanderEtude")}
               </Link>
-            </nav>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </header>
