@@ -5,6 +5,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { TierBadge } from "@/components/saas/TierBadge";
 import { loadSaasContext, tierLabel, TIER_LIMITS, type SaasTier } from "@/lib/saas-auth";
+import { isDemoMode } from "@/lib/demo-mode";
 import { priceDisplay, TIERS as PRICING_TIERS, fmtHT, type TierKey } from "@/lib/saas-pricing";
 import { startCheckout, openCustomerPortal } from "./actions";
 
@@ -63,6 +64,7 @@ type Props = { searchParams: Promise<{ error?: string; success?: string; cancele
 export default async function BillingPage({ searchParams }: Props) {
   const sp = await searchParams;
   const ctx = await loadSaasContext();
+  const demo = await isDemoMode();
   const errorMsg = sp.error ? ERROR_LABELS[sp.error] || "Erreur." : null;
   const limits = ctx.limits;
   const cycle: "monthly" | "annual" = sp.cycle === "annual" ? "annual" : "monthly";
@@ -126,13 +128,19 @@ export default async function BillingPage({ searchParams }: Props) {
         </div>
       )}
 
-      {ctx.is_owner && ctx.subscription?.stripe_subscription_id && (
+      {ctx.is_owner && ctx.subscription?.stripe_subscription_id && !demo && (
         <form action={openCustomerPortal} className="mb-10">
           <Button type="submit" variant="primary" size="md">Gérer mon abonnement (Stripe)</Button>
           <span className="ml-3 text-xs text-ink-muted">
             Cancel, upgrade, downgrade, factures — tout depuis le portail Stripe.
           </span>
         </form>
+      )}
+
+      {demo && (
+        <div className="mb-10 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 text-sm text-brand-600">
+          <strong>Mode démo</strong> · Le compte démo est en plan <strong>Pro</strong> permanent. Toutes les fonctionnalités sont débloquées en lecture seule. Pour utiliser Geoperf sur ta marque, <a href="/signup" className="underline hover:text-brand-700">crée ton compte gratuit</a>.
+        </div>
       )}
 
       {!ctx.is_owner && (
@@ -231,7 +239,7 @@ export default async function BillingPage({ searchParams }: Props) {
                   </li>
                 ))}
               </ul>
-              {ctx.is_owner && !isCurrent && !isFreeTier && (
+              {ctx.is_owner && !isCurrent && !isFreeTier && !demo && (
                 <div className="space-y-2">
                   <form action={startCheckout}>
                     <input type="hidden" name="tier" value={t} />
@@ -255,7 +263,7 @@ export default async function BillingPage({ searchParams }: Props) {
                   )}
                 </div>
               )}
-              {ctx.is_owner && !isCurrent && isFreeTier && ctx.subscription?.stripe_subscription_id && (
+              {ctx.is_owner && !isCurrent && isFreeTier && ctx.subscription?.stripe_subscription_id && !demo && (
                 <form action={openCustomerPortal}>
                   <Button type="submit" variant="secondary" size="sm" className="w-full">
                     Downgrade (via Stripe)

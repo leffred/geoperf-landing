@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/saas/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { SentimentDonut } from "@/components/saas/SentimentDonut";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
+import { isDemoMode } from "@/lib/demo-mode";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand } from "../actions";
 
@@ -54,6 +55,7 @@ function PageHeader({ id, brandName, subtitle }: { id: string; brandName: string
 export default async function SentimentPage({ params }: Props) {
   const { id } = await params;
   const ctx = await loadSaasContext();
+  const demo = await isDemoMode();
   const sb = getServiceClient();
 
   const { data: brand } = await sb.from("saas_tracked_brands").select("id, user_id, name, domain").eq("id", id).maybeSingle();
@@ -98,7 +100,7 @@ export default async function SentimentPage({ params }: Props) {
             : "Lance un snapshot pour cette marque. L'analyse sentiment se déclenche automatiquement post-snapshot pour les plans Growth+."}
           secondaryLabel="Retour à la marque"
           secondaryHref={`/app/brands/${id}`}
-          actionSlot={!pending && ctx.is_owner ? (
+          actionSlot={!pending && ctx.is_owner && !demo ? (
             <form action={refreshBrand}>
               <input type="hidden" name="brand_id" value={id} />
               <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>

@@ -20,6 +20,7 @@ import { Top10CitedUrls, type CitedUrlRow } from "@/components/saas/Top10CitedUr
 import { PeriodToggle } from "@/components/saas/PeriodToggle";
 import { periodToDays } from "@/lib/period";
 import { loadSaasContext, relativeVisibility } from "@/lib/saas-auth";
+import { isDemoMode } from "@/lib/demo-mode";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand, markAlertsRead } from "./actions";
 
@@ -55,6 +56,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
   const periodCutoff = new Date(Date.now() - period.days * 86400000).toISOString();
   const ctx = await loadSaasContext();
   const user = ctx.user;
+  const demo = await isDemoMode();
   const sb = getServiceClient();
   const matrixUnlocked = ctx.tier === "pro" || ctx.tier === "agency";
 
@@ -191,10 +193,12 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
             {brand.cadence === "weekly" ? "Hebdo" : "Mensuel"}
           </p>
         </div>
-        <form action={refreshBrand}>
-          <input type="hidden" name="brand_id" value={id} />
-          <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
-        </form>
+        {!demo && (
+          <form action={refreshBrand}>
+            <input type="hidden" name="brand_id" value={id} />
+            <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
+          </form>
+        )}
       </div>
 
       {topicList.length > 0 && (

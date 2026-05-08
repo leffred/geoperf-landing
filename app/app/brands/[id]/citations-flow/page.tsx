@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { CitationsSankey } from "@/components/saas/CitationsSankey";
 import { TopicSelector } from "@/components/saas/TopicSelector";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
+import { isDemoMode } from "@/lib/demo-mode";
 import { getServiceClient } from "@/lib/supabase";
 import { refreshBrand } from "../actions";
 
@@ -38,6 +39,7 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
   const { id } = await params;
   const { topic: topicFilter } = await searchParams;
   const ctx = await loadSaasContext();
+  const demo = await isDemoMode();
   const sb = getServiceClient();
 
   const { data: brand } = await sb.from("saas_tracked_brands")
@@ -83,7 +85,7 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
           body="Lance un snapshot sur cette marque. La visualisation Sankey s'affichera ensuite avec les flux Prompt → LLM → Mention → Sources."
           secondaryLabel="Retour à la marque"
           secondaryHref={`/app/brands/${id}`}
-          actionSlot={ctx.is_owner ? (
+          actionSlot={ctx.is_owner && !demo ? (
             <form action={refreshBrand}>
               <input type="hidden" name="brand_id" value={id} />
               <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
