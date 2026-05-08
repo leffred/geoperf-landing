@@ -48,6 +48,7 @@ export async function Header({
   const logoSrc = onDark && logo === "master" ? "/logos/logo_primary_white.svg" : LOGO_PATHS[logo];
 
   const NAV: { label: string; href: string }[] = [
+    { label: t("guide"), href: "/guide/visibilite-llm" },
     { label: t("etudes"), href: "/etude-sectorielle" },
     { label: t("methodologie"), href: "/sample" },
     { label: t("tarifs"), href: "/saas" },

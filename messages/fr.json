@@ -21,7 +21,8 @@
     "demanderEtude": "Demander une étude",
     "faq": "FAQ",
     "vsGetmint": "vs GetMint",
-    "methodologie": "Méthodologie"
+    "methodologie": "Méthodologie",
+    "guide": "Guide"
   },
   "languageSwitcher": {
     "fr": "FR",
@@ -171,11 +172,26 @@
     "ctaFinalPrimary": "Créer mon compte",
     "ctaFinalSecondary": "Parler à un humain",
     "tiers": {
-      "free": { "name": "Free", "cta": "Créer un compte" },
-      "starter": { "name": "Starter", "cta": "Démarrer Starter" },
-      "growth": { "name": "Growth", "cta": "Passer Growth" },
-      "pro": { "name": "Pro", "cta": "Passer Pro" },
-      "agency": { "name": "Agency", "cta": "Déployer Agency" }
+      "free": {
+        "name": "Free",
+        "cta": "Créer un compte"
+      },
+      "starter": {
+        "name": "Starter",
+        "cta": "Démarrer Starter"
+      },
+      "growth": {
+        "name": "Growth",
+        "cta": "Passer Growth"
+      },
+      "pro": {
+        "name": "Pro",
+        "cta": "Passer Pro"
+      },
+      "agency": {
+        "name": "Agency",
+        "cta": "Déployer Agency"
+      }
     },
     "features": [
       {
@@ -372,12 +388,36 @@
     "topCalloutCta": "Recevoir le rapport complet (PDF, 12 pages)",
     "insideTitle": "Ce que contient l'étude complète",
     "sections": [
-      { "n": "01", "t": "Méthodologie inter-LLM", "d": "Comment les 4 LLM ont été interrogés. Reproductible par n'importe quelle équipe data." },
-      { "n": "02", "t": "Vue d'ensemble Asset Management 2026", "d": "Dynamiques de marché, géographie, enjeux ESG et passifs/actifs." },
-      { "n": "03", "t": "Pyramide de visibilité IA", "d": "Décomposition des 14 sociétés par niveau de consensus. Graphiques, biais identifiés." },
-      { "n": "04", "t": "Top 14 — analyses individuelles", "d": "Pour chaque société : positionnement IA, sources citées, score, country." },
-      { "n": "05", "t": "5 insights actionnables", "d": "Recommandations concrètes pour CMO et Head of Brand." },
-      { "n": "06", "t": "Glossaire & FAQ", "d": "GEO, score IA, méthodologie, sources." }
+      {
+        "n": "01",
+        "t": "Méthodologie inter-LLM",
+        "d": "Comment les 4 LLM ont été interrogés. Reproductible par n'importe quelle équipe data."
+      },
+      {
+        "n": "02",
+        "t": "Vue d'ensemble Asset Management 2026",
+        "d": "Dynamiques de marché, géographie, enjeux ESG et passifs/actifs."
+      },
+      {
+        "n": "03",
+        "t": "Pyramide de visibilité IA",
+        "d": "Décomposition des 14 sociétés par niveau de consensus. Graphiques, biais identifiés."
+      },
+      {
+        "n": "04",
+        "t": "Top 14 — analyses individuelles",
+        "d": "Pour chaque société : positionnement IA, sources citées, score, country."
+      },
+      {
+        "n": "05",
+        "t": "5 insights actionnables",
+        "d": "Recommandations concrètes pour CMO et Head of Brand."
+      },
+      {
+        "n": "06",
+        "t": "Glossaire & FAQ",
+        "d": "GEO, score IA, méthodologie, sources."
+      }
     ],
     "ctaFinalTitle": "Une étude par secteur. Une lecture par marque.",
     "ctaFinalSubtitle": "Quand vous demandez l'étude, nous vous générons une lecture personnalisée pour votre marque : votre rang précis, vos forces, les LLM où vous êtes invisible, et 3 actions concrètes.",
@@ -486,26 +526,106 @@
     "ctaFinalContact": "Page contact",
     "ctaFinalSignup": "Tester gratuitement",
     "items": [
-      { "cat": "understand", "q": "Qu'est-ce que Geoperf ?", "a": "Geoperf est un SaaS français de monitoring de visibilité dans les LLM (ChatGPT, Claude, Gemini, Perplexity). Vous suivez chaque semaine si votre marque est citée et à quel rang quand un prospect interroge un LLM sur votre secteur. Édité par Jourdechance SAS, hébergé Frankfurt (UE), facturé en EUR." },
-      { "cat": "understand", "q": "Qu'est-ce que le GEO et en quoi diffère-t-il du SEO ?", "a": "Le SEO (Search Engine Optimization) optimise votre rang sur les moteurs de recherche classiques (Google, Bing). Le GEO (Generative Engine Optimization) optimise votre visibilité dans les réponses générées par les LLM. Le SEO travaille les liens cliqués ; le GEO travaille les marques citées dans le texte de réponse. Les deux sont complémentaires, mais le GEO devient critique à mesure que les LLM remplacent une partie des requêtes Google sur le B2B." },
-      { "cat": "understand", "q": "Pourquoi monitorer ma visibilité dans les LLM ?", "a": "Parce que vos prospects B2B utilisent ChatGPT et Perplexity comme première source de recherche fournisseur (Gartner 2025 : 1 décideur sur 3 consulte un LLM durant son cycle d'évaluation). Si votre marque n'est pas citée, vous êtes invisible — et vous ne le savez pas, car aucun analytics traditionnel ne capture ce type de requête." },
-      { "cat": "understand", "q": "Quelle différence avec un audit GEO consulting ?", "a": "Geoperf SaaS est un outil de monitoring continu (vous voyez les chiffres). Un audit GEO de Jourdechance est une mission consulting humaine : nous analysons en profondeur votre écosystème média + recommandons un plan d'action sur 6-12 mois (relations presse autorités, contenu, partenariats Wikipédia, etc.). L'audit est inclus pour les clients Pro et Agency, ou disponible en standalone via /contact." },
-      { "cat": "understand", "q": "Qui utilise Geoperf en pratique ?", "a": "Notre cible : PME et ETI françaises de 50-500 employés, principalement B2B. Profils types : CMO d'agences digitales, Head of Marketing de scale-ups SaaS B2B, Directeur Communication d'ESN mid-market, Founder de fintech B2B. Si vous avez un budget marketing actif et une concurrence sur Google, vous avez probablement aussi une concurrence dans les LLM." },
-      { "cat": "product", "q": "Quels LLMs sont testés ?", "a": "Geoperf interroge en parallèle GPT-4o (OpenAI), Claude Sonnet 4.6 (Anthropic), Gemini 2.5 Pro (Google) et Perplexity Sonar Pro. Le plan Free se limite à GPT-4o pour maîtriser les coûts ; les plans Solo, Pro et Agency couvrent les 4 modèles. Les LLMs sont appelés via OpenRouter pour garantir la cohérence des outputs et des coûts." },
-      { "cat": "product", "q": "Combien de prompts par snapshot ?", "a": "30 prompts en français, répartis en 3 catégories : 10 prompts de recherche directe sectorielle, 10 prompts par cas d'usage, 10 prompts concurrentiels. Les templates sont publiés (saas/prompts/brand_monitoring/ sur GitHub) et personnalisés à partir de votre catégorie + 2-3 concurrents que vous renseignez." },
-      { "cat": "product", "q": "Combien de temps avant les premiers résultats ?", "a": "Le 1er snapshot tourne en environ 30 secondes après la création de la marque. Les recommandations générées par Claude Haiku arrivent automatiquement ~10 secondes plus tard. Vous voyez tout immédiatement dans votre dashboard. Les snapshots suivants sont planifiés selon la cadence de votre plan (mensuel pour Free, hebdo pour Solo+)." },
-      { "cat": "product", "q": "Comment Geoperf détecte-t-il les mentions ?", "a": "On parse les réponses LLM pour repérer (1) le nom officiel de votre marque, (2) le nom dérivé du domaine principal, (3) les classements numérotés pour calculer votre rang moyen, (4) les concurrents que vous avez configurés, (5) les URLs sources citées dans la réponse. La détection est insensible à la casse et word-boundary stricte (BNP Paribas est détecté, BNP n'est pas confondu avec BNP Real Estate)." },
-      { "cat": "product", "q": "Que sont les recommandations actionnables ?", "a": "Après chaque snapshot, Claude Haiku 4.5 analyse vos résultats agrégés (visibility score, concurrents top 8, sources autorité top 10) et vous propose 3 à 5 actions priorisées. Catégories : (a) authority_source — médias/analystes à cibler en relation presse, (b) content_gap — sujets sur lesquels publier, (c) competitor_threat — concurrents qui montent, (d) positioning — repositionnement éditorial. Chaque reco vient avec une priorité (high/medium/low) et un body de 2-4 phrases." },
-      { "cat": "product", "q": "Comment fonctionnent les alertes ?", "a": "À chaque nouveau snapshot, on compare avec le précédent et on déclenche des alertes si : rang moyen change de >2 positions (rank_drop/rank_gain), taux de citation varie de >20 points (citation_loss/citation_gain), un concurrent devient visible (>30% des prompts) pour la 1re fois (competitor_overtake), 3+ nouvelles sources autorité apparaissent (new_source). Les alertes sont envoyées par email aux plans Solo+ uniquement." },
-      { "cat": "product", "q": "Multi-langues ?", "a": "v1 supportait FR uniquement. Depuis S28, le site support FR + EN avec switch dans le Header. Les prompts génèrent des résultats dans la langue du marché cible. Pour des prompts custom anglais, contactez-nous." },
-      { "cat": "pricing", "q": "Quelle est la différence entre Free et Starter ?", "a": "Free : 1 marque, 1 LLM (GPT-4o), 30 prompts, snapshot mensuel, gratuit pour toujours, sans CB. Starter (79 €/mois) : 1 marque, 4 LLMs (GPT-4o, Claude Sonnet, Gemini Pro, Perplexity), 50 prompts, snapshot hebdomadaire, alertes email. Le Free permet de valider la valeur ; Starter ajoute la cadence hebdo et le multi-LLM nécessaires pour piloter en continu." },
-      { "cat": "pricing", "q": "Comment fonctionne le paiement ?", "a": "Stripe Subscription en EUR avec TVA UE auto-calculée. CB ou virement SEPA. Renouvellement mensuel automatique. Toutes les factures dans le portail Stripe (lien depuis /app/billing)." },
-      { "cat": "pricing", "q": "Annulation et remboursement ?", "a": "Annulation en 1 clic depuis le portail Stripe (bouton « Gérer mon abonnement » sur /app/billing). L'abonnement reste actif jusqu'à la fin de la période payée, puis bascule en Free automatiquement. Pas de remboursement pro-rata sur le mois en cours, mais aucun engagement de durée." },
-      { "cat": "pricing", "q": "Quelle est la marge LLM ?", "a": "Pour transparence : un snapshot Solo (4 LLM × 30 prompts = 120 calls) coûte ~5 € en frais OpenRouter cumulés. À 149 €/mois soit ~25 € de coûts mensuels (1 snapshot/semaine), la marge brute est de ~83 %. Cette marge baisse en Pro/Agency (multi-marques) mais reste >70 %. Aucune surfacturation cachée — vous êtes facturé au plan, pas aux calls." },
-      { "cat": "security", "q": "Quelles données sont stockées et où ?", "a": "Tout est hébergé sur Supabase Frankfurt (région EU). On stocke : votre profile (email, nom, société), vos marques, les snapshots et les réponses brutes des LLM (incluant les prompts). Aucune donnée personnelle de tiers n'est délibérément collectée. Les payloads OpenRouter contiennent des identifiants de modèle mais aucun token utilisateur. RLS Postgres garantit qu'aucun client ne voit les données d'un autre." },
-      { "cat": "security", "q": "Quels sous-traitants ?", "a": "Supabase (DB et auth, Frankfurt UE), Vercel (hébergement frontend, multi-région), OpenRouter (gateway LLM, US — flux de prompts uniquement), Stripe (paiement, IE), Resend (emails transactionnels, US — adresses + sujets uniquement). Liste complète et liens DPA dans /privacy." },
-      { "cat": "security", "q": "RGPD et confidentialité ?", "a": "Geoperf est édité par Jourdechance SAS (SIREN 838 114 619, RCS Nanterre). Conformité RGPD : données EU, contrat DPA disponible sur demande, droit à l'effacement implémenté (suppression compte = CASCADE sur toutes les tables). Aucun pixel publicitaire externe sur les pages /app/*. Politique de confidentialité complète sur /privacy." },
-      { "cat": "security", "q": "Mes prompts sont-ils utilisés pour entraîner des modèles ?", "a": "Non. OpenRouter ne réutilise pas les prompts pour entraîner ses propres modèles ; les fournisseurs sous-jacents (OpenAI, Anthropic, Google) opèrent en mode API commercial (pas d'opt-in training). Vos prompts restent stockés sur Supabase Frankfurt sous votre tenant uniquement." }
+      {
+        "cat": "understand",
+        "q": "Qu'est-ce que Geoperf ?",
+        "a": "Geoperf est un SaaS français de monitoring de visibilité dans les LLM (ChatGPT, Claude, Gemini, Perplexity). Vous suivez chaque semaine si votre marque est citée et à quel rang quand un prospect interroge un LLM sur votre secteur. Édité par Jourdechance SAS, hébergé Frankfurt (UE), facturé en EUR."
+      },
+      {
+        "cat": "understand",
+        "q": "Qu'est-ce que le GEO et en quoi diffère-t-il du SEO ?",
+        "a": "Le SEO (Search Engine Optimization) optimise votre rang sur les moteurs de recherche classiques (Google, Bing). Le GEO (Generative Engine Optimization) optimise votre visibilité dans les réponses générées par les LLM. Le SEO travaille les liens cliqués ; le GEO travaille les marques citées dans le texte de réponse. Les deux sont complémentaires, mais le GEO devient critique à mesure que les LLM remplacent une partie des requêtes Google sur le B2B."
+      },
+      {
+        "cat": "understand",
+        "q": "Pourquoi monitorer ma visibilité dans les LLM ?",
+        "a": "Parce que vos prospects B2B utilisent ChatGPT et Perplexity comme première source de recherche fournisseur (Gartner 2025 : 1 décideur sur 3 consulte un LLM durant son cycle d'évaluation). Si votre marque n'est pas citée, vous êtes invisible — et vous ne le savez pas, car aucun analytics traditionnel ne capture ce type de requête."
+      },
+      {
+        "cat": "understand",
+        "q": "Quelle différence avec un audit GEO consulting ?",
+        "a": "Geoperf SaaS est un outil de monitoring continu (vous voyez les chiffres). Un audit GEO de Jourdechance est une mission consulting humaine : nous analysons en profondeur votre écosystème média + recommandons un plan d'action sur 6-12 mois (relations presse autorités, contenu, partenariats Wikipédia, etc.). L'audit est inclus pour les clients Pro et Agency, ou disponible en standalone via /contact."
+      },
+      {
+        "cat": "understand",
+        "q": "Qui utilise Geoperf en pratique ?",
+        "a": "Notre cible : PME et ETI françaises de 50-500 employés, principalement B2B. Profils types : CMO d'agences digitales, Head of Marketing de scale-ups SaaS B2B, Directeur Communication d'ESN mid-market, Founder de fintech B2B. Si vous avez un budget marketing actif et une concurrence sur Google, vous avez probablement aussi une concurrence dans les LLM."
+      },
+      {
+        "cat": "product",
+        "q": "Quels LLMs sont testés ?",
+        "a": "Geoperf interroge en parallèle GPT-4o (OpenAI), Claude Sonnet 4.6 (Anthropic), Gemini 2.5 Pro (Google) et Perplexity Sonar Pro. Le plan Free se limite à GPT-4o pour maîtriser les coûts ; les plans Solo, Pro et Agency couvrent les 4 modèles. Les LLMs sont appelés via OpenRouter pour garantir la cohérence des outputs et des coûts."
+      },
+      {
+        "cat": "product",
+        "q": "Combien de prompts par snapshot ?",
+        "a": "30 prompts en français, répartis en 3 catégories : 10 prompts de recherche directe sectorielle, 10 prompts par cas d'usage, 10 prompts concurrentiels. Les templates sont publiés (saas/prompts/brand_monitoring/ sur GitHub) et personnalisés à partir de votre catégorie + 2-3 concurrents que vous renseignez."
+      },
+      {
+        "cat": "product",
+        "q": "Combien de temps avant les premiers résultats ?",
+        "a": "Le 1er snapshot tourne en environ 30 secondes après la création de la marque. Les recommandations générées par Claude Haiku arrivent automatiquement ~10 secondes plus tard. Vous voyez tout immédiatement dans votre dashboard. Les snapshots suivants sont planifiés selon la cadence de votre plan (mensuel pour Free, hebdo pour Solo+)."
+      },
+      {
+        "cat": "product",
+        "q": "Comment Geoperf détecte-t-il les mentions ?",
+        "a": "On parse les réponses LLM pour repérer (1) le nom officiel de votre marque, (2) le nom dérivé du domaine principal, (3) les classements numérotés pour calculer votre rang moyen, (4) les concurrents que vous avez configurés, (5) les URLs sources citées dans la réponse. La détection est insensible à la casse et word-boundary stricte (BNP Paribas est détecté, BNP n'est pas confondu avec BNP Real Estate)."
+      },
+      {
+        "cat": "product",
+        "q": "Que sont les recommandations actionnables ?",
+        "a": "Après chaque snapshot, Claude Haiku 4.5 analyse vos résultats agrégés (visibility score, concurrents top 8, sources autorité top 10) et vous propose 3 à 5 actions priorisées. Catégories : (a) authority_source — médias/analystes à cibler en relation presse, (b) content_gap — sujets sur lesquels publier, (c) competitor_threat — concurrents qui montent, (d) positioning — repositionnement éditorial. Chaque reco vient avec une priorité (high/medium/low) et un body de 2-4 phrases."
+      },
+      {
+        "cat": "product",
+        "q": "Comment fonctionnent les alertes ?",
+        "a": "À chaque nouveau snapshot, on compare avec le précédent et on déclenche des alertes si : rang moyen change de >2 positions (rank_drop/rank_gain), taux de citation varie de >20 points (citation_loss/citation_gain), un concurrent devient visible (>30% des prompts) pour la 1re fois (competitor_overtake), 3+ nouvelles sources autorité apparaissent (new_source). Les alertes sont envoyées par email aux plans Solo+ uniquement."
+      },
+      {
+        "cat": "product",
+        "q": "Multi-langues ?",
+        "a": "v1 supportait FR uniquement. Depuis S28, le site support FR + EN avec switch dans le Header. Les prompts génèrent des résultats dans la langue du marché cible. Pour des prompts custom anglais, contactez-nous."
+      },
+      {
+        "cat": "pricing",
+        "q": "Quelle est la différence entre Free et Starter ?",
+        "a": "Free : 1 marque, 1 LLM (GPT-4o), 30 prompts, snapshot mensuel, gratuit pour toujours, sans CB. Starter (79 €/mois) : 1 marque, 4 LLMs (GPT-4o, Claude Sonnet, Gemini Pro, Perplexity), 50 prompts, snapshot hebdomadaire, alertes email. Le Free permet de valider la valeur ; Starter ajoute la cadence hebdo et le multi-LLM nécessaires pour piloter en continu."
+      },
+      {
+        "cat": "pricing",
+        "q": "Comment fonctionne le paiement ?",
+        "a": "Stripe Subscription en EUR avec TVA UE auto-calculée. CB ou virement SEPA. Renouvellement mensuel automatique. Toutes les factures dans le portail Stripe (lien depuis /app/billing)."
+      },
+      {
+        "cat": "pricing",
+        "q": "Annulation et remboursement ?",
+        "a": "Annulation en 1 clic depuis le portail Stripe (bouton « Gérer mon abonnement » sur /app/billing). L'abonnement reste actif jusqu'à la fin de la période payée, puis bascule en Free automatiquement. Pas de remboursement pro-rata sur le mois en cours, mais aucun engagement de durée."
+      },
+      {
+        "cat": "pricing",
+        "q": "Quelle est la marge LLM ?",
+        "a": "Pour transparence : un snapshot Solo (4 LLM × 30 prompts = 120 calls) coûte ~5 € en frais OpenRouter cumulés. À 149 €/mois soit ~25 € de coûts mensuels (1 snapshot/semaine), la marge brute est de ~83 %. Cette marge baisse en Pro/Agency (multi-marques) mais reste >70 %. Aucune surfacturation cachée — vous êtes facturé au plan, pas aux calls."
+      },
+      {
+        "cat": "security",
+        "q": "Quelles données sont stockées et où ?",
+        "a": "Tout est hébergé sur Supabase Frankfurt (région EU). On stocke : votre profile (email, nom, société), vos marques, les snapshots et les réponses brutes des LLM (incluant les prompts). Aucune donnée personnelle de tiers n'est délibérément collectée. Les payloads OpenRouter contiennent des identifiants de modèle mais aucun token utilisateur. RLS Postgres garantit qu'aucun client ne voit les données d'un autre."
+      },
+      {
+        "cat": "security",
+        "q": "Quels sous-traitants ?",
+        "a": "Supabase (DB et auth, Frankfurt UE), Vercel (hébergement frontend, multi-région), OpenRouter (gateway LLM, US — flux de prompts uniquement), Stripe (paiement, IE), Resend (emails transactionnels, US — adresses + sujets uniquement). Liste complète et liens DPA dans /privacy."
+      },
+      {
+        "cat": "security",
+        "q": "RGPD et confidentialité ?",
+        "a": "Geoperf est édité par Jourdechance SAS (SIREN 838 114 619, RCS Nanterre). Conformité RGPD : données EU, contrat DPA disponible sur demande, droit à l'effacement implémenté (suppression compte = CASCADE sur toutes les tables). Aucun pixel publicitaire externe sur les pages /app/*. Politique de confidentialité complète sur /privacy."
+      },
+      {
+        "cat": "security",
+        "q": "Mes prompts sont-ils utilisés pour entraîner des modèles ?",
+        "a": "Non. OpenRouter ne réutilise pas les prompts pour entraîner ses propres modèles ; les fournisseurs sous-jacents (OpenAI, Anthropic, Google) opèrent en mode API commercial (pas d'opt-in training). Vos prompts restent stockés sur Supabase Frankfurt sous votre tenant uniquement."
+      }
     ]
   },
   "vsGetmint": {
@@ -544,9 +664,18 @@
     "ctaFinalSecondary": "Parler à un humain",
     "ctaFinalTertiary": "Voir tous les plans",
     "reasons": [
-      { "title": "Spécialisation française", "body": "Prompts en FR rédigés par des marketeurs français, secteurs mappés sur la nomenclature française (asset management, banque retail, fintech B2B, mutuelles santé, etc.). Détection brand-name fine sur les variantes francophones (BNP Paribas vs BNP Real Estate, AXA vs AXA IM)." },
-      { "title": "Prix accessibles, ~50% moins cher en annuel", "body": "79€ HT/mois en mensuel (vs $99 chez GetMint), et seulement 59€ HT/mois en annuel grâce aux 3 mois offerts (vs ~$79 chez GetMint avec leur réduction annuelle 20%). Sur le plan Pro : 299€ HT/mois en annuel chez Geoperf vs ~$399 chez GetMint. Plan Free permanent (vs trial 14j seulement chez GetMint)." },
-      { "title": "Funnel intégré (étude → audit → SaaS)", "body": "Geoperf est édité par Jourdechance, cabinet de conseil GEO. On vend un parcours complet : étude sectorielle gratuite (lead-magnet trimestriel) → audit consulting one-shot 500€ → SaaS récurrent. GetMint vend juste le SaaS." }
+      {
+        "title": "Spécialisation française",
+        "body": "Prompts en FR rédigés par des marketeurs français, secteurs mappés sur la nomenclature française (asset management, banque retail, fintech B2B, mutuelles santé, etc.). Détection brand-name fine sur les variantes francophones (BNP Paribas vs BNP Real Estate, AXA vs AXA IM)."
+      },
+      {
+        "title": "Prix accessibles, ~50% moins cher en annuel",
+        "body": "79€ HT/mois en mensuel (vs $99 chez GetMint), et seulement 59€ HT/mois en annuel grâce aux 3 mois offerts (vs ~$79 chez GetMint avec leur réduction annuelle 20%). Sur le plan Pro : 299€ HT/mois en annuel chez Geoperf vs ~$399 chez GetMint. Plan Free permanent (vs trial 14j seulement chez GetMint)."
+      },
+      {
+        "title": "Funnel intégré (étude → audit → SaaS)",
+        "body": "Geoperf est édité par Jourdechance, cabinet de conseil GEO. On vend un parcours complet : étude sectorielle gratuite (lead-magnet trimestriel) → audit consulting one-shot 500€ → SaaS récurrent. GetMint vend juste le SaaS."
+      }
     ],
     "whenGetmintReasons": [
       "Vous êtes une enterprise US/UK avec budget illimité et avez besoin de l'écosystème GetMint complet.",
