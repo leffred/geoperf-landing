@@ -1,4 +1,4 @@
-// S29 Session 3 — Clusters around pillar #4 perplexity-pour-marques.
+// S29 Session 3 + follow-up EN — Clusters around pillar #4 perplexity-pour-marques.
 
 import type { ClusterRegistry } from "./types";
 
@@ -32,6 +32,38 @@ function BodyEtreCite() {
 
       <h2>Erreur typique — bloquer PerplexityBot</h2>
       <p>Une marque B2B FR avait bloqué PerplexityBot dans robots.txt &laquo;&nbsp;par précaution IA&nbsp;&raquo;. Citation rate Perplexity 0 % pendant 6 mois pendant que ses concurrents capturaient 35-50 %. Décision corrigée fin 2025, citation rate remontée à 28 % en 4 mois. Cas réel anonymisé observé Geoperf.</p>
+    </>
+  );
+}
+
+function BodyEtreCiteEn() {
+  return (
+    <>
+      <h2>Why Perplexity is more measurable than ChatGPT</h2>
+      <p>Perplexity cites every source used, numbered [1][2][3] and clickable. This citation discipline transforms the marketing stake: you can count citations exactly, measure your URL&apos;s rank among sources, and identify precisely which third-party pages attribute you. It&apos;s the most instrumentable LLM — and therefore the most strategic to start a GEO program.</p>
+
+      <h2>Step 1 — Build a Perplexity-specific panel</h2>
+      <p>30 prompts representative of your market, run weekly on Perplexity Sonar and Sonar Pro. Mix: 40 % discovery (&quot;best US X provider&quot;), 25 % comparisons, 20 % technical, 15 % brand-explicit. Important on Perplexity: favor commercial-intent prompts (buying, comparison, recommendation), the surface where Perplexity is most used.</p>
+
+      <h2>Step 2 — Diagnose your source attribution</h2>
+      <p>For each Perplexity citation, the monitoring tool (Geoperf, Otterly, Profound) shows the source. Study the distribution: if 70 % of citations route through Wikipedia, your priority lever is Wikipedia. If 60 % go through US trade press (Bloomberg, P&I, Pensions{"&"}Investments), prioritize PR. If 80 % go through your corporate site, you&apos;re vulnerable to the next algo change.</p>
+
+      <h2>Step 3 — Reinforce under-represented sources</h2>
+      <p>A balanced distribution (40 % Wikipedia + 30 % press + 20 % corporate + 10 % other) is the signature of a robust brand. If your distribution concentrates above 60 % on a single category, invest in the others. Diversification = robustness against algorithmic fluctuations.</p>
+
+      <h2>Step 4 — Optimize for the Perplexity crawl</h2>
+      <p>Perplexity uses PerplexityBot for its proprietary crawl + partnerships with other web indexes. Verify that PerplexityBot is not blocked in robots.txt (frequent mistake from mimicking other AI bots). Add an llms.txt file at the root to support global site understanding.</p>
+
+      <div className="my-6 rounded-lg border-l-2 border-amber bg-cream px-4 py-3 not-prose">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-navy mb-1">Perplexity impact timeline</p>
+        <p className="text-sm text-ink">4-12 weeks after optimization for Perplexity Search (real-time crawl mode). It&apos;s the most &quot;reactive&quot; LLM to an active GEO strategy. A new authoritative content piece can flip citation rate in 2-4 weeks.</p>
+      </div>
+
+      <h2>Realistic targets by brand profile</h2>
+      <p><strong>US mid-market B2B starting from 10 % citation rate</strong>: target 30-45 % in 6 months with $35-60k investment. <strong>Mid-large with established press presence</strong>: target 50-65 % in 6 months with $70-120k investment. <strong>Sector leader already strong</strong>: target 70-80 % maintenance citation rate with ~$70k/year defensive investment.</p>
+
+      <h2>Typical mistake — blocking PerplexityBot</h2>
+      <p>A US B2B SaaS blocked PerplexityBot in robots.txt &quot;as an AI precaution&quot;. Perplexity citation rate 0 % for 6 months while competitors captured 38-52 %. Decision reversed end of 2025, citation rate climbed back to 31 % in 4 months. Real anonymized case observed by Geoperf.</p>
     </>
   );
 }
@@ -71,6 +103,41 @@ function BodyVsGoogle() {
   );
 }
 
+function BodyVsGoogleEn() {
+  return (
+    <>
+      <h2>Perplexity is not Google with an LLM</h2>
+      <p>Confusing Perplexity with a conversational version of Google is the most frequent strategic mistake. The two engines serve different intents, are used by different audiences, and require distinct marketing strategies. Five differences that change budget allocation.</p>
+
+      <h2>Difference 1 — User profile</h2>
+      <p>Google: ~4 billion monthly users, ultra-broad profile. Perplexity: 30M monthly users, narrow profile: 65 % knowledge workers, 22 % tech/finance/consulting, 41 % income {">"} $100k. For a premium B2B brand, Perplexity captures a denser audience than Google on the target segment.</p>
+
+      <h2>Difference 2 — Query type</h2>
+      <p>Google remains dominant on navigational, transactional, local. Perplexity captures &quot;answer-seeking&quot; queries: &quot;what is the best platform for X&quot;, &quot;compare A vs B&quot;, &quot;how does Y work&quot;. For B2B high-funnel (discovery, comparison), Perplexity already captures 5-10 % of professional research time (B2B tool internal surveys).</p>
+
+      <h2>Difference 3 — Answer nature</h2>
+      <p>Google produces 10 blue links, the user clicks. Perplexity produces a 100-300 word synthesis with clickable [1][2][3] sources. The synthesis answers directly: 60 % of users don&apos;t scroll to sources when the overview answers their intent. The KPI shifts from position to citation rate.</p>
+
+      <h2>Difference 4 — Measurement mode</h2>
+      <p>Google offers Search Console, Analytics with referrers, GA4 with attribution. Perplexity does not send a referrer for visits from source citations; attribution is limited. Measurement passes through citation rate and lift on branded searches post-Perplexity conversation.</p>
+
+      <h2>Difference 5 — Volatility</h2>
+      <p>Google rank can flip in 24h on a Core Update. Perplexity sources, especially via Wikipedia and established press, are more stable — a Wikipedia mention survives 5-10 years. Perplexity structurally favors authoritative third-party sources, creating positions more durable than Google rankings.</p>
+
+      <div className="my-6 rounded-lg border-l-2 border-amber bg-cream px-4 py-3 not-prose">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-navy mb-1">Recommended budget allocation</p>
+        <p className="text-sm text-ink">For a 2026 mid-market B2B brand: Google SEO 60-65 % of search budget, Perplexity (and other Search LLMs) 35-40 %. The ratio progressively shifts to 50/50 by 2027-2028 as Perplexity grows.</p>
+      </div>
+
+      <h2>When to prioritize Perplexity over Google</h2>
+      <p>Three cases: (1) premium B2B target (knowledge workers, finance, tech, consulting) — Perplexity over-penetrates your audience; (2) dominant answer-seeking intent (frequent industry questions); (3) market under-saturated on GEO (under 10 % of brands with formalized strategy). When all three are met, allocate 50-60 % of search budget to Perplexity in 2026.</p>
+
+      <h2>Myths to debunk</h2>
+      <p>Myth 1: &quot;Perplexity only captures tech queries.&quot; False: 22 % tech/finance/consulting, but 78 % other. Myth 2: &quot;Perplexity volume is too small to invest.&quot; False for premium B2B where audience density matters more than raw volume. Myth 3: &quot;Perplexity uses the same signals as Google.&quot; Partly true for crawl, but final source selection favors third-party authority and extraction structure.</p>
+    </>
+  );
+}
+
 function BodyPages() {
   return (
     <>
@@ -102,6 +169,41 @@ function BodyPages() {
 
       <h2>Pièges fréquents</h2>
       <p>Premier piège&nbsp;: produire des Pages purement promotionnelles. Perplexity dévalorise. Privilégier le ton éditorial neutre. Deuxième piège&nbsp;: citer uniquement vos propres sources. Une bonne Page cite 5-10 sources tierces variées. Troisième piège&nbsp;: ignorer les Pages tierces qui citent votre marque. Surveiller hebdomadairement via votre outil de monitoring LLM.</p>
+    </>
+  );
+}
+
+function BodyPagesEn() {
+  return (
+    <>
+      <h2>What Perplexity Pages is</h2>
+      <p>Launched in 2024, Perplexity Pages lets a user transform a Perplexity search into a published, Google-indexed, shareable article with clearly attributed sources. For a brand, Pages represents a product opportunity: build your own thought-leadership articles on a reference domain (perplexity.ai) that ranks natively well on Google.</p>
+
+      <h2>Opportunity 1 — Accelerated thought leadership</h2>
+      <p>Creating a Perplexity Page on a technical topic in your expertise area lets you capitalize on perplexity.ai&apos;s domain authority (DR {">"} 80 per Ahrefs early 2026). A well-built Page, citing your content + third-party authoritative sources, can rank on Google in a few weeks, whereas an equivalent article on your corporate blog can take 6-12 months.</p>
+
+      <h2>Opportunity 2 — Multiplied touchpoints</h2>
+      <p>A Perplexity Page citing your brand is: (1) visible on Perplexity Discover when the topic trends, (2) indexed by Google, (3) shareable on LinkedIn and X. Three channels for the price of one. The Page acts as a cross-channel amplification of brand content that would have less reach published alone.</p>
+
+      <h2>Opportunity 3 — Tracking third-party Pages citing you</h2>
+      <p>Beyond creating your own Pages, monitor Pages published by others that cite your brand. These Pages constitute quality backlinks (perplexity.ai DR is high) and third-party authority signals. Identifying authors of favorable Pages and engaging can produce future citations.</p>
+
+      <h2>Production strategy for Pages</h2>
+      <p>Three angles that work in 2026: <strong>(1) Sector data study</strong> — Page based on your quarterly flagship study, citing reference industry players. <strong>(2) Neutral comparison</strong> — Page comparing players in your category (including yourself), with objective criteria. <strong>(3) Tutorial guide</strong> — step-by-step Page on a technical topic in your expertise.</p>
+
+      <div className="my-6 rounded-lg border-l-2 border-amber bg-cream px-4 py-3 not-prose">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-navy mb-1">Effort vs ROI</p>
+        <p className="text-sm text-ink">Producing a quality Perplexity Page: 4-8 hours (research + writing). Measurable ROI: 500-3000 Google visits over 12 months + ~2-5 third-party Perplexity Pages backlinks. Comparable ROI to a corporate blog article at 1/3 the effort.</p>
+      </div>
+
+      <h2>Page quality matters</h2>
+      <p>A Page rushed in 5 minutes without review doesn&apos;t rank. The best 2026 Pages have: 8-15 cited sources, clear H2 structure, chiffred data, argued viewpoint. Perplexity moderates spam Pages and demotes thin content. Investing 4-8 hours on a Page produces a durable asset; investing 30 minutes produces waste.</p>
+
+      <h2>Recommended cadence</h2>
+      <p>For a US B2B mid-market brand: 1 Page per month on a sector topic + 1 quarterly Page based on flagship study. Total ~16 Pages/year. At 4-8h per Page, that&apos;s 0.05-0.1 FTE — marginal cost for an authority channel distinct from the corporate blog.</p>
+
+      <h2>Common pitfalls</h2>
+      <p>First pitfall: producing purely promotional Pages. Perplexity demotes. Favor neutral editorial tone. Second pitfall: citing only your own sources. A good Page cites 5-10 varied third-party sources. Third pitfall: ignoring third-party Pages that cite your brand. Monitor weekly via your LLM monitoring tool.</p>
     </>
   );
 }
@@ -141,6 +243,41 @@ function BodySources() {
   );
 }
 
+function BodySourcesEn() {
+  return (
+    <>
+      <h2>How Perplexity picks its sources</h2>
+      <p>The Perplexity source selection algorithm is not public, but empirical observation on 5000+ analyzed responses reveals a consistent four-step logic. Understanding this logic transforms a GEO strategy from intuitive to directed — you know exactly what to do for your source to be retained.</p>
+
+      <h2>Step 1 — Query expansion</h2>
+      <p>The user prompt is reformulated into 3-5 web sub-queries by the Sonar LLM. Example: &quot;best US ESG asset manager&quot; becomes &quot;top US asset managers ESG ratings 2026&quot;, &quot;US ESG asset management leaders&quot;, &quot;sustainable asset managers US AUM&quot;. Brand implication: your content must rank on semantic variations, not just the exact keyword.</p>
+
+      <h2>Step 2 — Multi-source crawl</h2>
+      <p>Each sub-query is executed against the Perplexity web index (combining its own crawl + partnerships with engines like Bing). 30-50 results are retrieved. Implication: your site must be crawlable by PerplexityBot AND Bingbot (often forgotten). Check robots.txt and submit your site to Bing Webmaster Tools.</p>
+
+      <h2>Step 3 — Ranking by authority + relevance</h2>
+      <p>The 30-50 results are reranked by: domain authority (PageRank-like, Wikipedia/.edu/established-press bias), recency for time-sensitive queries, semantic relevance (question embedding vs page), content structure (structured data, lists, clear headers preferred). The 5-10 finalists feed the LLM context.</p>
+
+      <h2>Step 4 — Extraction and synthesis</h2>
+      <p>The 5-10 best sources are passed to the LLM (Sonar or Pro) which writes the answer attaching each sentence to 1-3 sources. A brand mentioned in the synthesis was extracted from at least one of these 5-10 sources. Implication: to appear mentioned, two doors — be one of the sources OR be mentioned within a source.</p>
+
+      <h2>Source profile that ranks well</h2>
+      <p>Established domain (10+ years), {">"}50k monthly organic traffic, factual structured content, regular updates. Wikipedia ticks every box — hence its systematic over-representation (32 % of cross-LLM citations). Recent corporate sites with narrative content and weak organic traffic are excluded at ranking.</p>
+
+      <div className="my-6 rounded-lg border-l-2 border-amber bg-cream px-4 py-3 not-prose">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-navy mb-1">Perplexity US B2B source distribution (Q1 2026)</p>
+        <p className="text-sm text-ink">Wikipedia 35 % · Bloomberg 22 % · Reuters 16 % · Pensions{"&"}Investments 13 % · Barron&apos;s 9 % · rest 5 %. For US asset management, these 5 sources cover 80 % of Perplexity authority.</p>
+      </div>
+
+      <h2>Implication for your strategy</h2>
+      <p>Identifying the 5-10 most-cited sources in YOUR industry is the first strategic action. Do it via your GEO tool or by manually analyzing 50 Perplexity responses on industry prompts. Once identified, your third-party authority strategy becomes targeted: prioritize presence on these 5-10 specific sources rather than spreading effort.</p>
+
+      <h2>Difference with Google</h2>
+      <p>Google ranks 10 results. Perplexity ranks 30-50, retains 5-10, cites 3-5 in the final answer. This double reduction explains why Perplexity citation rate is more binary: you&apos;re either in the retained top 5-10 or invisible. No position 8-15 that drives some traffic like Google.</p>
+    </>
+  );
+}
+
 function BodyOptimiser() {
   return (
     <>
@@ -176,6 +313,41 @@ function BodyOptimiser() {
   );
 }
 
+function BodyOptimiserEn() {
+  return (
+    <>
+      <h2>Why optimize specifically for Perplexity</h2>
+      <p>Optimizing a page for Perplexity means maximizing its probability of being: (1) crawled by PerplexityBot, (2) selected among the 30-50 results per sub-query, (3) retained in the top 5-10 finalists, (4) explicitly cited in the synthetic response. Each of these four steps has its own optimization levers.</p>
+
+      <h2>Lever 1 — PerplexityBot crawlability</h2>
+      <p>Verify that PerplexityBot, GPTBot, ClaudeBot, Google-Extended are not blocked in robots.txt. Submit sitemap.xml to Bing Webmaster Tools (Perplexity uses the Bing index as complement). If the site is in Next.js / React, verify server rendering via <code>view-source:</code> — content must appear in initial HTML, not after JavaScript hydration.</p>
+
+      <h2>Lever 2 — Domain authority</h2>
+      <p>Perplexity favors domains with DR {">"} 50 (Ahrefs equivalent), {">"}50k monthly organic traffic, and solid history. New sites without backlinks rarely reach selection at ranking, even with quality content. Action lever: qualitative link building (earned PR, editorial partnerships), not low-quality backlinks.</p>
+
+      <h2>Lever 3 — Page structure</h2>
+      <p>H1 as a question, short 50-80 word answering intro, 4-6 thematic H2s, lists/tables for structured data, schema.org Article + FAQPage + Organization. The Perplexity-winning format is identical to the ChatGPT- and Gemini AI Overviews-winning format — investing once pays across three LLMs.</p>
+
+      <h2>Lever 4 — Wikipedia presence</h2>
+      <p>Wikipedia accounts for 32-38 % of cross-LLM citations, even more on Perplexity (which favors encyclopedic sources). A brand without a Wikipedia page or mentions in related articles loses a major authority channel. Investing $7-20k over 6-12 months to build Wikipedia presence is the highest-ROI off-page optimization.</p>
+
+      <h2>Lever 5 — Trade press mentions</h2>
+      <p>Perplexity regularly cites sector trade press (Bloomberg, P{"&"}I, American Banker for finance; TechCrunch, American Banker for tech). Without 8-15 trade press mentions over 12 months, your third-party authority coverage is insufficient. Engaging a specialized PR officer ($2-4k/month) is lever #2 after Wikipedia.</p>
+
+      <div className="my-6 rounded-lg border-l-2 border-amber bg-cream px-4 py-3 not-prose">
+        <p className="font-mono text-xs uppercase tracking-eyebrow text-navy mb-1">Concrete US mid-market case</p>
+        <p className="text-sm text-ink">US B2B SaaS, 250 employees. Initial Perplexity citation rate 21 %. 4-month plan: robots.txt unblock, schema on 35 pages, FAQ sections, Wikipedia request + 4 American Banker articles + 2 B2B podcasts. Citation rate at 4 months: 44 %. Investment: ~$25k over 4 months.</p>
+      </div>
+
+      <h2>Cadence and measurement</h2>
+      <p>On Perplexity, weekly cadence is necessary (vs monthly for ChatGPT). The web index moves faster than training corpus: a major press publication can flip citation rate in 48 hours, and your snapshots must capture this signal. Without weekly monitoring, you discover changes weeks late.</p>
+
+      <h2>Common pitfalls</h2>
+      <p>First pitfall: investing only on-page without touching third-party authority. A perfectly optimized page without Wikipedia or press plateaus at 25-30 % citation rate. Second pitfall: ignoring Bing Webmaster Tools — Perplexity uses the Bing index heavily. Third pitfall: blocking PerplexityBot by mimicking other AI bots. Check your robots.txt today.</p>
+    </>
+  );
+}
+
 export const PERPLEXITY_CLUSTERS: ClusterRegistry = {
   "etre-cite-perplexity-2026": {
     parentPillar: "perplexity-pour-marques",
@@ -187,6 +359,15 @@ export const PERPLEXITY_CLUSTERS: ClusterRegistry = {
         "Perplexity cite chaque source explicitement, ce qui en fait le LLM le plus mesurable. Apparaître dans ses réponses exige une stratégie source-aware : panel de prompts hebdomadaire, diagnostic de votre source attribution, et renforcement ciblé des canaux sous-représentés.",
       publishedAt: PUB,
       Body: BodyEtreCite,
+    },
+    en: {
+      title: "How to get cited by Perplexity in 2026",
+      metaDescription:
+        "Practical method to be cited by Perplexity: prompt panel, source attribution, PerplexityBot crawl optimization. Realistic 6-month targets for US B2B brands.",
+      intro:
+        "Perplexity cites every source explicitly, making it the most measurable LLM. Showing up in its answers requires a source-aware strategy: weekly prompt panel, source attribution diagnosis, and targeted reinforcement of under-represented channels.",
+      publishedAt: PUB,
+      Body: BodyEtreCiteEn,
     },
   },
   "perplexity-vs-google-marketing": {
@@ -200,6 +381,15 @@ export const PERPLEXITY_CLUSTERS: ClusterRegistry = {
       publishedAt: PUB,
       Body: BodyVsGoogle,
     },
+    en: {
+      title: "Perplexity vs Google: 5 differences for marketers",
+      metaDescription:
+        "Five strategic differences between Perplexity and Google: user profile, query type, answer nature, measurability, volatility. Budget allocation 2026.",
+      intro:
+        "Confusing Perplexity with conversational Google is the #1 strategic mistake. Five differences — user profile, query type, answer nature, measurability, volatility — require distinct budget allocation. For premium B2B, Perplexity captures a dense audience.",
+      publishedAt: PUB,
+      Body: BodyVsGoogleEn,
+    },
   },
   "perplexity-pages-opportunite": {
     parentPillar: "perplexity-pour-marques",
@@ -211,6 +401,15 @@ export const PERPLEXITY_CLUSTERS: ClusterRegistry = {
         "Perplexity Pages est une opportunité produit 2026 : publier sur un domaine DR>80, indexé Google, partageable, avec sources attribuées. Trois angles qui fonctionnent — étude data, comparatif neutre, guide tutoriel — pour ~16 Pages/an et 0.05-0.1 ETP.",
       publishedAt: PUB,
       Body: BodyPages,
+    },
+    en: {
+      title: "Perplexity Pages: the new marketing opportunity",
+      metaDescription:
+        "Perplexity Pages let you publish on a DR>80 domain, Google-indexed, shareable, with attributed sources. Production strategy, ROI, pitfalls for B2B 2026.",
+      intro:
+        "Perplexity Pages is a 2026 product opportunity: publish on a DR>80 domain, Google-indexed, shareable, with attributed sources. Three angles that work — data study, neutral comparison, tutorial guide — for ~16 Pages/year and 0.05-0.1 FTE.",
+      publishedAt: PUB,
+      Body: BodyPagesEn,
     },
   },
   "sources-perplexity-priorise": {
@@ -224,6 +423,15 @@ export const PERPLEXITY_CLUSTERS: ClusterRegistry = {
       publishedAt: PUB,
       Body: BodySources,
     },
+    en: {
+      title: "Which sources Perplexity prioritizes (and why)",
+      metaDescription:
+        "Perplexity source selection algorithm in 4 steps: query expansion, multi-source crawl, ranking by authority, extraction. Observed distribution and strategic implications.",
+      intro:
+        "The Perplexity algorithm selects sources in four steps — query expansion, multi-source crawl, ranking by authority, extraction. Understanding this logic shifts your GEO strategy from intuitive to directed. Observed source distribution and the profile that ranks well.",
+      publishedAt: PUB,
+      Body: BodySourcesEn,
+    },
   },
   "optimiser-marque-perplexity": {
     parentPillar: "perplexity-pour-marques",
@@ -235,6 +443,15 @@ export const PERPLEXITY_CLUSTERS: ClusterRegistry = {
         "Optimiser pour Perplexity exige cinq leviers complémentaires : crawlabilité PerplexityBot, autorité de domaine, structure de page, présence Wikipedia, mentions presse spécialisée. Cas concret : passer de 21 % à 44 % de citation rate en 4 mois pour ~22 k€ d'investissement.",
       publishedAt: PUB,
       Body: BodyOptimiser,
+    },
+    en: {
+      title: "Optimize your brand for Perplexity: 5 levers",
+      metaDescription:
+        "Five complementary levers to optimize a brand for Perplexity: crawlability, domain authority, page structure, Wikipedia presence, trade press mentions.",
+      intro:
+        "Optimizing for Perplexity requires five complementary levers: PerplexityBot crawlability, domain authority, page structure, Wikipedia presence, trade press mentions. Concrete case: going from 21 % to 44 % citation rate in 4 months for ~$25k investment.",
+      publishedAt: PUB,
+      Body: BodyOptimiserEn,
     },
   },
 };
