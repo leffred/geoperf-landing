@@ -1,3 +1,4 @@
+import { Suspense, cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +8,7 @@ import { EmptyState } from "@/components/saas/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { CitationsSankey } from "@/components/saas/CitationsSankey";
 import { TopicSelector } from "@/components/saas/TopicSelector";
+import { SankeySkeleton } from "@/components/saas/skeletons/SankeySkeleton";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { isDemoMode } from "@/lib/demo-mode";
 import { getServiceClient } from "@/lib/supabase";
@@ -18,6 +20,16 @@ export const metadata: Metadata = { title: "Citations Flow — Geoperf", robots:
 const ALLOWED = new Set(["pro", "agency"]);
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ topic?: string }> };
+
+const getBrand = cache(async (id: string) => {
+  const sb = getServiceClient();
+  const { data } = await sb
+    .from("saas_tracked_brands")
+    .select("id, user_id, name, domain")
+    .eq("id", id)
+    .maybeSingle();
+  return data as any | null;
+});
 
 function Header({ id, brandName, subtitle }: { id: string; brandName: string; subtitle?: string }) {
   return (
@@ -39,18 +51,15 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
   const { id } = await params;
   const { topic: topicFilter } = await searchParams;
   const ctx = await loadSaasContext();
-  const demo = await isDemoMode();
-  const sb = getServiceClient();
+  const brand = await getBrand(id);
+  if (!brand || brand.user_id !== ctx.account_owner_id) notFound();
 
-  const { data: brand } = await sb.from("saas_tracked_brands")
-    .select("id, user_id, name, domain")
-    .eq("id", id).maybeSingle();
-  if (!brand || (brand as any).user_id !== ctx.account_owner_id) notFound();
+  const demo = await isDemoMode();
 
   if (!ALLOWED.has(ctx.tier)) {
     return (
       <Section py="md" tone="white">
-        <Header id={id} brandName={(brand as any).name} />
+        <Header id={id} brandName={brand.name} />
         <EmptyState
           icon="chart"
           eyebrow="Tier verrouillé"
@@ -63,36 +72,95 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
     );
   }
 
+  return (
+    <Section py="md" tone="white">
+      <Header id={id} brandName={brand.name} />
+
+      <Suspense fallback={<div className="mb-6 h-9 bg-surface rounded-lg animate-pulse" />}>
+        <AsyncTopicSelector brandId={id} ctx={ctx} topicFilter={topicFilter ?? null} />
+      </Suspense>
+
+      <Suspense fallback={<SankeySkeleton height={520} />}>
+        <AsyncSankeyBlock
+          brandId={id}
+          brandName={brand.name}
+          topicFilter={topicFilter ?? null}
+          isOwner={ctx.is_owner}
+          demo={demo}
+        />
+      </Suspense>
+    </Section>
+  );
+}
+
+async function AsyncTopicSelector({
+  brandId,
+  ctx,
+  topicFilter,
+}: {
+  brandId: string;
+  ctx: any;
+  topicFilter: string | null;
+}) {
+  const sb = getServiceClient();
   const { data: topicsData } = await sb
     .from("saas_topics")
     .select("id, name, slug, is_default")
-    .eq("brand_id", id)
+    .eq("brand_id", brandId)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: true });
   const topicList = (topicsData as any[] | null) ?? [];
+  if (topicList.length === 0) return null;
+  return (
+    <TopicSelector
+      brandId={brandId}
+      topics={topicList}
+      currentTopicId={topicFilter}
+      isOwner={ctx.is_owner}
+      topicLimit={ctx.limits.topics}
+    />
+  );
+}
 
-  let snapQ = sb.from("saas_brand_snapshots").select("id, created_at, topic_id").eq("brand_id", id).eq("status", "completed");
+async function AsyncSankeyBlock({
+  brandId,
+  brandName,
+  topicFilter,
+  isOwner,
+  demo,
+}: {
+  brandId: string;
+  brandName: string;
+  topicFilter: string | null;
+  isOwner: boolean;
+  demo: boolean;
+}) {
+  const sb = getServiceClient();
+  let snapQ = sb
+    .from("saas_brand_snapshots")
+    .select("id, created_at, topic_id")
+    .eq("brand_id", brandId)
+    .eq("status", "completed");
   if (topicFilter) snapQ = snapQ.eq("topic_id", topicFilter);
   const { data: latest } = await snapQ.order("created_at", { ascending: false }).limit(1).maybeSingle();
 
   if (!latest) {
     return (
-      <Section py="md" tone="white">
-        <Header id={id} brandName={(brand as any).name} />
-        <EmptyState
-          icon="snapshot"
-          title="Pas encore de snapshot pour visualiser le flow"
-          body="Lance un snapshot sur cette marque. La visualisation Sankey s'affichera ensuite avec les flux Prompt → LLM → Mention → Sources."
-          secondaryLabel="Retour à la marque"
-          secondaryHref={`/app/brands/${id}`}
-          actionSlot={ctx.is_owner && !demo ? (
+      <EmptyState
+        icon="snapshot"
+        title="Pas encore de snapshot pour visualiser le flow"
+        body="Lance un snapshot sur cette marque. La visualisation Sankey s'affichera ensuite avec les flux Prompt → LLM → Mention → Sources."
+        secondaryLabel="Retour à la marque"
+        secondaryHref={`/app/brands/${brandId}`}
+        actionSlot={
+          isOwner && !demo ? (
             <form action={refreshBrand}>
-              <input type="hidden" name="brand_id" value={id} />
+              <input type="hidden" name="brand_id" value={brandId} />
               <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
             </form>
-          ) : null}
-        />
-      </Section>
+          ) : null
+        }
+      />
     );
   }
 
@@ -117,22 +185,16 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
     }
   }
 
-  return (
-    <Section py="md" tone="white">
-      <Header
-        id={id}
-        brandName={(brand as any).name}
-        subtitle={`Snapshot du ${new Date((latest as any).created_at).toLocaleDateString("fr-FR")} · ${respList.length} réponses analysées`}
-      />
+  const subtitle = `Snapshot du ${new Date((latest as any).created_at).toLocaleDateString("fr-FR")} · ${respList.length} réponses analysées`;
 
-      {topicList.length > 0 && (
-        <TopicSelector brandId={id} topics={topicList} currentTopicId={topicFilter ?? null} isOwner={ctx.is_owner} topicLimit={ctx.limits.topics} />
-      )}
+  return (
+    <>
+      <p className="text-sm text-ink-muted -mt-4 mb-6">{subtitle}</p>
 
       <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-5 mb-6">
         <CitationsSankey
           responses={respList}
-          brandName={(brand as any).name}
+          brandName={brandName}
           promptCategoryByText={promptCategoryByText}
           height={520}
         />
@@ -150,6 +212,6 @@ export default async function CitationsFlowPage({ params, searchParams }: Props)
           La largeur des flux est proportionnelle au nombre d&apos;observations. Idéal pour identifier (a) les catégories où ta marque sort le plus, (b) les LLMs où tu es le plus visible, et (c) les médias/sites qui co-citent ton secteur.
         </p>
       </div>
-    </Section>
+    </>
   );
 }

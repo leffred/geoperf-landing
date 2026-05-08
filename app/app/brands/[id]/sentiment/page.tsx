@@ -1,3 +1,4 @@
+import { Suspense, cache } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +8,8 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { EmptyState } from "@/components/saas/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { SentimentDonut } from "@/components/saas/SentimentDonut";
+import { DonutSkeleton } from "@/components/saas/skeletons/DonutSkeleton";
+import { TimelineSkeleton } from "@/components/saas/skeletons/TimelineSkeleton";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { isDemoMode } from "@/lib/demo-mode";
 import { getServiceClient } from "@/lib/supabase";
@@ -34,6 +37,30 @@ function score100(avg: number | null | undefined): number {
   return Math.round((Number(avg) * 50 + 50) * 10) / 10;
 }
 
+const getBrand = cache(async (id: string) => {
+  const sb = getServiceClient();
+  const { data } = await sb
+    .from("saas_tracked_brands")
+    .select("id, user_id, name, domain")
+    .eq("id", id)
+    .maybeSingle();
+  return data as any | null;
+});
+
+const getLatestSentimentSnapshot = cache(async (brandId: string) => {
+  const sb = getServiceClient();
+  const { data } = await sb
+    .from("saas_brand_snapshots")
+    .select("id, created_at, avg_sentiment_score, sentiment_distribution, sentiment_analyzed_at, raw_response_count")
+    .eq("brand_id", brandId)
+    .eq("status", "completed")
+    .not("sentiment_analyzed_at", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data as any | null;
+});
+
 function PageHeader({ id, brandName, subtitle }: { id: string; brandName: string; subtitle?: string }) {
   return (
     <div className="mb-8 flex items-baseline justify-between flex-wrap gap-3">
@@ -55,16 +82,15 @@ function PageHeader({ id, brandName, subtitle }: { id: string; brandName: string
 export default async function SentimentPage({ params }: Props) {
   const { id } = await params;
   const ctx = await loadSaasContext();
-  const demo = await isDemoMode();
-  const sb = getServiceClient();
+  const brand = await getBrand(id);
+  if (!brand || brand.user_id !== ctx.account_owner_id) notFound();
 
-  const { data: brand } = await sb.from("saas_tracked_brands").select("id, user_id, name, domain").eq("id", id).maybeSingle();
-  if (!brand || (brand as any).user_id !== ctx.account_owner_id) notFound();
+  const demo = await isDemoMode();
 
   if (!ALLOWED.has(ctx.tier)) {
     return (
       <Section py="md" tone="white">
-        <PageHeader id={id} brandName={(brand as any).name} />
+        <PageHeader id={id} brandName={brand.name} />
         <EmptyState
           icon="calm"
           eyebrow="Tier verrouillé"
@@ -77,71 +103,104 @@ export default async function SentimentPage({ params }: Props) {
     );
   }
 
-  const { data: latest } = await sb
-    .from("saas_brand_snapshots")
-    .select("id, created_at, avg_sentiment_score, sentiment_distribution, sentiment_analyzed_at, raw_response_count")
-    .eq("brand_id", id).eq("status", "completed")
-    .not("sentiment_analyzed_at", "is", null)
-    .order("created_at", { ascending: false }).limit(1).maybeSingle();
+  return (
+    <Section py="md" tone="white">
+      <PageHeader id={id} brandName={brand.name} />
+
+      <Suspense fallback={
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-lg border border-ink/[0.08] p-5 animate-pulse">
+                <div className="h-3 w-24 bg-surface rounded mb-3" />
+                <div className="h-8 w-16 bg-surface rounded" />
+              </div>
+            ))}
+          </div>
+          <div className="grid lg:grid-cols-2 gap-6 mb-8">
+            <DonutSkeleton size={200} />
+            <TimelineSkeleton n={6} />
+          </div>
+        </>
+      }>
+        <AsyncSentimentSummary brandId={id} ctxIsOwner={ctx.is_owner} demo={demo} />
+      </Suspense>
+
+      <Suspense fallback={
+        <div className="grid lg:grid-cols-2 gap-6">
+          <TimelineSkeleton n={5} />
+          <TimelineSkeleton n={5} />
+        </div>
+      }>
+        <AsyncSentimentTopMentions brandId={id} />
+      </Suspense>
+    </Section>
+  );
+}
+
+async function AsyncSentimentSummary({
+  brandId,
+  ctxIsOwner,
+  demo,
+}: {
+  brandId: string;
+  ctxIsOwner: boolean;
+  demo: boolean;
+}) {
+  const latest = await getLatestSentimentSnapshot(brandId);
 
   if (!latest) {
+    const sb = getServiceClient();
     const { data: pending } = await sb
-      .from("saas_brand_snapshots").select("id, status, sentiment_analyzed_at")
-      .eq("brand_id", id).eq("status", "completed")
-      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+      .from("saas_brand_snapshots")
+      .select("id, status, sentiment_analyzed_at")
+      .eq("brand_id", brandId)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     return (
-      <Section py="md" tone="white">
-        <PageHeader id={id} brandName={(brand as any).name} />
-        <EmptyState
-          icon={pending ? "snapshot" : "calm"}
-          title={pending ? "Analyse sentiment en cours" : "Pas encore de données sentiment"}
-          body={pending
+      <EmptyState
+        icon={pending ? "snapshot" : "calm"}
+        title={pending ? "Analyse sentiment en cours" : "Pas encore de données sentiment"}
+        body={
+          pending
             ? "Le snapshot le plus récent a été complété mais l'analyse Haiku tourne encore. Reviens dans 30s à 1 minute."
-            : "Lance un snapshot pour cette marque. L'analyse sentiment se déclenche automatiquement post-snapshot pour les plans Growth+."}
-          secondaryLabel="Retour à la marque"
-          secondaryHref={`/app/brands/${id}`}
-          actionSlot={!pending && ctx.is_owner && !demo ? (
+            : "Lance un snapshot pour cette marque. L'analyse sentiment se déclenche automatiquement post-snapshot pour les plans Growth+."
+        }
+        secondaryLabel="Retour à la marque"
+        secondaryHref={`/app/brands/${brandId}`}
+        actionSlot={
+          !pending && ctxIsOwner && !demo ? (
             <form action={refreshBrand}>
-              <input type="hidden" name="brand_id" value={id} />
+              <input type="hidden" name="brand_id" value={brandId} />
               <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
             </form>
-          ) : null}
-        />
-      </Section>
+          ) : null
+        }
+      />
     );
   }
 
-  const dist = ((latest as any).sentiment_distribution ?? {}) as Record<string, number>;
-  const score = score100((latest as any).avg_sentiment_score);
+  const dist = (latest.sentiment_distribution ?? {}) as Record<string, number>;
+  const score = score100(latest.avg_sentiment_score);
 
-  const [{ data: tops }, { data: tons }] = await Promise.all([
-    sb.from("saas_snapshot_responses")
-      .select("id, llm, prompt_text, response_text, sentiment_score, sentiment_summary, sentiment")
-      .eq("snapshot_id", (latest as any).id).eq("sentiment", "positive")
-      .order("sentiment_score", { ascending: false }).limit(5),
-    sb.from("saas_snapshot_responses")
-      .select("id, llm, prompt_text, response_text, sentiment_score, sentiment_summary, sentiment")
-      .eq("snapshot_id", (latest as any).id).eq("sentiment", "negative")
-      .order("sentiment_score", { ascending: true }).limit(5),
-  ]);
-  const topPositives = (tops as any[] | null) ?? [];
-  const topNegatives = (tons as any[] | null) ?? [];
-
+  const sb = getServiceClient();
   const { data: history } = await sb
     .from("saas_brand_snapshots")
     .select("id, created_at, avg_sentiment_score, sentiment_distribution")
-    .eq("brand_id", id).eq("status", "completed")
+    .eq("brand_id", brandId)
+    .eq("status", "completed")
     .not("sentiment_analyzed_at", "is", null)
-    .order("created_at", { ascending: false }).limit(20);
+    .order("created_at", { ascending: false })
+    .limit(20);
   const histList = ((history as any[] | null) ?? []).reverse();
 
   return (
-    <Section py="md" tone="white">
-      <PageHeader
-        id={id}
-        brandName={(brand as any).name}
-        subtitle={`Snapshot du ${new Date((latest as any).created_at).toLocaleDateString("fr-FR")} · ${(latest as any).raw_response_count} réponses analysées`}
-      />
+    <>
+      <p className="text-sm text-ink-muted -mt-6 mb-6">
+        Snapshot du {new Date(latest.created_at).toLocaleDateString("fr-FR")} · {latest.raw_response_count} réponses analysées
+      </p>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <Stat label="Score sentiment / 100" value={score.toFixed(0)} variant="dark" />
@@ -158,7 +217,7 @@ export default async function SentimentPage({ params }: Props) {
             <p className="text-xs text-ink-muted italic">Plus d&apos;historique disponible après le 2e snapshot.</p>
           ) : (
             <ul className="space-y-2">
-              {histList.slice(-10).map(h => {
+              {histList.slice(-10).map((h: any) => {
                 const s = score100(h.avg_sentiment_score);
                 const w = Math.max(2, s);
                 const colorClass = s >= 60 ? "bg-success" : s >= 45 ? "bg-warning" : "bg-danger";
@@ -178,51 +237,76 @@ export default async function SentimentPage({ params }: Props) {
           )}
         </div>
       </div>
+    </>
+  );
+}
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div>
-          <Eyebrow className="mb-4">Top 5 mentions positives</Eyebrow>
-          {topPositives.length === 0 ? (
-            <p className="text-xs text-ink-muted italic">Aucune mention positive dans ce snapshot.</p>
-          ) : (
-            <div className="space-y-2">
-              {topPositives.map(r => (
-                <article key={r.id} className={`rounded-lg border border-DEFAULT border-l-2 p-3 text-sm ${SENT_STYLES.positive}`}>
-                  <div className="flex items-baseline justify-between mb-1 gap-2 flex-wrap">
-                    <span className="font-mono text-[10px] uppercase tracking-eyebrow text-success">
-                      {SENT_LABEL[r.sentiment] ?? r.sentiment} · score {Number(r.sentiment_score ?? 0).toFixed(2)}
-                    </span>
-                    <span className="font-mono text-[10px] text-ink-subtle">{r.llm}</span>
-                  </div>
-                  <p className="text-xs text-ink-muted italic mb-1 truncate">{r.prompt_text}</p>
-                  {r.sentiment_summary && <p className="text-xs text-ink">{r.sentiment_summary}</p>}
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-        <div>
-          <Eyebrow className="mb-4">Top 5 mentions négatives</Eyebrow>
-          {topNegatives.length === 0 ? (
-            <p className="text-xs text-ink-muted italic">Aucune mention négative dans ce snapshot.</p>
-          ) : (
-            <div className="space-y-2">
-              {topNegatives.map(r => (
-                <article key={r.id} className={`rounded-lg border border-DEFAULT border-l-2 p-3 text-sm ${SENT_STYLES.negative}`}>
-                  <div className="flex items-baseline justify-between mb-1 gap-2 flex-wrap">
-                    <span className="font-mono text-[10px] uppercase tracking-eyebrow text-danger">
-                      {SENT_LABEL[r.sentiment] ?? r.sentiment} · score {Number(r.sentiment_score ?? 0).toFixed(2)}
-                    </span>
-                    <span className="font-mono text-[10px] text-ink-subtle">{r.llm}</span>
-                  </div>
-                  <p className="text-xs italic mb-1 truncate text-ink-muted">{r.prompt_text}</p>
-                  {r.sentiment_summary && <p className="text-xs text-ink">{r.sentiment_summary}</p>}
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
+async function AsyncSentimentTopMentions({ brandId }: { brandId: string }) {
+  const latest = await getLatestSentimentSnapshot(brandId);
+  if (!latest) return null;
+
+  const sb = getServiceClient();
+  const [{ data: tops }, { data: tons }] = await Promise.all([
+    sb.from("saas_snapshot_responses")
+      .select("id, llm, prompt_text, response_text, sentiment_score, sentiment_summary, sentiment")
+      .eq("snapshot_id", latest.id)
+      .eq("sentiment", "positive")
+      .order("sentiment_score", { ascending: false })
+      .limit(5),
+    sb.from("saas_snapshot_responses")
+      .select("id, llm, prompt_text, response_text, sentiment_score, sentiment_summary, sentiment")
+      .eq("snapshot_id", latest.id)
+      .eq("sentiment", "negative")
+      .order("sentiment_score", { ascending: true })
+      .limit(5),
+  ]);
+  const topPositives = (tops as any[] | null) ?? [];
+  const topNegatives = (tons as any[] | null) ?? [];
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <div>
+        <Eyebrow className="mb-4">Top 5 mentions positives</Eyebrow>
+        {topPositives.length === 0 ? (
+          <p className="text-xs text-ink-muted italic">Aucune mention positive dans ce snapshot.</p>
+        ) : (
+          <div className="space-y-2">
+            {topPositives.map((r: any) => (
+              <article key={r.id} className={`rounded-lg border border-DEFAULT border-l-2 p-3 text-sm ${SENT_STYLES.positive}`}>
+                <div className="flex items-baseline justify-between mb-1 gap-2 flex-wrap">
+                  <span className="font-mono text-[10px] uppercase tracking-eyebrow text-success">
+                    {SENT_LABEL[r.sentiment] ?? r.sentiment} · score {Number(r.sentiment_score ?? 0).toFixed(2)}
+                  </span>
+                  <span className="font-mono text-[10px] text-ink-subtle">{r.llm}</span>
+                </div>
+                <p className="text-xs text-ink-muted italic mb-1 truncate">{r.prompt_text}</p>
+                {r.sentiment_summary && <p className="text-xs text-ink">{r.sentiment_summary}</p>}
+              </article>
+            ))}
+          </div>
+        )}
       </div>
-    </Section>
+      <div>
+        <Eyebrow className="mb-4">Top 5 mentions négatives</Eyebrow>
+        {topNegatives.length === 0 ? (
+          <p className="text-xs text-ink-muted italic">Aucune mention négative dans ce snapshot.</p>
+        ) : (
+          <div className="space-y-2">
+            {topNegatives.map((r: any) => (
+              <article key={r.id} className={`rounded-lg border border-DEFAULT border-l-2 p-3 text-sm ${SENT_STYLES.negative}`}>
+                <div className="flex items-baseline justify-between mb-1 gap-2 flex-wrap">
+                  <span className="font-mono text-[10px] uppercase tracking-eyebrow text-danger">
+                    {SENT_LABEL[r.sentiment] ?? r.sentiment} · score {Number(r.sentiment_score ?? 0).toFixed(2)}
+                  </span>
+                  <span className="font-mono text-[10px] text-ink-subtle">{r.llm}</span>
+                </div>
+                <p className="text-xs italic mb-1 truncate text-ink-muted">{r.prompt_text}</p>
+                {r.sentiment_summary && <p className="text-xs text-ink">{r.sentiment_summary}</p>}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
