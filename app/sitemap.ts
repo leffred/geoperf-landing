@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getServiceClient } from "@/lib/supabase";
 import { routing } from "@/i18n/routing";
+import { listClusterSlugs } from "@/lib/seo/clusters";
 
 // S28 — sitemap multi-locale. Chaque route publique apparait 2× (FR + EN)
 // avec hreflang alternates pour que Google sache que les versions sont equivalentes.
@@ -122,13 +123,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "generative-ai-marketing",
     "llm-citation-strategy",
   ];      // S29 Session 2 : 10 pillars FR+EN
-  const CLUSTER_SLUGS: string[] = [];     // ← Session 2-3 : 50 entries
-  const PROGRAMMATIC_SLUGS: string[] = []; // ← Session 3 : 130 entries
-  const BLOG_SLUGS: string[] = [];        // ← Session 4 : 20 entries
+  // S29 Session 3 : clusters FR (50) + EN partiels (les pillars a fort volume EN).
+  // CLUSTER_SLUGS_FR : tous les slugs presents en FR.
+  // CLUSTER_SLUGS_EN : sous-ensemble qui a une version EN.
+  const CLUSTER_SLUGS_FR: string[] = listClusterSlugs("fr");
+  const CLUSTER_SLUGS_EN_SET = new Set(listClusterSlugs("en"));
+  const PROGRAMMATIC_SLUGS: string[] = []; // ← Session 4 : 130 entries
+  const BLOG_SLUGS: string[] = [];        // ← Session 5 : 20 entries
+
+  // Clusters : emit FR canonical + EN alt seulement quand la version EN existe.
+  const clusterEntries: MetadataRoute.Sitemap = [];
+  for (const slug of CLUSTER_SLUGS_FR) {
+    const path = `/insights/${slug}`;
+    const frUrl = `${base}${path}`;
+    const enUrl = `${base}/en${path}`;
+    const hasEn = CLUSTER_SLUGS_EN_SET.has(slug);
+    const languages: Record<string, string> = { fr: frUrl, "x-default": frUrl };
+    if (hasEn) languages.en = enUrl;
+    clusterEntries.push({
+      url: frUrl,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: { languages },
+    });
+    if (hasEn) {
+      clusterEntries.push({
+        url: enUrl,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.65,
+        alternates: { languages },
+      });
+    }
+  }
 
   const seoEntries: MetadataRoute.Sitemap = [
     ...PILLAR_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/guide/${s}`, now, "monthly", 0.9)),
-    ...CLUSTER_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/insights/${s}`, now, "monthly", 0.7)),
+    ...clusterEntries,
     ...PROGRAMMATIC_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/secteur/${s}`, now, "monthly", 0.6)),
     ...BLOG_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/blog/${s}`, now, "monthly", 0.7)),
   ];

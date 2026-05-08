@@ -1,8 +1,8 @@
-// S29 hotfix - Page coming-soon générique pour /insights/[slug].
-// Les pillars créés en Session 2 contiennent des liens vers ~50 clusters /insights/* qui
-// seront générés en Session 3. En attendant, cette page absorbe les 404 et propose
-// un lien retour vers le guide pillar associé.
-// noindex,follow → Google ne référence pas ces placeholders mais suit les liens internes.
+// S29 Session 3 — page /insights/[slug] : sert un cluster du registre OU
+// fallback sur le placeholder coming-soon (catch-all des slugs inconnus).
+// Strategy : force-static + dynamicParams = true. generateStaticParams retourne
+// les 50 slugs clusters pour pre-build statique au deploy. Slugs inconnus
+// passent en dynamic render (placeholder).
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,24 +12,100 @@ import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
+import { ClusterLayout } from "@/components/seo/ClusterLayout";
+import { getCluster, listClusterSlugs, clusterCousins } from "@/lib/seo/clusters";
+import { type Locale, type PillarSlug } from "@/lib/seo/internal-links";
 
-// S30 Session 2 — page placeholder sans DB lookup, peut etre cachee CDN.
-// dynamic = "force-static" + dynamicParams autorise le catch-all sur slugs inconnus.
-// revalidate 86400s = 24h cache, refresh background quand un cluster reel sera publie.
 export const dynamic = "force-static";
 export const dynamicParams = true;
 export const revalidate = 86400;
 
-export const metadata: Metadata = {
-  title: "Article en préparation — Geoperf",
-  robots: { index: false, follow: true },
+const SITE = "https://geoperf.com";
+
+const PILLAR_LABELS_FR: Record<PillarSlug, string> = {
+  "visibilite-llm": "Visibilité LLM : guide complet",
+  "geo-generative-engine-optimization": "GEO : Generative Engine Optimization",
+  "chatgpt-marketing": "ChatGPT marketing : tout savoir",
+  "perplexity-pour-marques": "Perplexity pour les marques",
+  "gemini-search-marketing": "Gemini search marketing",
+  "ai-search-vs-seo": "AI search vs SEO classique",
+  "llm-brand-monitoring": "LLM brand monitoring",
+  "optimisation-pour-ia": "Optimisation pour l'IA",
+  "generative-ai-marketing": "IA générative pour le marketing",
+  "llm-citation-strategy": "Stratégie de citation LLM",
+};
+
+const PILLAR_LABELS_EN: Record<PillarSlug, string> = {
+  "visibilite-llm": "LLM visibility: full guide",
+  "geo-generative-engine-optimization": "GEO: Generative Engine Optimization",
+  "chatgpt-marketing": "ChatGPT marketing playbook",
+  "perplexity-pour-marques": "Perplexity for brands",
+  "gemini-search-marketing": "Gemini search marketing",
+  "ai-search-vs-seo": "AI search vs traditional SEO",
+  "llm-brand-monitoring": "LLM brand monitoring",
+  "optimisation-pour-ia": "AI optimization fundamentals",
+  "generative-ai-marketing": "Generative AI for marketing",
+  "llm-citation-strategy": "LLM citation strategy",
 };
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
 };
 
-// Map slug → pillar pertinent (best-effort, fallback /guide/visibilite-llm)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const entry = getCluster(slug);
+  if (!entry) {
+    return {
+      title: "Article en préparation — Geoperf",
+      robots: { index: false, follow: true },
+    };
+  }
+  const c = (locale === "en" && entry.en) ? entry.en : entry.fr;
+  const url = locale === "en" ? `${SITE}/en/insights/${slug}` : `${SITE}/insights/${slug}`;
+  return {
+    title: c.title,
+    description: c.metaDescription,
+    alternates: {
+      canonical: url,
+      languages: {
+        fr: `${SITE}/insights/${slug}`,
+        en: entry.en ? `${SITE}/en/insights/${slug}` : `${SITE}/insights/${slug}`,
+        "x-default": `${SITE}/insights/${slug}`,
+      },
+    },
+    openGraph: {
+      title: c.title,
+      description: c.metaDescription,
+      url,
+      type: "article",
+      siteName: "Geoperf",
+      images: [
+        {
+          url: `${SITE}/api/og?title=${encodeURIComponent(c.title)}`,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    twitter: { card: "summary_large_image", title: c.title, description: c.metaDescription },
+  };
+}
+
+// Pre-build : 1 entry par slug cluster + locale qui a une version. Les slugs
+// inconnus passent en dynamic render (placeholder coming-soon).
+export async function generateStaticParams(): Promise<{ locale: string; slug: string }[]> {
+  const params: { locale: string; slug: string }[] = [];
+  for (const slug of listClusterSlugs("fr")) {
+    params.push({ locale: "fr", slug });
+  }
+  for (const slug of listClusterSlugs("en")) {
+    params.push({ locale: "en", slug });
+  }
+  return params;
+}
+
+// Best-effort pillar guess pour le placeholder fallback.
 function pillarForSlug(slug: string): { href: string; label: string } {
   const s = slug.toLowerCase();
   if (s.includes("geo") || s.includes("vs-seo") || s.includes("optimiser-article"))
@@ -40,11 +116,11 @@ function pillarForSlug(slug: string): { href: string; label: string } {
     return { href: "/guide/perplexity-pour-marques", label: "Perplexity pour marques" };
   if (s.includes("gemini") || s.includes("google-ai"))
     return { href: "/guide/gemini-search-marketing", label: "Gemini search marketing" };
-  if (s.includes("ai-search") || s.includes("vs-seo"))
+  if (s.includes("ai-search"))
     return { href: "/guide/ai-search-vs-seo", label: "AI search vs SEO" };
-  if (s.includes("brand-monitoring") || s.includes("monitoring") || s.includes("kpi") || s.includes("audit"))
+  if (s.includes("brand-monitoring") || s.includes("monitoring") || s.includes("alertes") || s.includes("audit"))
     return { href: "/guide/llm-brand-monitoring", label: "LLM brand monitoring" };
-  if (s.includes("optimisation") || s.includes("optimization-pour-ia"))
+  if (s.includes("optimisation") || s.includes("schema") || s.includes("longue-traine"))
     return { href: "/guide/optimisation-pour-ia", label: "Optimisation pour IA" };
   if (s.includes("generative") || s.includes("ia-generative") || s.includes("prompt"))
     return { href: "/guide/generative-ai-marketing", label: "Generative AI marketing" };
@@ -53,9 +129,36 @@ function pillarForSlug(slug: string): { href: string; label: string } {
   return { href: "/guide/visibilite-llm", label: "Visibilité LLM" };
 }
 
-export default async function InsightsPlaceholderPage({ params }: Props) {
+export default async function InsightPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+
+  const entry = getCluster(slug);
+
+  // Cluster connu : render via ClusterLayout
+  if (entry) {
+    const isEn = locale === "en";
+    const c = (isEn && entry.en) ? entry.en : entry.fr;
+    const labelMap = isEn ? PILLAR_LABELS_EN : PILLAR_LABELS_FR;
+    const cousins = clusterCousins(slug, isEn ? "en" : "fr", 3);
+    const Body = c.Body;
+    return (
+      <ClusterLayout
+        locale={isEn ? "en" : "fr"}
+        slug={slug}
+        title={c.title}
+        intro={c.intro}
+        publishedAt={c.publishedAt}
+        parentPillar={{ slug: entry.parentPillar, label: labelMap[entry.parentPillar] }}
+        body={<Body />}
+        cousinClusters={cousins}
+        ctaPrimaryHref="/etude-sectorielle"
+        ctaPrimaryLabel={isEn ? "Get my sector study" : "Demander mon étude sectorielle"}
+      />
+    );
+  }
+
+  // Slug inconnu : placeholder coming-soon (S29 hotfix)
   const pillar = pillarForSlug(slug);
   const isEN = locale === "en";
 
@@ -64,7 +167,7 @@ export default async function InsightsPlaceholderPage({ params }: Props) {
       <Header />
       <Section py="lg" tone="white">
         <div className="max-w-2xl mx-auto text-center">
-          <Eyebrow className="mb-4">{isEN ? "INSIGHTS" : "INSIGHTS"}</Eyebrow>
+          <Eyebrow className="mb-4">INSIGHTS</Eyebrow>
           <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-4">
             {isEN ? "Article coming soon" : "Article en préparation"}
           </h1>
@@ -95,7 +198,3 @@ export default async function InsightsPlaceholderPage({ params }: Props) {
     </main>
   );
 }
-
-// Pas de generateStaticParams : on accepte n'importe quel slug en dynamic render.
-// Quand Session 3 livrera les vrais clusters, ce catch-all sera supprimé / remplacé
-// par les vraies pages générées sous chaque slug exact.
