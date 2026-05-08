@@ -21,6 +21,9 @@ const nextConfig = {
   // is read from the host header in middleware.
   experimental: {
     serverActions: { bodySizeLimit: "2mb" },
+    // S30 Session 2 — PPR tente mais Next 15.5 stable ne supporte pas `ppr: 'incremental'`
+    // (necessite canary). Opt-out conformement au brief §9. A re-tenter quand Next 16+
+    // promeut PPR vers stable.
   },
 };
 

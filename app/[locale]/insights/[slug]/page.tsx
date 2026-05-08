@@ -13,7 +13,12 @@ import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 
-export const dynamic = "force-dynamic";
+// S30 Session 2 — page placeholder sans DB lookup, peut etre cachee CDN.
+// dynamic = "force-static" + dynamicParams autorise le catch-all sur slugs inconnus.
+// revalidate 86400s = 24h cache, refresh background quand un cluster reel sera publie.
+export const dynamic = "force-static";
+export const dynamicParams = true;
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Article en préparation — Geoperf",
