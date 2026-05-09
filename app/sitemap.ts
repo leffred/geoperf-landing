@@ -24,6 +24,8 @@ const STATIC_ROUTES: Array<{
   { path: "/saas/vs-getmint", changeFrequency: "monthly", priority: 0.7 },
   { path: "/saas/faq", changeFrequency: "monthly", priority: 0.5 },
   { path: "/leaderboard", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/quick-check", changeFrequency: "weekly", priority: 0.9 }, // S31 : tool gratuit acquisition
+  { path: "/presse", changeFrequency: "monthly", priority: 0.6 },     // S31 : kit presse
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
 ];
