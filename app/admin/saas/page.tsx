@@ -37,6 +37,7 @@ const ADMIN_TABS = [
   { href: "/admin/saas/coupons", label: "Coupons" },
   { href: "/admin/prospects-list", label: "Prospects" },
   { href: "/admin/saas/cron", label: "Cron" },
+  { href: "/admin/linkedin", label: "LinkedIn" },
 ];
 
 export default async function AdminSaasPage() {
