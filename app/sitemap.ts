@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getServiceClient } from "@/lib/supabase";
 import { routing } from "@/i18n/routing";
 import { listClusterSlugs } from "@/lib/seo/clusters";
+import { listSectorSlugs } from "@/lib/seo/sectors";
 
 // S28 — sitemap multi-locale. Chaque route publique apparait 2× (FR + EN)
 // avec hreflang alternates pour que Google sache que les versions sont equivalentes.
@@ -128,7 +129,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // CLUSTER_SLUGS_EN : sous-ensemble qui a une version EN.
   const CLUSTER_SLUGS_FR: string[] = listClusterSlugs("fr");
   const CLUSTER_SLUGS_EN_SET = new Set(listClusterSlugs("en"));
-  const PROGRAMMATIC_SLUGS: string[] = []; // ← Session 4 : 130 entries
+  // S29 Session 4 : 130+ secteurs FR.
+  const PROGRAMMATIC_SLUGS: string[] = listSectorSlugs();
   const BLOG_SLUGS: string[] = [];        // ← Session 5 : 20 entries
 
   // Clusters : emit FR canonical + EN alt seulement quand la version EN existe.
@@ -158,10 +160,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
+  // Programmatic (FR-only Session 4) : emit FR canonical sans alternative EN.
+  const programmaticEntries: MetadataRoute.Sitemap = PROGRAMMATIC_SLUGS.map((s) => ({
+    url: `${base}/secteur/${s}`,
+    lastModified: now,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+    alternates: { languages: { fr: `${base}/secteur/${s}`, "x-default": `${base}/secteur/${s}` } },
+  }));
+
   const seoEntries: MetadataRoute.Sitemap = [
     ...PILLAR_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/guide/${s}`, now, "monthly", 0.9)),
     ...clusterEntries,
-    ...PROGRAMMATIC_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/secteur/${s}`, now, "monthly", 0.6)),
+    ...programmaticEntries,
     ...BLOG_SLUGS.flatMap((s) => buildLocalizedEntries(base, `/blog/${s}`, now, "monthly", 0.7)),
   ];
 
