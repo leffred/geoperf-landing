@@ -6,6 +6,7 @@ import { Footer } from "@/components/ui/Footer";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
+import { GtmPageEvent } from "@/components/gtm/GtmPageEvent";
 
 export const metadata: Metadata = {
   title: "Étude envoyée — Geoperf",
@@ -28,6 +29,13 @@ export default async function SentPage({ params, searchParams }: Props) {
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
+      {/* S32 GTM : push event form_submit_etude au mount (conversion mid-funnel 20€) */}
+      <GtmPageEvent
+        event="form_submit_etude"
+        value={20}
+        params={{ secteur: sousCat || "unknown" }}
+        dedupKey={`form_submit_etude_${sousCat || "unknown"}`}
+      />
       <Header logo="etudes" />
 
       <Section py="lg" tone="white">

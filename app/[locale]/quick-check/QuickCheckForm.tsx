@@ -11,6 +11,7 @@ import {
   type QuickCheckResult,
   type CaptureEmailResult,
 } from "./actions";
+import { pushGtmConversion, GtmEvents, ConversionValues } from "@/lib/gtm";
 
 export type CategoryOption = { slug: string; label: string };
 
@@ -85,6 +86,13 @@ export function QuickCheckForm({ categories, i18n }: Props) {
     startTransition(async () => {
       const r = await quickCheck(formData);
       setResult(r);
+      // S32 : push GTM event sur success (top funnel conversion, value 5€)
+      if (r?.ok) {
+        pushGtmConversion(GtmEvents.QUICK_CHECK_RUN, ConversionValues.QUICK_CHECK_RUN, {
+          domain: r.domain,
+          category: r.category,
+        });
+      }
     });
   }
 
@@ -97,6 +105,13 @@ export function QuickCheckForm({ categories, i18n }: Props) {
     startEmailTransition(async () => {
       const r = await captureEmail(formData);
       setEmailResult(r);
+      // S32 : push GTM event sur success (mid funnel conversion, value 10€)
+      if (r?.ok) {
+        pushGtmConversion(GtmEvents.QUICK_CHECK_EMAIL_CAPTURE, ConversionValues.QUICK_CHECK_EMAIL_CAPTURE, {
+          domain: result?.domain,
+          category: result?.category,
+        });
+      }
     });
   }
 
