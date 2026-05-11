@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabase-server-auth";
+import { utmMetadataForSupabase } from "@/lib/utm";
 
 export async function signup(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
@@ -32,6 +33,9 @@ export async function signup(formData: FormData) {
     ? `/app/billing?coupon=${encodeURIComponent(couponCode)}&prefill_tier=starter`
     : `/app/dashboard${source === "etude" ? `?welcome_etude=1${category ? `&category=${encodeURIComponent(category)}` : ""}` : ""}`;
 
+  // S32 : récupère les UTM first-touch depuis cookie pour attribution paid ads
+  const utmMeta = await utmMetadataForSupabase();
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -45,6 +49,8 @@ export async function signup(formData: FormData) {
         category: category || null,
         invitation_token: invitationToken || null,
         coupon_code: couponCode || null,
+        // S32 UTM first-touch attribution
+        ...utmMeta,
       },
     },
   });

@@ -31,8 +31,47 @@ function isAuthFormScope(path: string): boolean {
       || path === "/signup" || path.startsWith("/signup/");
 }
 
+// S32 — Détecte les params UTM dans l'URL et pose un cookie _geoperf_utm 30 jours
+// (first-touch attribution). À la création du compte, la server action signup lit
+// ce cookie et pousse les UTM dans options.data → trigger DB → saas_profiles.acquisition_*.
+const UTM_COOKIE_NAME = "_geoperf_utm";
+const UTM_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 jours
+
+/** Calcule le payload UTM à poser (ou null si rien à faire). First-touch only. */
+function computeUtmPayload(req: NextRequest): string | null {
+  if (req.cookies.get(UTM_COOKIE_NAME)) return null; // déjà set → first-touch préservé
+  const sp = req.nextUrl.searchParams;
+  const source = sp.get("utm_source");
+  if (!source) return null;
+  return JSON.stringify({
+    utm_source: source,
+    utm_medium: sp.get("utm_medium") || "",
+    utm_campaign: sp.get("utm_campaign") || "",
+    utm_content: sp.get("utm_content") || "",
+    utm_term: sp.get("utm_term") || "",
+    first_touch_at: new Date().toISOString(),
+  });
+}
+
+/** Helper : applique le cookie UTM sur la response finale (peu importe son origine). */
+function applyUtm(res: NextResponse, utmPayload: string | null): NextResponse {
+  if (utmPayload) {
+    res.cookies.set(UTM_COOKIE_NAME, utmPayload, {
+      maxAge: UTM_COOKIE_MAX_AGE,
+      httpOnly: false,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+  }
+  return res;
+}
+
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+
+  // ===== S32 : capture UTM first-touch (calcul up-front, appliqué sur la response finale via applyUtm) =====
+  const utmPayload = computeUtmPayload(req);
 
   // ===== Guard env vars : dev sans .env.local -> skip auth, juste i18n =====
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,9 +81,9 @@ export async function middleware(req: NextRequest) {
       console.warn("[middleware] Supabase env vars missing - skipping auth");
     }
     if (isAuthenticatedScope(path)) {
-      return NextResponse.next({ request: req });
+      return applyUtm(NextResponse.next({ request: req }), utmPayload);
     }
-    return intlMiddleware(req);
+    return applyUtm(intlMiddleware(req), utmPayload);
   }
 
   // ===== Cookies/auth Supabase =====
@@ -83,27 +122,27 @@ export async function middleware(req: NextRequest) {
     if (!user && path !== "/admin/login") {
       const loginUrl = new URL("/admin/login", req.url);
       loginUrl.searchParams.set("next", path);
-      return NextResponse.redirect(loginUrl);
+      return applyUtm(NextResponse.redirect(loginUrl), utmPayload);
     }
-    return baseRes;
+    return applyUtm(baseRes, utmPayload);
   }
   if (scope === "app") {
     const isLoginRedirect = path === "/login" || path.startsWith("/login/");
     if (!user && !isLoginRedirect) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("next", path);
-      return NextResponse.redirect(loginUrl);
+      return applyUtm(NextResponse.redirect(loginUrl), utmPayload);
     }
-    return baseRes;
+    return applyUtm(baseRes, utmPayload);
   }
 
   // ===== Auth forms : redirect deja-loggues vers app/dashboard =====
   if (isAuthFormScope(path) && user) {
-    return NextResponse.redirect(new URL("/app/dashboard", req.url));
+    return applyUtm(NextResponse.redirect(new URL("/app/dashboard", req.url)), utmPayload);
   }
 
   // ===== Routes publiques : delegate next-intl pour locale routing =====
-  return intlMiddleware(req);
+  return applyUtm(intlMiddleware(req), utmPayload);
 }
 
 export const config = {
