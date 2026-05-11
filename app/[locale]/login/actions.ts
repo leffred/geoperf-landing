@@ -54,3 +54,50 @@ export async function logout() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+/**
+ * OAuth signin via Google. Server action used by /login + /signup pages.
+ * Supabase redirects vers Google OAuth → callback /auth/callback → session posée → redirect /app/dashboard.
+ * Le provider Google doit être enabled dans Supabase Dashboard → Auth → Providers.
+ */
+export async function signInWithGoogle(formData?: FormData) {
+  const next = String(formData?.get("next") || "/app/dashboard");
+  const supabase = await getSupabaseServerClient();
+  const h = await headers();
+  const origin = h.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "https://geoperf.com";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      queryParams: { access_type: "offline", prompt: "consent" },
+    },
+  });
+  if (error || !data?.url) {
+    redirect("/login?error=oauth_failed");
+  }
+  redirect(data.url);
+}
+
+/**
+ * OAuth signin via LinkedIn (OIDC). Server action used by /login + /signup pages.
+ * Le provider linkedin_oidc doit être enabled dans Supabase Dashboard → Auth → Providers
+ * (réutilise les Client ID/Secret de l'app LinkedIn Developer existante).
+ */
+export async function signInWithLinkedIn(formData?: FormData) {
+  const next = String(formData?.get("next") || "/app/dashboard");
+  const supabase = await getSupabaseServerClient();
+  const h = await headers();
+  const origin = h.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "https://geoperf.com";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "linkedin_oidc",
+    options: {
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+    },
+  });
+  if (error || !data?.url) {
+    redirect("/login?error=oauth_failed");
+  }
+  redirect(data.url);
+}

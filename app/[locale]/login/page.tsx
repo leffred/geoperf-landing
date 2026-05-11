@@ -7,6 +7,7 @@ import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { login, sendMagicLink } from "./actions";
 
 export async function generateMetadata({
@@ -40,6 +41,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
     missing: t("errorMissing"),
     invalid: t("loginErrorInvalid"),
     email_not_confirmed: t("loginErrorEmailNotConfirmed"),
+    oauth_failed: t("errorOauthFailed"),
     unknown: t("errorUnknown"),
   };
   const errorMsg = error ? ERROR_LABELS[error] || ERROR_LABELS.unknown : null;
@@ -73,6 +75,8 @@ export default async function LoginPage({ params, searchParams }: Props) {
                 {t("loginMagicSent")}
               </div>
             )}
+
+            <OAuthButtons next={next || "/app/dashboard"} />
 
             <form action={login} className="space-y-4">
               <input type="hidden" name="next" value={next || "/app/dashboard"} />

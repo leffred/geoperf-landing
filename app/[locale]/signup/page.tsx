@@ -7,6 +7,7 @@ import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { signup } from "./actions";
 
 export async function generateMetadata({
@@ -48,6 +49,7 @@ export default async function SignupPage({ params, searchParams }: Props) {
     missing: t("errorMissing"),
     password_too_short: t("errorPasswordTooShort"),
     exists: t("errorExists"),
+    oauth_failed: t("errorOauthFailed"),
     unknown: t("errorUnknown"),
   };
 
@@ -114,6 +116,8 @@ export default async function SignupPage({ params, searchParams }: Props) {
                 </p>
               </div>
             )}
+
+            {!isInvitation && <OAuthButtons next="/app/dashboard" />}
 
             <form action={signup} className="space-y-4">
               {source && <input type="hidden" name="source" value={source} />}

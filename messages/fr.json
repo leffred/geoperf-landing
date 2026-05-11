@@ -363,7 +363,11 @@
     "loginErrorInvalid": "Identifiants invalides.",
     "loginErrorEmailNotConfirmed": "Tu dois d'abord confirmer ton email avant de te connecter. Vérifie ta boîte de réception (et tes spams) — l'email de confirmation est arrivé juste après ton inscription.",
     "loginMetaTitle": "Connexion — Geoperf",
-    "loginMetaDescription": "Connecte-toi à ton dashboard de monitoring LLM."
+    "loginMetaDescription": "Connecte-toi à ton dashboard de monitoring LLM.",
+    "oauthGoogle": "Continuer avec Google",
+    "oauthLinkedin": "Continuer avec LinkedIn",
+    "oauthOrContinue": "OU",
+    "errorOauthFailed": "Échec de la connexion OAuth. Réessaie ou utilise email + mot de passe."
   },
   "sample": {
     "metaTitle": "Étude Asset Management 2026 — Aperçu — Geoperf",

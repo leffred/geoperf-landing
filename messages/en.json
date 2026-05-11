@@ -363,7 +363,11 @@
     "loginErrorInvalid": "Invalid credentials.",
     "loginErrorEmailNotConfirmed": "You need to confirm your email first. Check your inbox (and spam folder) — the confirmation email was sent right after your sign-up.",
     "loginMetaTitle": "Sign in — Geoperf",
-    "loginMetaDescription": "Sign in to your LLM monitoring dashboard."
+    "loginMetaDescription": "Sign in to your LLM monitoring dashboard.",
+    "oauthGoogle": "Continue with Google",
+    "oauthLinkedin": "Continue with LinkedIn",
+    "oauthOrContinue": "OR",
+    "errorOauthFailed": "OAuth sign-in failed. Try again or use email + password."
   },
   "sample": {
     "metaTitle": "Asset Management 2026 study — Preview — Geoperf",
