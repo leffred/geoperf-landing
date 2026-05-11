@@ -217,7 +217,7 @@ export default async function ApiKeysPage({ searchParams }: Props) {
       <p className="text-xs text-ink-subtle mt-8">
         Note : la clé full n&apos;est jamais re-affichée après création. Stocke-la dans un secret manager. Si tu la perds, révoque-la et créée-en une nouvelle.
         <br />
-        Endpoint API : <code className="font-mono">https://qfdvdcvqknoqfxetttch.supabase.co/functions/v1/saas_api_v1_router/v1/...</code>
+        Endpoint API : <code className="font-mono">https://saas.geoperf.com/functions/v1/saas_api_v1_router/v1/...</code>
       </p>
     </Section>
   );

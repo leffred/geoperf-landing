@@ -10,6 +10,7 @@ const SAFE_HOSTS = [
   "calendly.com",
   "cal.com",
   "geoperf.com",
+  "saas.geoperf.com",
   "linkedin.com",
   "qfdvdcvqknoqfxetttch.supabase.co",
 ];

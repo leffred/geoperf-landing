@@ -32,7 +32,7 @@ export async function generateMetadata({
   };
 }
 
-const BASE = "https://qfdvdcvqknoqfxetttch.supabase.co/functions/v1/saas_api_v1_router";
+const BASE = "https://saas.geoperf.com/functions/v1/saas_api_v1_router";
 
 const ENDPOINTS = [
   {
