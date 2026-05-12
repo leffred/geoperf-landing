@@ -688,6 +688,86 @@
       "You already have US-friendly DPA contracts and EU hosting isn't a constraint."
     ]
   },
+  "vsOtterly": {
+    "metaTitle": "Geoperf vs Otterly: which GEO monitoring solution to choose in 2026?",
+    "metaDescription": "Complete Geoperf vs Otterly comparison — pricing, features, tracked LLMs, French support. Choose the best brand visibility monitoring solution for AI search.",
+    "ogTitle": "Geoperf vs Otterly — complete 2026 comparison",
+    "ogDescription": "French alternative to Otterly for LLM brand visibility monitoring. Pricing, features, FR support.",
+    "heroEyebrow": "French alternative to Otterly",
+    "heroTitleStart": "Geoperf",
+    "heroTitleVs": "vs",
+    "heroTitleSuffix": "— which GEO monitoring solution should you pick?",
+    "heroSubtitle": "Geoperf is the French alternative to Otterly. More accessible, more specialized for the European French-speaking market, with an <strong>integrated funnel: free sector study → audit consulting → recurring SaaS</strong>. Native EU hosting (Frankfurt), prompts written by French marketers.",
+    "heroDisclaimer": "Comparison written by the Geoperf team. Otterly data comes from their public pricing page at the time of writing — if any data is outdated, write to us.",
+    "heroCtaPrimary": "Get my free sector study",
+    "heroCtaSecondary": "See the full table",
+    "reasonsEyebrow": "Why pick Geoperf",
+    "reasonsTitle": "3 strong reasons for European French-speaking brands.",
+    "tableEyebrow": "Detailed comparison · 18 criteria",
+    "tableTitle": "Feature by feature, unfiltered.",
+    "tableSourcesBefore": "Sources: Otterly public pricing page on {date} + Geoperf internal tests. Some Otterly data is marked [À COMPLÉTER] pending direct validation — let us know if you have the info:",
+    "tableScore": "Score: Geoperf {gp} · Tie {tie} · Otterly {ot}",
+    "thFeature": "Criterion",
+    "thOtterly": "Otterly",
+    "thGeoperf": "Geoperf",
+    "thEdge": "Edge",
+    "edgeGeoperf": "Geoperf",
+    "edgeOtterly": "Otterly",
+    "edgeTie": "tie",
+    "whenOtterlyEyebrow": "When to pick Otterly instead",
+    "whenOtterlyTitle": "Let's be honest: Otterly is probably better in these cases.",
+    "whenOtterlyFooter": "Otherwise, for 80% of European French-speaking brands, Geoperf is the right choice. Free sector studies, FR support, EU hosting, affordable pricing.",
+    "faqEyebrow": "Frequently asked questions",
+    "faqTitle": "Everything CMOs ask before switching.",
+    "ctaFinalEyebrow": "Get started now",
+    "ctaFinalTitle": "Start with the free sector study.",
+    "ctaFinalSubtitle": "Get the PDF of your sector for free (30 brands benchmarked × 4 LLMs × 30 prompts). Then try Geoperf — permanent Free plan, no credit card.",
+    "ctaFinalPrimary": "Get my study",
+    "ctaFinalSecondary": "Create an account",
+    "ctaFinalTertiary": "See all plans",
+    "reasons": [
+      {
+        "title": "Free quarterly sector studies",
+        "body": "Geoperf publishes a full PDF (30 pages, 30 brands benchmarked) per sector every quarter. Free lead-magnet, no commitment. Otterly doesn't offer this equivalent."
+      },
+      {
+        "title": "100% French support & UX",
+        "body": "Prompts written by French marketers (fine-grained brand variant detection: BNP Paribas vs BNP Real Estate, AXA vs AXA IM), native FR interface, French support. Otterly targets the English-speaking market."
+      },
+      {
+        "title": "EU hosting + standard DPA",
+        "body": "All data hosted in Frankfurt (Supabase EU). Standard GDPR DPA, signed in 24h. No complex US SCCs needed. Data sovereignty guaranteed for regulated/public-sector contracts."
+      }
+    ],
+    "whenOtterlyReasons": [
+      "You're a US/UK company and the American ecosystem (US Salesforce integrations, EN-only support) is non-negotiable.",
+      "You need very high prompt volume (>1000/month) and Otterly offers a competitive Enterprise plan at this scale.",
+      "You don't target the French-speaking market and English is your prospects' primary language.",
+      "Existing Otterly contracts already cover the certifications you need (SOC2 Type II, ISO27001) — Geoperf targets SOC2 by end of 2026."
+    ],
+    "faqs": [
+      {
+        "q": "What's the main difference between Geoperf and Otterly?",
+        "a": "Geoperf is the French alternative with an integrated funnel: study → audit → SaaS. Otterly targets the US/UK market with a pure SaaS approach. On SaaS features, they're comparable: multi-LLM monitoring, sentiment, AI recommendations. Geoperf differentiates with free sector studies, FR support, and native EU hosting."
+      },
+      {
+        "q": "Can I easily migrate from Otterly?",
+        "a": "Yes. The brand → topic → snapshot structure is similar. Our team can help map your existing Otterly prompts to Geoperf in 30 minutes — contact hello@geoperf.com for a migration call."
+      },
+      {
+        "q": "Is Geoperf cheaper than Otterly?",
+        "a": "Geoperf Starter is €79 excl. VAT/month monthly (€59 excl. VAT/month annual with 3 months free). Compared to Otterly's public pricing, that's ~30-50% cheaper depending on the plan. Geoperf's Free plan is permanent (1 brand, 1 LLM, monthly snapshot) — not a limited trial period."
+      },
+      {
+        "q": "Does Geoperf cover the same LLMs as Otterly?",
+        "a": "The 4 main LLMs are identical: ChatGPT (GPT-4o), Claude, Gemini, Perplexity. Pro+ Geoperf plans add Mistral and Grok. If Otterly covers extra LLMs you use, let us know — our roadmap is open."
+      },
+      {
+        "q": "How does the free trial work?",
+        "a": "No time-limited trial: Geoperf has a permanent Free plan. You track 1 brand, 1 LLM (your choice), monthly snapshot — free for life. To get 4 LLMs and weekly cadence, it's €79 excl. VAT/month (Starter), cancelable in 1 click."
+      }
+    ]
+  },
   "apiDocs": {
     "metaTitle": "Geoperf API — Documentation",
     "metaDescription": "Geoperf v1 REST API reference (Agency plan). Endpoints brands, snapshots, recommendations, alerts.",

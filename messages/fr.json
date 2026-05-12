@@ -688,6 +688,86 @@
       "Vous avez déjà des contrats DPA US-friendly et l'hébergement EU n'est pas une contrainte."
     ]
   },
+  "vsOtterly": {
+    "metaTitle": "Geoperf vs Otterly : quelle solution GEO monitoring choisir en 2026 ?",
+    "metaDescription": "Comparaison complète Geoperf vs Otterly — prix, fonctionnalités, LLM trackés, support FR. Choisissez la meilleure solution de monitoring de visibilité dans les IA.",
+    "ogTitle": "Geoperf vs Otterly — comparaison complète 2026",
+    "ogDescription": "Alternative française à Otterly pour le monitoring de visibilité dans les LLM. Prix, features, support FR.",
+    "heroEyebrow": "Alternative française à Otterly",
+    "heroTitleStart": "Geoperf",
+    "heroTitleVs": "vs",
+    "heroTitleSuffix": "— quelle solution GEO monitoring choisir ?",
+    "heroSubtitle": "Geoperf est l'alternative française à Otterly. Plus accessible, plus spécialisée sur le marché européen francophone, avec un <strong>funnel intégré étude sectorielle → audit consulting → SaaS récurrent</strong>. Hébergement EU natif (Frankfurt), prompts en FR rédigés par des marketeurs français.",
+    "heroDisclaimer": "Comparatif rédigé par l'équipe Geoperf. Les données Otterly proviennent de leur page tarifs publique au moment de la rédaction — si une donnée est obsolète, écrivez-nous.",
+    "heroCtaPrimary": "Recevoir mon étude gratuite",
+    "heroCtaSecondary": "Voir le tableau complet",
+    "reasonsEyebrow": "Pourquoi choisir Geoperf",
+    "reasonsTitle": "3 raisons fortes pour les marques européennes francophones.",
+    "tableEyebrow": "Comparatif détaillé · 18 critères",
+    "tableTitle": "Feature par feature, sans filtre.",
+    "tableSourcesBefore": "Sources : page tarifs publique Otterly au {date} + tests internes Geoperf. Certaines données Otterly sont marquées [À COMPLÉTER] en attendant validation directe — écrivez-nous si vous avez l'info :",
+    "tableScore": "Score : Geoperf {gp} · Égalité {tie} · Otterly {ot}",
+    "thFeature": "Critère",
+    "thOtterly": "Otterly",
+    "thGeoperf": "Geoperf",
+    "thEdge": "Avantage",
+    "edgeGeoperf": "Geoperf",
+    "edgeOtterly": "Otterly",
+    "edgeTie": "égal",
+    "whenOtterlyEyebrow": "Quand choisir Otterly plutôt",
+    "whenOtterlyTitle": "Soyons honnêtes : Otterly est probablement meilleur dans ces cas.",
+    "whenOtterlyFooter": "Sinon, pour 80% des marques européennes francophones, Geoperf est le bon choix. Études sectorielles gratuites, support FR, hébergement EU, prix accessible.",
+    "faqEyebrow": "Questions fréquentes",
+    "faqTitle": "Tout ce que les CMO nous demandent avant de basculer.",
+    "ctaFinalEyebrow": "Commencer maintenant",
+    "ctaFinalTitle": "Démarrez avec l'étude sectorielle gratuite.",
+    "ctaFinalSubtitle": "Recevez gratuitement le PDF de votre secteur (30 marques benchmarkées × 4 LLMs × 30 prompts). Puis essayez Geoperf — plan Free permanent, sans CB.",
+    "ctaFinalPrimary": "Recevoir mon étude",
+    "ctaFinalSecondary": "Créer un compte",
+    "ctaFinalTertiary": "Voir tous les plans",
+    "reasons": [
+      {
+        "title": "Études sectorielles gratuites trimestrielles",
+        "body": "Geoperf publie chaque trimestre un PDF complet (30 pages, 30 marques benchmarkées) par secteur. Lead-magnet gratuit, à télécharger sans engagement. Otterly ne propose pas cet équivalent."
+      },
+      {
+        "title": "Support et UX 100% en français",
+        "body": "Prompts rédigés par des marketeurs français (détection fine des variantes brand : BNP Paribas vs BNP Real Estate, AXA vs AXA IM), interface FR native, support en français. Otterly cible le marché anglophone."
+      },
+      {
+        "title": "Hébergement Europe + DPA standard",
+        "body": "Toutes les données sont hébergées à Frankfurt (Supabase EU). DPA RGPD standard, signé en 24h. Pas besoin de SCC US complexes. Souverainété data garantie pour les contrats publics/réglementés."
+      }
+    ],
+    "whenOtterlyReasons": [
+      "Vous êtes une entreprise US/UK et l'écosystème américain (intégrations Salesforce US, support EN-only) est non-négociable.",
+      "Vous avez besoin d'un volume très élevé de prompts (>1000/mois) et Otterly propose un plan Enterprise compétitif sur ce volume.",
+      "Vous ne ciblez pas le marché francophone et la langue principale de vos prospects est l'anglais.",
+      "Vos contrats existants avec Otterly couvrent déjà les certifications dont vous avez besoin (SOC2 Type II, ISO27001) — Geoperf vise SOC2 d'ici fin 2026."
+    ],
+    "faqs": [
+      {
+        "q": "Quelle est la différence principale entre Geoperf et Otterly ?",
+        "a": "Geoperf est l'alternative française avec un funnel intégré étude → audit → SaaS. Otterly cible le marché US/UK avec une approche SaaS pure. Sur le SaaS, les features sont comparables : monitoring multi-LLM, sentiment, recommandations IA. Geoperf différencie sur les études sectorielles gratuites, le support FR, et l'hébergement EU natif."
+      },
+      {
+        "q": "Puis-je migrer depuis Otterly facilement ?",
+        "a": "Oui. La structure brand → topic → snapshot est similaire. Notre équipe peut vous aider à mapper vos prompts existants Otterly vers Geoperf en 30 minutes — contactez hello@geoperf.com pour un appel de migration."
+      },
+      {
+        "q": "Geoperf est-il moins cher qu'Otterly ?",
+        "a": "Le plan Starter Geoperf est à 79€ HT/mois en mensuel (59€ HT/mois en annuel avec 3 mois offerts). Comparé à la tarification publique Otterly, c'est ~30-50% moins cher selon le plan. Le plan Free Geoperf est permanent (1 marque, 1 LLM, snapshot mensuel) — pas une période d'essai limitée."
+      },
+      {
+        "q": "Geoperf couvre-t-il les mêmes LLMs qu'Otterly ?",
+        "a": "Les 4 LLMs principaux sont identiques : ChatGPT (GPT-4o), Claude, Gemini, Perplexity. Les plans Pro+ Geoperf ajoutent Mistral et Grok. Si Otterly couvre des LLMs supplémentaires que vous utilisez, dites-le nous — notre roadmap est ouverte."
+      },
+      {
+        "q": "Comment fonctionne l'essai gratuit ?",
+        "a": "Pas d'essai limité dans le temps : Geoperf a un plan Free permanent. Vous trackez 1 marque, 1 LLM (au choix), snapshot mensuel — gratuit à vie. Pour passer à 4 LLMs et la cadence hebdo, c'est 79€ HT/mois (Starter), annulable en 1 clic."
+      }
+    ]
+  },
   "apiDocs": {
     "metaTitle": "API Geoperf — Documentation",
     "metaDescription": "Référence REST de l'API Geoperf v1 (plan Agency). Endpoints brands, snapshots, recommendations, alerts.",

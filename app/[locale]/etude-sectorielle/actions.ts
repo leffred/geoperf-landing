@@ -14,6 +14,7 @@ import { getServiceClient } from "@/lib/supabase";
 // S28 : redirect locale-aware (preserve la locale URL active du form)
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { readUtmFromCookie } from "@/lib/utm";
 
 type Locale = (typeof routing.locales)[number];
 
@@ -57,6 +58,19 @@ export async function requestStudy(formData: FormData) {
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
   const ua = h.get("user-agent") || null;
+
+  // S32 Ticket 4 — attribution paid : first-touch UTM cookie (30j) posé par middleware.
+  const utm = await readUtmFromCookie();
+  const utmCols = utm
+    ? {
+        acquisition_source: utm.utm_source || null,
+        acquisition_medium: utm.utm_medium || null,
+        acquisition_campaign: utm.utm_campaign || null,
+        acquisition_content: utm.utm_content || null,
+        acquisition_term: utm.utm_term || null,
+        acquisition_first_touch_at: utm.first_touch_at,
+      }
+    : {};
 
   const sb = getServiceClient();
 
@@ -102,6 +116,7 @@ export async function requestStudy(formData: FormData) {
       pending: false,
       source_path: sourcePath,
       metadata: { same_rapport_re_request: !!sameRapport },
+      ...utmCols,
     });
 
     // Dispatch fire-and-forget : email PDF + CRM hook (parallèle, errors swallowed)
@@ -133,6 +148,7 @@ export async function requestStudy(formData: FormData) {
     report_id: null,
     pending: true,
     source_path: sourcePath,
+    ...utmCols,
   });
 
   // CRM hook quand même (capture l'intent)

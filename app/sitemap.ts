@@ -22,6 +22,7 @@ const STATIC_ROUTES: Array<{
   { path: "/contact", changeFrequency: "monthly", priority: 0.6 },
   { path: "/saas", changeFrequency: "weekly", priority: 0.9 },
   { path: "/saas/vs-getmint", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/saas/vs-otterly", changeFrequency: "monthly", priority: 0.7 }, // S32 Ticket 6
   { path: "/saas/faq", changeFrequency: "monthly", priority: 0.5 },
   { path: "/leaderboard", changeFrequency: "weekly", priority: 0.8 },
   { path: "/quick-check", changeFrequency: "weekly", priority: 0.9 }, // S31 : tool gratuit acquisition
@@ -70,6 +71,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.flatMap((r) =>
     buildLocalizedEntries(base, r.path, now, r.changeFrequency, r.priority),
   );
+
+  // S32 Ticket 5 : landing /obtenir-mon-etude (FR-only, top-level route, paid ads landing)
+  staticEntries.push({
+    url: `${base}/obtenir-mon-etude`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  });
 
   // S17 §4.5 : leaderboard sectoriel — une entry par catégorie qui a un report ready.
   const leaderboardEntries: MetadataRoute.Sitemap = [];

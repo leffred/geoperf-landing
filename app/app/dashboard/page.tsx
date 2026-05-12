@@ -14,7 +14,8 @@ import { EvolutionChart, type EvolutionSeries } from "@/components/saas/v2/Evolu
 import { Sparkline } from "@/components/saas/v2/Sparkline";
 import { LLMHeatmap } from "@/components/saas/v2/LLMHeatmap";
 import { llmColor } from "@/components/saas/v2/LLMPill";
-import { PeriodToggle, parseRange, rangeToDays, type PeriodRange } from "@/components/saas/v2/PeriodToggle";
+import { PeriodToggle } from "@/components/saas/v2/PeriodToggle";
+import { parseRange, rangeToDays, type PeriodRange } from "@/components/saas/v2/period-utils";
 import { GtmPageEvent } from "@/components/gtm/GtmPageEvent";
 
 export const dynamic = "force-dynamic";

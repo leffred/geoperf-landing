@@ -2,18 +2,21 @@
 
 // V2 — Period toggle (4S / 12S / 1A). Client component using URL search params.
 // Preserves all other query params when switching.
+// NOTE: parseRange / rangeToDays / PeriodRange live in period-utils.ts (no "use client")
+// so Server Components can import them without triggering RSC boundary errors.
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
+import { type PeriodRange } from "./period-utils";
+export type { PeriodRange } from "./period-utils";
+export { parseRange, rangeToDays } from "./period-utils";
 
 const RANGES = [
   { key: "4w", label: "4S" },
   { key: "12w", label: "12S" },
   { key: "1y", label: "1A" },
 ] as const;
-
-export type PeriodRange = "4w" | "12w" | "1y";
 
 export function PeriodToggle({ defaultRange = "12w" }: { defaultRange?: PeriodRange }) {
   const pathname = usePathname();
@@ -60,13 +63,3 @@ export function PeriodToggle({ defaultRange = "12w" }: { defaultRange?: PeriodRa
   );
 }
 
-export function rangeToDays(range: PeriodRange): number {
-  if (range === "4w") return 28;
-  if (range === "1y") return 365;
-  return 84; // 12w
-}
-
-export function parseRange(value: string | undefined | null): PeriodRange {
-  if (value === "4w" || value === "12w" || value === "1y") return value;
-  return "12w";
-}
