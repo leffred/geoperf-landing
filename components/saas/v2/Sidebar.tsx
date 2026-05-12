@@ -5,7 +5,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, Zap } from "lucide-react";
+import { Plus, Zap, BarChart2 } from "lucide-react";
 
 export interface SidebarBrand {
   id: string;
@@ -37,7 +37,11 @@ export function Sidebar({
   const isDashboard = pathname === "/app/dashboard";
   const isAlerts = pathname.startsWith("/app/alerts");
   const isRecos = pathname.startsWith("/app/recos");
-  const isBrandActive = (id: string) => pathname.startsWith(`/app/brands/${id}`);
+  const isBrandActive = (id: string) =>
+    pathname.startsWith(`/app/brands/${id}`) &&
+    !pathname.startsWith(`/app/brands/${id}/alignment`);
+  const isAlignmentActive = (id: string) =>
+    pathname.startsWith(`/app/brands/${id}/alignment`);
 
   const tierLower = tier.toLowerCase();
   const isFree = tierLower === "free";
@@ -66,21 +70,34 @@ export function Sidebar({
         </div>
       )}
       {brands.map((b) => (
-        <SidebarItem
-          key={b.id}
-          href={`/app/brands/${b.id}`}
-          active={isBrandActive(b.id)}
-          dotColor={b.color}
-          badge={b.visibilityScore !== null ? String(Math.round(b.visibilityScore)) : undefined}
-        >
-          {b.name}
-        </SidebarItem>
+        <div key={b.id}>
+          <SidebarItem
+            href={`/app/brands/${b.id}`}
+            active={isBrandActive(b.id)}
+            dotColor={b.color}
+            badge={b.visibilityScore !== null ? String(Math.round(b.visibilityScore)) : undefined}
+          >
+            {b.name}
+          </SidebarItem>
+          <Link
+            href={`/app/brands/${b.id}/alignment`}
+            className={`flex items-center gap-2 rounded-md transition-colors duration-fast ${
+              isAlignmentActive(b.id)
+                ? "bg-surface text-ink"
+                : "text-ink-subtle hover:bg-surface hover:text-ink"
+            }`}
+            style={{ fontSize: 11, fontWeight: 500, padding: "3px 10px 3px 22px", marginTop: 1 }}
+          >
+            <BarChart2 size={10} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+            <span>Alignement</span>
+          </Link>
+        </div>
       ))}
 
       <Link
         href="/app/brands/new"
         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-ink-subtle hover:bg-surface hover:text-ink transition-colors duration-fast"
-        style={{ fontSize: 13, fontWeight: 500 }}
+        style={{ fontSize: 13, fontWeight: 500, marginTop: 4 }}
       >
         <Plus size={12} strokeWidth={1.8} />
         Ajouter une marque

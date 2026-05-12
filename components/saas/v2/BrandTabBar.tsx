@@ -14,9 +14,10 @@ export function BrandTabBar({ id }: { id: string }) {
   const isOverview   = pathname === `/app/brands/${id}` && !tab;
   const isSnapshots  = pathname === `/app/brands/${id}` && tab === "snapshots";
   const isRecos      = pathname === `/app/brands/${id}` && tab === "recos";
-  const isSources    = pathname.startsWith(`/app/brands/${id}/sources`);
-  const isAlignment  = pathname.startsWith(`/app/brands/${id}/alignment`);
-  const isSetup      = pathname.startsWith(`/app/brands/${id}/setup`);
+  const isSources      = pathname.startsWith(`/app/brands/${id}/sources`);
+  const isCompetitors  = pathname.startsWith(`/app/brands/${id}/competitors`);
+  const isAlignment    = pathname.startsWith(`/app/brands/${id}/alignment`);
+  const isSetup        = pathname.startsWith(`/app/brands/${id}/setup`);
 
   return (
     <div className="flex gap-0 border-b border-DEFAULT mb-5">
@@ -24,7 +25,8 @@ export function BrandTabBar({ id }: { id: string }) {
       <TabLink href={`/app/brands/${id}?tab=snapshots`} active={isSnapshots}>Snapshots</TabLink>
       <TabLink href={`/app/brands/${id}?tab=recos`}     active={isRecos}>Recommandations</TabLink>
       <TabLink href={`/app/brands/${id}/sources`}       active={isSources}>Sources</TabLink>
-      <TabLink href={`/app/brands/${id}/alignment`}     active={isAlignment}>Concurrents</TabLink>
+      <TabLink href={`/app/brands/${id}/competitors`}   active={isCompetitors}>Concurrents</TabLink>
+      <TabLink href={`/app/brands/${id}/alignment`}     active={isAlignment}>Alignement</TabLink>
       <TabLink href={`/app/brands/${id}/setup`}         active={isSetup}>Réglages</TabLink>
     </div>
   );
