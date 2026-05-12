@@ -55,7 +55,7 @@ export default async function CompetitorsPage({ params }: Props) {
     .eq("id", id)
     .maybeSingle();
 
-  if (!brand || brand.user_id !== ctx.userId) notFound();
+  if (!brand || brand.user_id !== ctx.user.id) notFound();
 
   // 1. Load completed snapshots
   const { data: snapshotsRaw } = await sb
