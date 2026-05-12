@@ -107,6 +107,22 @@ export default async function NewBrandPage({ searchParams }: Props) {
               <p className="text-xs text-ink-subtle mt-1.5">Utilisée dans les prompts adressés aux LLM pour cadrer le contexte.</p>
             </div>
 
+            <div>
+              <label htmlFor="brand_description" className={FIELD_LABEL}>
+                Description de l&apos;activité{" "}
+                <span className="font-sans normal-case opacity-60">(optionnel)</span>
+              </label>
+              <textarea
+                id="brand_description"
+                name="brand_description"
+                rows={3}
+                maxLength={500}
+                placeholder="Ex : Éditeur SaaS B2B spécialisé dans la gestion des notes de frais pour PME françaises. Utile si votre secteur ne rentre pas dans une catégorie standard."
+                className={FIELD_INPUT}
+              />
+              <p className="text-xs text-ink-subtle mt-1.5">2-3 phrases libres. Améliore la pertinence des prompts si votre activité est atypique.</p>
+            </div>
+
             <CompetitorSuggestionPicker />
 
             <div>

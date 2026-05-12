@@ -29,6 +29,7 @@ export async function createBrand(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   const domainRaw = String(formData.get("domain") || "").trim();
   const categoryRaw = String(formData.get("category") || "").trim();
+  const brandDescriptionRaw = String(formData.get("brand_description") || "").trim();
   const competitorsRaw = String(formData.get("competitors") || "").trim();
 
   if (!name) redirect("/app/brands/new?error=missing_name");
@@ -73,6 +74,7 @@ export async function createBrand(formData: FormData) {
       name,
       domain,
       category_slug,
+      brand_description: brandDescriptionRaw || null,
       competitor_domains,
       cadence,
       is_active: true,
@@ -150,7 +152,6 @@ export async function createBrand(formData: FormData) {
       });
     } catch (e) {
       // Timeout ou erreur réseau attendu — l'Edge Function continue en background.
-      // On log mais on ne bloque pas le flow utilisateur.
       const msg = e instanceof Error ? e.message : String(e);
       if (!msg.includes("aborted")) {
         console.warn("[createBrand] auto-snapshot dispatch warning:", msg);
