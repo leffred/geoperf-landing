@@ -12,19 +12,20 @@ import { getServiceClient } from "@/lib/supabase";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
-const COOLDOWN_DAYS: Record<string, number> = {
-  free: 28,
-  starter: 7,
-  pro: 1,
+// Cooldown dashboard "run all" par tier (en secondes).
+// free = 28j · starter = 7j · pro = 1h (le bouton par-marque reste à 60s)
+const COOLDOWN_SEC: Record<string, number> = {
+  free: 28 * 86400,
+  starter: 7 * 86400,
+  pro: 3600,
 };
 
 export async function runAllSnapshots() {
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
   const tier = ctx.tier ?? "free";
-  const cooldownDays = COOLDOWN_DAYS[tier] ?? 28;
-  const cooldownMs = cooldownDays * 86400 * 1000;
-  const cooldownThreshold = new Date(Date.now() - cooldownMs).toISOString();
+  const cooldownSec = COOLDOWN_SEC[tier] ?? COOLDOWN_SEC.free;
+  const cooldownThreshold = new Date(Date.now() - cooldownSec * 1000).toISOString();
 
   // 1. Toutes les marques actives de l'user
   const { data: brands } = await sb
