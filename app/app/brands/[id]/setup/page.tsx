@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Section } from "@/components/ui/Section";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Card } from "@/components/ui/Card";
-import { loadSaasContext } from "@/lib/saas-auth";
+import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { BrandSetupForm } from "./BrandSetupForm";
 
@@ -27,14 +27,17 @@ export default async function BrandSetupPage({ params, searchParams }: Props) {
 
   const { data: brand } = await sb
     .from("saas_tracked_brands")
-    .select("id, user_id, name, domain, brand_description, brand_keywords, brand_value_props")
-    .eq("id", id).maybeSingle();
+    .select("id, user_id, name, domain, category_slug, competitor_domains, cadence, brand_description, brand_keywords, brand_value_props")
+    .eq("id", id)
+    .maybeSingle();
   if (!brand || (brand as any).user_id !== ctx.account_owner_id) notFound();
 
   const errorMsg = error ? ERROR_LABELS[error] || "Erreur." : null;
   const keywords = ((brand as any).brand_keywords ?? []) as string[];
   const valueProps = ((brand as any).brand_value_props ?? []) as string[];
-  const alignmentReady = ((brand as any).brand_description?.length ?? 0) > 0 || keywords.length > 0 || valueProps.length > 0;
+  const competitors = ((brand as any).competitor_domains ?? []) as string[];
+  const limits = tierLimits(ctx.tier);
+  const isFree = ctx.tier === "free";
 
   return (
     <Section py="md" tone="white">
@@ -42,18 +45,18 @@ export default async function BrandSetupPage({ params, searchParams }: Props) {
         <Eyebrow className="mb-2">
           <Link href={`/app/brands/${id}`} className="hover:underline">{(brand as any).name}</Link>
           <span className="opacity-50"> / </span>
-          <span>Brand Setup</span>
+          <span>Setup</span>
         </Eyebrow>
         <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink mb-3 leading-tight">
           Configuration de la marque
         </h1>
         <p className="text-sm text-ink-muted mb-8 leading-relaxed">
-          Décris ta marque pour activer le score d&apos;<strong className="text-ink">alignement</strong> entre ce que tu dis et ce que les LLM disent. Sans setup, l&apos;analyse Brand Alignment ne tourne pas.
+          Modifie les concurrents, la catégorie, la cadence et les paramètres d&apos;alignement de <strong className="text-ink">{(brand as any).name}</strong>.
         </p>
 
         {saved === "1" && (
           <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 text-sm text-brand-600">
-            Setup mis à jour. L&apos;analyse alignment sera recalculée au prochain snapshot.
+            Paramètres mis à jour. L&apos;alignement sera recalculé au prochain snapshot.
           </div>
         )}
         {errorMsg && (
@@ -61,16 +64,15 @@ export default async function BrandSetupPage({ params, searchParams }: Props) {
             {errorMsg}
           </div>
         )}
-        {!alignmentReady && (
-          <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-warning bg-white px-4 py-3 text-xs text-ink-muted">
-            Aucune description ni keyword pour l&apos;instant. <strong className="text-ink">Brand Alignment</strong> est skippé tant que cette page est vide.
-          </div>
-        )}
 
         <Card variant="default">
           <BrandSetupForm
             brandId={id}
             brandName={(brand as any).name}
+            initialCategory={(brand as any).category_slug ?? ""}
+            initialCompetitors={competitors}
+            initialCadence={(brand as any).cadence ?? limits.cadence}
+            isFree={isFree}
             initialDescription={(brand as any).brand_description ?? ""}
             initialKeywords={keywords}
             initialValueProps={valueProps}
@@ -78,9 +80,9 @@ export default async function BrandSetupPage({ params, searchParams }: Props) {
         </Card>
 
         <p className="mt-6 text-xs text-ink-muted">
-          Voir le score :{" "}
+          Score alignment :{" "}
           <Link href={`/app/brands/${id}/alignment`} className="text-brand-500 hover:underline">
-            /app/brands/{id.slice(0, 8)}…/alignment
+            voir le rapport
           </Link>
         </p>
       </div>
