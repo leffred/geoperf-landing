@@ -4,6 +4,7 @@
 import type { ReactNode } from "react";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { AppShell } from "@/components/saas/v2/AppShell";
+import { ThemeProvider } from "@/components/saas/v2/ThemeProvider";
 import { loadSaasContext, tierLimits, tierLabel } from "@/lib/saas-auth";
 import { isDemoMode } from "@/lib/demo-mode";
 
@@ -21,7 +22,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     .join("") || firstName.slice(0, 2).toUpperCase() || "U";
 
   return (
-    <>
+    <ThemeProvider>
       {demo && <DemoBanner />}
       <AppShell
         userId={ctx.user.id}
@@ -29,9 +30,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         initials={initials}
         tier={tierLabel(ctx.tier)}
         brandsLimit={limits.brands}
+        canPickWeekly={limits.cadence === "weekly"}
       >
         {children}
       </AppShell>
-    </>
+    </ThemeProvider>
   );
 }

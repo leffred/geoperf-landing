@@ -5,12 +5,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Search, Bell, Plus } from "lucide-react";
 import { logout } from "@/app/[locale]/login/actions";
+import { AddBrandWizard } from "./AddBrandWizard";
+import { CommandPalette } from "./CommandPalette";
+import type { PaletteBrand } from "./CommandPalette";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface TopbarProps {
   userEmail: string;
   initials: string;
+  canPickWeekly?: boolean;
+  paletteBrands?: PaletteBrand[];
 }
 
 const NAV_ITEMS = [
@@ -19,8 +26,21 @@ const NAV_ITEMS = [
   { href: "/app/alerts",    label: "Alertes",    match: (p: string) => p.startsWith("/app/alerts") },
 ];
 
-export function Topbar({ userEmail: _userEmail, initials }: TopbarProps) {
+export function Topbar({ userEmail: _userEmail, initials, canPickWeekly = true, paletteBrands = [] }: TopbarProps) {
   const pathname = usePathname() ?? "";
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   return (
     <header
       className="sticky top-0 z-40 flex items-center justify-between border-b border-DEFAULT bg-white px-5"
@@ -62,22 +82,26 @@ export function Topbar({ userEmail: _userEmail, initials }: TopbarProps) {
       </div>
 
       <div className="flex items-center gap-2.5">
-        {/* Search (mock cmd+K) — non-functional placeholder for V2.1 */}
-        <div className="hidden lg:block relative" style={{ width: 220 }}>
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-subtle" size={13} strokeWidth={1.6} />
-          <input
-            type="text"
-            placeholder="Rechercher marque, source, prompt…"
-            className="w-full bg-surface border border-DEFAULT rounded-md outline-none transition-colors duration-fast focus:border-brand-500 focus:bg-white text-ink placeholder:text-ink-subtle"
-            style={{ paddingLeft: 28, paddingRight: 38, paddingTop: 6, paddingBottom: 6, fontSize: 13 }}
-          />
+        {/* Search trigger → command palette ⌘K */}
+        <button
+          type="button"
+          onClick={() => setPaletteOpen(true)}
+          className="hidden lg:flex items-center gap-2 relative bg-surface hover:bg-surface-2 border border-DEFAULT rounded-md text-left text-ink-subtle transition-colors duration-fast"
+          style={{ width: 220, paddingLeft: 10, paddingRight: 8, paddingTop: 6, paddingBottom: 6, fontSize: 13 }}
+          aria-label="Recherche (Cmd+K)"
+        >
+          <Search size={13} strokeWidth={1.6} />
+          <span className="flex-1">Rechercher…</span>
           <span
-            className="absolute right-2 top-1/2 -translate-y-1/2 font-mono text-ink-subtle bg-white border border-DEFAULT rounded"
+            className="font-mono bg-white border border-DEFAULT rounded text-ink-subtle"
             style={{ fontSize: 10, padding: "1px 4px" }}
           >
             ⌘K
           </span>
-        </div>
+        </button>
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         {/* Bell */}
         <button
@@ -89,15 +113,16 @@ export function Topbar({ userEmail: _userEmail, initials }: TopbarProps) {
           <Bell size={14} strokeWidth={1.6} />
         </button>
 
-        {/* CTA */}
-        <Link
-          href="/app/brands/new"
+        {/* CTA — opens wizard modal */}
+        <button
+          type="button"
+          onClick={() => setWizardOpen(true)}
           className="inline-flex items-center gap-1.5 bg-brand-500 text-white px-3 py-1.5 rounded-md hover:bg-brand-600 transition-colors duration-fast"
           style={{ fontSize: 13, fontWeight: 500 }}
         >
           <Plus size={13} strokeWidth={2} />
           Ajouter une marque
-        </Link>
+        </button>
 
         {/* Avatar — links to settings, logout via form */}
         <form action={logout}>
@@ -117,6 +142,20 @@ export function Topbar({ userEmail: _userEmail, initials }: TopbarProps) {
           </button>
         </form>
       </div>
+
+      {/* Wizard modal — controlled here */}
+      <AddBrandWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        canPickWeekly={canPickWeekly}
+      />
+
+      {/* Command palette ⌘K */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        brands={paletteBrands}
+      />
     </header>
   );
 }

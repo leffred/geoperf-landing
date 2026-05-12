@@ -14,6 +14,7 @@ import { EvolutionChart, type EvolutionSeries } from "@/components/saas/v2/Evolu
 import { Sparkline } from "@/components/saas/v2/Sparkline";
 import { LLMHeatmap } from "@/components/saas/v2/LLMHeatmap";
 import { llmColor } from "@/components/saas/v2/LLMPill";
+import { PeriodToggle, parseRange, rangeToDays, type PeriodRange } from "@/components/saas/v2/PeriodToggle";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Dashboard — Geoperf", robots: { index: false, follow: false } };
@@ -72,7 +73,16 @@ interface RecoRow {
   created_at: string;
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
+  const sp = await searchParams;
+  const range: PeriodRange = parseRange(sp.range);
+  const rangeDays = rangeToDays(range);
+  const rangeStartIso = new Date(Date.now() - rangeDays * 86400000).toISOString();
+
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
@@ -83,8 +93,9 @@ export default async function DashboardPage() {
     sb.from("v_saas_brand_evolution")
       .select("brand_id, name, snapshot_date, visibility_score, citation_rate, avg_rank")
       .eq("user_id", ctx.user.id)
+      .gte("snapshot_date", rangeStartIso.slice(0, 10))
       .order("snapshot_date", { ascending: true })
-      .limit(120),
+      .limit(400),
     sb.from("saas_alerts")
       .select("id, alert_type, severity, title, body, brand_id, created_at")
       .eq("user_id", ctx.user.id)
@@ -151,10 +162,11 @@ export default async function DashboardPage() {
   const sovDelta = null; // No historical SoV in v_saas_brand_evolution yet.
 
   // ──────────────── Evolution chart data ────────────────
-  // Group rows by snapshot_date (limit to 12 most recent dates), assign series per brand (max 3).
+  // Group rows by snapshot_date; pick all dates for the active range.
   const allDatesSet = new Set<string>();
   for (const e of evolutionRows) allDatesSet.add(e.snapshot_date);
-  const allDates = Array.from(allDatesSet).sort().slice(-12);
+  const maxDates = range === "4w" ? 4 : range === "1y" ? 52 : 12;
+  const allDates = Array.from(allDatesSet).sort().slice(-maxDates);
 
   const topBrands = brandList.slice(0, 3); // primary + 2 competitors
 
@@ -214,6 +226,7 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <PeriodToggle defaultRange="12w" />
           <Link
             href="/app/brands/new"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
@@ -282,7 +295,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader
             title="Évolution hebdo"
-            sub={`Score de visibilité agrégé · 12 dernières semaines`}
+            sub={`Score de visibilité agrégé · ${rangeLabel(range)}`}
             right={
               <div className="flex items-center gap-3">
                 {series.map((s) => (
@@ -562,6 +575,12 @@ function fmtLastSnapshot(brands: BrandLatestRow[]): string {
     .pop();
   if (!latest) return "aucun snapshot encore";
   return new Date(latest).toLocaleString("fr-FR", { weekday: "long", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function rangeLabel(r: PeriodRange): string {
+  if (r === "4w") return "4 dernières semaines";
+  if (r === "1y") return "12 derniers mois";
+  return "12 dernières semaines";
 }
 
 function getWeekNumber(d: Date): number {

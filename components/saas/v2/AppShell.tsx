@@ -26,6 +26,7 @@ interface AppShellProps {
   initials: string;
   tier: string;
   brandsLimit: number;
+  canPickWeekly?: boolean;
 }
 
 export async function AppShell({
@@ -35,19 +36,20 @@ export async function AppShell({
   initials,
   tier,
   brandsLimit,
+  canPickWeekly = true,
 }: AppShellProps) {
   const sb = getServiceClient();
 
   // Fetch sidebar brands list — view filters by user_id (RLS).
   const [brandRes, alertRes, recoRes] = await Promise.all([
     sb.from("v_saas_brand_latest")
-      .select("id, name, visibility_score")
+      .select("id, name, domain, visibility_score")
       .eq("user_id", userId)
       .limit(10),
     sb.from("saas_alerts").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("is_read", false),
     sb.from("saas_recommendations").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("is_read", false),
   ]);
-  const brandRows = (brandRes.data as Array<{ id: string; name: string; visibility_score: number | null }> | null) ?? [];
+  const brandRows = (brandRes.data as Array<{ id: string; name: string; domain: string; visibility_score: number | null }> | null) ?? [];
   const unreadAlerts = (alertRes as { count?: number | null }).count ?? 0;
   const unreadRecos = (recoRes as { count?: number | null }).count ?? 0;
 
@@ -58,12 +60,19 @@ export async function AppShell({
     visibilityScore: b.visibility_score,
   }));
 
+  const paletteBrands = brandRows.map((b) => ({ id: b.id, name: b.name, domain: b.domain }));
+
   // Next snapshot label — naive: next Monday 06:15 CET if no specific data.
   const nextSnapshotLabel = computeNextSnapshotLabel();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Topbar userEmail={userEmail} initials={initials} />
+      <Topbar
+        userEmail={userEmail}
+        initials={initials}
+        canPickWeekly={canPickWeekly}
+        paletteBrands={paletteBrands}
+      />
       <div className="flex flex-1 min-h-0">
         <Sidebar
           brands={brands}
