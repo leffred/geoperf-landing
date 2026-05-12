@@ -507,7 +507,6 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
                   <Th numeric>Δ</Th>
                   <Th numeric>LLMs</Th>
                   <Th numeric>Prompts</Th>
-                  <Th numeric>Coût</Th>
                   <Th />
                 </tr>
               </thead>
@@ -527,7 +526,6 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
                       <Td numeric><Link href={path} className="no-underline"><Delta value={delta} /></Link></Td>
                       <Td numeric><Link href={path} className="text-ink no-underline">{(s.llms_used ?? []).length}</Link></Td>
                       <Td numeric><Link href={path} className="text-ink no-underline">{s.prompts_count}</Link></Td>
-                      <Td numeric><Link href={path} className="text-ink-muted no-underline">{s.total_cost_usd !== null && s.total_cost_usd !== undefined ? `${Number(s.total_cost_usd).toFixed(2)}€` : "—"}</Link></Td>
                       <Td><Link href={path} className="no-underline"><ChevR size={12} strokeWidth={1.8} color="#8C94A6" /></Link></Td>
                     </tr>
                   );

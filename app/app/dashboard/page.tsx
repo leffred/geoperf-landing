@@ -93,10 +93,24 @@ export default async function DashboardPage({
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  const [brandRes, evolutionRes, alertsRes, recosRes] = await Promise.all([
-    sb.from("v_saas_brand_latest")
-      .select("id, name, domain, category_slug, visibility_score, avg_rank, citation_rate, share_of_voice, last_snapshot_at, unread_alerts, unread_recos")
-      .eq("user_id", ctx.user.id),
+  // Phase 1 : brands (nécessaire pour filtrer recos par brand_id — la table
+  // saas_recommendations n'a pas de colonne user_id).
+  const brandRes = await sb
+    .from("v_saas_brand_latest")
+    .select("id, name, domain, category_slug, visibility_score, avg_rank, citation_rate, share_of_voice, last_snapshot_at, unread_alerts, unread_recos")
+    .eq("user_id", ctx.user.id);
+
+  const brandList = (brandRes.data as BrandLatestRow[] | null) ?? [];
+
+  // Empty state — keep simple. No brands yet → redirect to onboarding.
+  if (brandList.length === 0) {
+    redirect("/app/onboarding");
+  }
+
+  const brandIds = brandList.map((b) => b.id);
+
+  // Phase 2 : tout le reste en parallèle, recos filtrées par brand_id.
+  const [evolutionRes, alertsRes, recosRes] = await Promise.all([
     sb.from("v_saas_brand_evolution")
       .select("brand_id, name, snapshot_date, visibility_score, citation_rate, avg_rank")
       .eq("user_id", ctx.user.id)
@@ -110,22 +124,16 @@ export default async function DashboardPage({
       .limit(3),
     sb.from("saas_recommendations")
       .select("id, title, body, category, priority, brand_id, created_at")
-      .eq("user_id", ctx.user.id)
+      .in("brand_id", brandIds)
       .eq("is_read", false)
       .order("priority", { ascending: true })
       .order("created_at", { ascending: false })
       .limit(3),
   ]);
 
-  const brandList = (brandRes.data as BrandLatestRow[] | null) ?? [];
   const evolutionRows = (evolutionRes.data as EvolutionRow[] | null) ?? [];
   const alerts = (alertsRes.data as AlertRow[] | null) ?? [];
   const recos = (recosRes.data as RecoRow[] | null) ?? [];
-
-  // Empty state — keep simple. No brands yet → redirect to onboarding.
-  if (brandList.length === 0) {
-    redirect("/app/onboarding");
-  }
 
   // ──────────────── KPI aggregates ────────────────
   const visScores = brandList.map((b) => b.visibility_score).filter((v) => v !== null) as number[];
@@ -448,7 +456,7 @@ export default async function DashboardPage({
             {recos.map((r) => (
               <Link
                 key={r.id}
-                href={r.brand_id ? `/app/brands/${r.brand_id}` : "/app/brands"}
+                href={r.brand_id ? `/app/brands/${r.brand_id}?tab=recos` : "/app/brands"}
                 className="block hover:bg-surface transition-colors duration-fast"
                 style={{
                   padding: 14,

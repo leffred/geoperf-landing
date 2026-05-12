@@ -144,24 +144,17 @@ export default async function SnapshotDetailPage({ params }: Props) {
             Snapshot · {brand.name}
           </h1>
           <div className="text-ink-muted mt-1" style={{ fontSize: 13 }}>
-            {snap.prompts_count} prompts × {snap.llms_used.length} LLMs · {responses.length} réponses · {snap.total_cost_usd !== null ? `${Number(snap.total_cost_usd).toFixed(2)}€` : "—"} {prev && "· vs snapshot précédent"}
+            {snap.prompts_count} prompts × {snap.llms_used.length} LLMs · {responses.length} réponses{prev && " · vs snapshot précédent"}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
+          <a
+            href={`/api/saas/export-snapshot/${snap.id}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast no-underline"
             style={{ fontSize: 13, fontWeight: 500 }}
           >
             <Download size={12} strokeWidth={1.8} /> CSV
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
-            style={{ fontSize: 13, fontWeight: 500 }}
-          >
-            <Download size={12} strokeWidth={1.8} /> PDF
-          </button>
+          </a>
           <Link
             href={`/app/brands/${brand.id}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-500 text-white hover:bg-brand-600 transition-colors duration-fast no-underline"
