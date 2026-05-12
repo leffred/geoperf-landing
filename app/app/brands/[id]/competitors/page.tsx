@@ -50,7 +50,7 @@ export default async function CompetitorsPage({ params }: Props) {
 
   // Auth check
   const { data: brand } = await sb
-    .from("saas_brands")
+    .from("saas_tracked_brands")
     .select("id, name, user_id")
     .eq("id", id)
     .maybeSingle();
