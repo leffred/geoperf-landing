@@ -7,6 +7,7 @@
 
 import { headers } from "next/headers";
 import { getServiceClient } from "@/lib/supabase";
+import { readUtmFromCookie } from "@/lib/utm";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -115,19 +116,52 @@ export async function captureEmail(formData: FormData): Promise<CaptureEmailResu
 
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
 
+  // S32 Ticket 4 — attribution paid : lit le cookie _geoperf_utm (30j first-touch)
+  // posé par le middleware. Si nouveau lead → on stocke ; si re-soumission → on
+  // garde le first-touch existant via `ignoreDuplicates` sur les colonnes UTM
+  // (le upsert ci-dessous écrase tout sauf si on filtre).
+  const utm = await readUtmFromCookie();
+
   const sb = getServiceClient();
-  // Upsert : 1 email = 1 lead, mais on update domain/category si re-soumission.
-  const { error } = await sb
+  // Stratégie 2 étapes pour préserver le first-touch UTM :
+  //   1. Cherche si email existe déjà
+  //   2a. Si existe → UPDATE seulement des fields mutables (domain, category, ip)
+  //   2b. Sinon   → INSERT avec acquisition_* (first-touch).
+  const { data: existing } = await sb
     .from("saas_quick_check_leads")
-    .upsert(
-      {
-        email,
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  let error: Error | { message: string } | null = null;
+  if (existing) {
+    const { error: updErr } = await sb
+      .from("saas_quick_check_leads")
+      .update({
         domain,
         category_slug: category || null,
         ip_address: ip,
-      },
-      { onConflict: "email", ignoreDuplicates: false },
-    );
+      })
+      .eq("email", email);
+    error = updErr;
+  } else {
+    const insertRow: Record<string, string | null> = {
+      email,
+      domain,
+      category_slug: category || null,
+      ip_address: ip,
+    };
+    if (utm) {
+      insertRow.acquisition_source = utm.utm_source || null;
+      insertRow.acquisition_medium = utm.utm_medium || null;
+      insertRow.acquisition_campaign = utm.utm_campaign || null;
+      insertRow.acquisition_content = utm.utm_content || null;
+      insertRow.acquisition_term = utm.utm_term || null;
+      insertRow.acquisition_first_touch_at = utm.first_touch_at;
+    }
+    const { error: insErr } = await sb.from("saas_quick_check_leads").insert(insertRow);
+    error = insErr;
+  }
 
   if (error) {
     return { ok: false, error: "db_insert_failed", message: error.message };

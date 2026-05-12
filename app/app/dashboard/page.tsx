@@ -15,6 +15,7 @@ import { Sparkline } from "@/components/saas/v2/Sparkline";
 import { LLMHeatmap } from "@/components/saas/v2/LLMHeatmap";
 import { llmColor } from "@/components/saas/v2/LLMPill";
 import { PeriodToggle, parseRange, rangeToDays, type PeriodRange } from "@/components/saas/v2/PeriodToggle";
+import { GtmPageEvent } from "@/components/gtm/GtmPageEvent";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Dashboard — Geoperf", robots: { index: false, follow: false } };
@@ -76,10 +77,11 @@ interface RecoRow {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; welcome?: string }>;
 }) {
   const sp = await searchParams;
   const range: PeriodRange = parseRange(sp.range);
+  const justSignedUp = sp.welcome === "1";
   const rangeDays = rangeToDays(range);
   const rangeStartIso = new Date(Date.now() - rangeDays * 86400000).toISOString();
 
@@ -212,6 +214,9 @@ export default async function DashboardPage({
   // ──────────────── Page render ────────────────
   return (
     <div>
+      {/* S32 Ticket 3 — signup_complete event quand on arrive via auth callback (?welcome=1) */}
+      {justSignedUp && <GtmPageEvent event="signup_complete" value={50} dedupKey="signup_complete" />}
+
       {/* Page header */}
       <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
         <div>

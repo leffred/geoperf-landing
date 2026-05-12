@@ -35,5 +35,17 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL(next, req.url));
+  // S32 Ticket 3 — signal "signup_complete" si user créé dans les 5 dernières minutes.
+  // La page de destination monte un GtmPageEvent qui push l'event GA4 + nettoie l'URL.
+  let finalNext = next;
+  const createdAt = data?.user?.created_at;
+  if (createdAt) {
+    const ageMs = Date.now() - new Date(createdAt).getTime();
+    if (ageMs < 5 * 60 * 1000) {
+      const sep = next.includes("?") ? "&" : "?";
+      finalNext = `${next}${sep}welcome=1`;
+    }
+  }
+
+  return NextResponse.redirect(new URL(finalNext, req.url));
 }

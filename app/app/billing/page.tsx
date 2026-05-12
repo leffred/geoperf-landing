@@ -8,6 +8,7 @@ import { loadSaasContext, tierLabel, TIER_LIMITS, type SaasTier } from "@/lib/sa
 import { isDemoMode } from "@/lib/demo-mode";
 import { priceDisplay, TIERS as PRICING_TIERS, fmtHT, type TierKey } from "@/lib/saas-pricing";
 import { startCheckout, openCustomerPortal } from "./actions";
+import { GtmPageEvent } from "@/components/gtm/GtmPageEvent";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Abonnement — Geoperf", robots: { index: false, follow: false } };
@@ -59,7 +60,7 @@ const TIER_FEATURES: Record<Exclude<SaasTier, "solo">, string[]> = {
 
 const ORDER: Array<Exclude<SaasTier, "solo">> = ["free", "starter", "growth", "pro", "agency"];
 
-type Props = { searchParams: Promise<{ error?: string; success?: string; canceled?: string; cycle?: string }> };
+type Props = { searchParams: Promise<{ error?: string; success?: string; session_id?: string; canceled?: string; cycle?: string }> };
 
 export default async function BillingPage({ searchParams }: Props) {
   const sp = await searchParams;
@@ -113,9 +114,12 @@ export default async function BillingPage({ searchParams }: Props) {
       )}
 
       {sp.success === "true" && (
-        <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-success bg-emerald-50 px-4 py-3 text-sm text-success">
-          Paiement validé. Votre plan sera actif d&apos;ici quelques instants.
-        </div>
+        <>
+          <GtmPageEvent event="subscription_active" dedupKey={`subscription_active_${sp.session_id ?? ""}`} params={{ session_id: sp.session_id }} />
+          <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-success bg-emerald-50 px-4 py-3 text-sm text-success">
+            Paiement validé. Votre plan sera actif d&apos;ici quelques instants.
+          </div>
+        </>
       )}
       {sp.canceled === "true" && (
         <div className="mb-4 rounded-lg border border-DEFAULT border-l-2 border-l-ink/15 bg-surface px-4 py-3 text-sm text-ink-muted">
