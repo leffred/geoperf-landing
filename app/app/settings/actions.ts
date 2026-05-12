@@ -4,22 +4,31 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireSaasUser, loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
+import { getSupabaseServerClient } from "@/lib/supabase-server-auth";
 
 export async function updateProfile(formData: FormData) {
   const user = await requireSaasUser();
-  const fullName = String(formData.get("full_name") || "").trim();
-  const company = String(formData.get("company") || "").trim();
-  // Checkbox HTML : la valeur n'est envoyée que si cochée → "on" si activée, undefined sinon
-  const emailNotifsEnabled = formData.get("email_notifs_enabled") === "on";
+
+  const firstName = String(formData.get("first_name") || "").trim();
+  const lastName  = String(formData.get("last_name")  || "").trim();
+  const fullName  = [firstName, lastName].filter(Boolean).join(" ") || String(formData.get("full_name") || "").trim();
+  const company   = String(formData.get("company")    || "").trim();
+  const phone     = String(formData.get("phone")      || "").trim();
+  const language  = formData.get("language") === "en" ? "en" : "fr";
+  const emailNotifsEnabled  = formData.get("email_notifs_enabled")  === "on";
   const digestWeeklyEnabled = formData.get("digest_weekly_enabled") === "on";
 
   const sb = getServiceClient();
   const { error } = await sb
     .from("saas_profiles")
     .update({
-      full_name: fullName || null,
-      company: company || null,
-      email_notifs_enabled: emailNotifsEnabled,
+      first_name: firstName || null,
+      last_name:  lastName  || null,
+      full_name:  fullName  || null,
+      company:    company   || null,
+      phone:      phone     || null,
+      language,
+      email_notifs_enabled:  emailNotifsEnabled,
       digest_weekly_enabled: digestWeeklyEnabled,
     })
     .eq("id", user.id);
@@ -31,6 +40,23 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/app/settings");
   revalidatePath("/app/dashboard");
   redirect("/app/settings?saved=1");
+}
+
+export async function changePassword(formData: FormData) {
+  const newPassword = String(formData.get("new_password") || "").trim();
+  const confirmPassword = String(formData.get("confirm_password") || "").trim();
+
+  if (!newPassword || newPassword.length < 8) redirect("/app/settings?error=pwd_too_short");
+  if (newPassword !== confirmPassword) redirect("/app/settings?error=pwd_mismatch");
+
+  const supabase = await getSupabaseServerClient();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+  if (error) {
+    console.error("[changePassword]", error.message);
+    redirect("/app/settings?error=pwd_failed");
+  }
+  redirect("/app/settings?pwd_saved=1");
 }
 
 /** Insère une fausse alerte sur le dernier snapshot de l'user. Le trigger DB
@@ -62,7 +88,6 @@ export async function sendTestEmail() {
     .maybeSingle();
   if (!snap) redirect("/app/settings?error=test_no_snapshot");
 
-  // Tente plusieurs alert_type en cas de doublon (uq_saas_alerts_snapshot_type)
   const candidates: Array<"citation_gain" | "rank_gain" | "new_source"> = ["citation_gain", "rank_gain", "new_source"];
   let inserted = false;
   let lastError: string | null = null;

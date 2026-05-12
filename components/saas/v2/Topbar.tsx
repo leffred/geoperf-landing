@@ -1,12 +1,11 @@
 "use client";
 
-// V2 — Topbar : 52px sticky bar with logo + nav + search + bell + CTA + avatar.
-// Client component (reads usePathname for active state).
+// V2 — Topbar : 52px sticky bar with logo + nav + search + bell + CTA + avatar dropdown.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Search, Bell, Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Search, Bell, Plus, Settings, FileText, LogOut, ChevronDown } from "lucide-react";
 import { logout } from "@/app/[locale]/login/actions";
 import { AddBrandWizard } from "./AddBrandWizard";
 import { CommandPalette } from "./CommandPalette";
@@ -26,21 +25,37 @@ const NAV_ITEMS = [
   { href: "/app/alerts",    label: "Alertes",    match: (p: string) => p.startsWith("/app/alerts") },
 ];
 
-export function Topbar({ userEmail: _userEmail, initials, canPickWeekly = true, paletteBrands = [] }: TopbarProps) {
+export function Topbar({ userEmail, initials, canPickWeekly = true, paletteBrands = [] }: TopbarProps) {
   const pathname = usePathname() ?? "";
   const [wizardOpen, setWizardOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown on outside click
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [dropdownOpen]);
+
+  // Close dropdown on Escape
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setDropdownOpen(false);
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setPaletteOpen((v) => !v);
       }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
   }, []);
+
   return (
     <header
       className="sticky top-0 z-40 flex items-center justify-between border-b border-DEFAULT bg-white px-5"
@@ -82,7 +97,7 @@ export function Topbar({ userEmail: _userEmail, initials, canPickWeekly = true, 
       </div>
 
       <div className="flex items-center gap-2.5">
-        {/* Search trigger → command palette ⌘K */}
+        {/* Search ⌘K */}
         <button
           type="button"
           onClick={() => setPaletteOpen(true)}
@@ -92,15 +107,11 @@ export function Topbar({ userEmail: _userEmail, initials, canPickWeekly = true, 
         >
           <Search size={13} strokeWidth={1.6} />
           <span className="flex-1">Rechercher…</span>
-          <span
-            className="font-mono bg-white border border-DEFAULT rounded text-ink-subtle"
-            style={{ fontSize: 10, padding: "1px 4px" }}
-          >
+          <span className="font-mono bg-white border border-DEFAULT rounded text-ink-subtle" style={{ fontSize: 10, padding: "1px 4px" }}>
             ⌘K
           </span>
         </button>
 
-        {/* Theme toggle */}
         <ThemeToggle />
 
         {/* Bell */}
@@ -113,7 +124,7 @@ export function Topbar({ userEmail: _userEmail, initials, canPickWeekly = true, 
           <Bell size={14} strokeWidth={1.6} />
         </button>
 
-        {/* CTA — opens wizard modal */}
+        {/* CTA */}
         <button
           type="button"
           onClick={() => setWizardOpen(true)}
@@ -124,33 +135,87 @@ export function Topbar({ userEmail: _userEmail, initials, canPickWeekly = true, 
           Ajouter une marque
         </button>
 
-        {/* Avatar — links to settings, logout via form */}
-        <form action={logout}>
+        {/* Avatar dropdown */}
+        <div ref={dropdownRef} className="relative">
           <button
-            type="submit"
-            title="Logout"
-            className="grid place-items-center rounded-full text-white"
-            style={{
-              width: 28,
-              height: 28,
-              background: "linear-gradient(135deg, #C77D2C, #2563EB)",
-              fontSize: 11,
-              fontWeight: 600,
-            }}
+            type="button"
+            onClick={() => setDropdownOpen((v) => !v)}
+            className="flex items-center gap-1 rounded-full focus:outline-none"
+            aria-label="Menu compte"
+            aria-expanded={dropdownOpen}
           >
-            {initials}
+            <span
+              className="grid place-items-center rounded-full text-white"
+              style={{
+                width: 28,
+                height: 28,
+                background: "linear-gradient(135deg, #C77D2C, #2563EB)",
+                fontSize: 11,
+                fontWeight: 600,
+                flexShrink: 0,
+              }}
+            >
+              {initials}
+            </span>
+            <ChevronDown
+              size={12}
+              strokeWidth={2}
+              className={`text-ink-subtle transition-transform duration-150 ${dropdownOpen ? "rotate-180" : ""}`}
+            />
           </button>
-        </form>
+
+          {dropdownOpen && (
+            <div
+              className="absolute right-0 mt-2 bg-white border border-DEFAULT rounded-lg shadow-card z-50"
+              style={{ minWidth: 200, top: "100%" }}
+            >
+              {/* User info header */}
+              <div className="px-4 py-3 border-b border-DEFAULT">
+                <div className="text-xs font-mono text-ink-subtle truncate">{userEmail}</div>
+              </div>
+
+              {/* Menu items */}
+              <div className="py-1">
+                <Link
+                  href="/app/settings"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-surface transition-colors"
+                >
+                  <Settings size={14} strokeWidth={1.6} className="text-ink-subtle" />
+                  Paramètres
+                </Link>
+                <Link
+                  href="/app/billing"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-surface transition-colors"
+                >
+                  <FileText size={14} strokeWidth={1.6} className="text-ink-subtle" />
+                  Factures &amp; abonnement
+                </Link>
+              </div>
+
+              {/* Separator + Logout */}
+              <div className="border-t border-DEFAULT py-1">
+                <form action={logout}>
+                  <button
+                    type="submit"
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-danger hover:bg-danger/5 transition-colors"
+                  >
+                    <LogOut size={14} strokeWidth={1.6} />
+                    Déconnexion
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Wizard modal — controlled here */}
       <AddBrandWizard
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         canPickWeekly={canPickWeekly}
       />
-
-      {/* Command palette ⌘K */}
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}

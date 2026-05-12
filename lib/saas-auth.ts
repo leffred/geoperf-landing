@@ -13,6 +13,10 @@ export type SaasProfile = {
   id: string;
   email: string;
   full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  language: string;
   company: string | null;
   stripe_customer_id: string | null;
   email_notifs_enabled: boolean;
@@ -83,7 +87,7 @@ export async function getSaasProfile(userId: string): Promise<SaasProfile | null
   const sb = getServiceClient();
   const { data } = await sb
     .from("saas_profiles")
-    .select("id, email, full_name, company, stripe_customer_id, email_notifs_enabled, digest_weekly_enabled, welcome_email_sent_at, created_at")
+    .select("id, email, full_name, first_name, last_name, phone, language, company, stripe_customer_id, email_notifs_enabled, digest_weekly_enabled, welcome_email_sent_at, created_at")
     .eq("id", userId)
     .maybeSingle();
   return (data as SaasProfile | null) ?? null;
@@ -120,7 +124,7 @@ export async function loadSaasContext() {
   // 2. Charger profile (du user lui-même, pour affichage email/nom)
   const { data: profileRow } = await sb
     .from("saas_profiles")
-    .select("id, email, full_name, company, stripe_customer_id, email_notifs_enabled, digest_weekly_enabled, welcome_email_sent_at, created_at")
+    .select("id, email, full_name, first_name, last_name, phone, language, company, stripe_customer_id, email_notifs_enabled, digest_weekly_enabled, welcome_email_sent_at, created_at")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -171,6 +175,5 @@ export function relativeVisibility(visibility: number | null | undefined, citati
   const v = Number(visibility);
   const c = Number(citationRate);
   if (!Number.isFinite(v) || !Number.isFinite(c) || c <= 0) return null;
-  const q = (v / (c / 100));
-  return Math.round(Math.min(100, q) * 10) / 10;
+  return Math.min(100, Math.round((v / (c / 100)) * 10) / 10);
 }
