@@ -84,7 +84,7 @@ export default async function CompetitorsPage({ params }: Props) {
           <EmptyState
             title="Aucun snapshot complété"
             body="Lance un premier snapshot pour voir apparaître les données concurrentielles."
-            action={{ label: "Voir les réglages", href: `/app/brands/${id}/setup` }}
+            ctaLabel="Voir les réglages" ctaHref={`/app/brands/${id}/setup`}
           />
         </div>
       </Section>

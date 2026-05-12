@@ -1,4 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from "next-intl/plugin";
 
 // S28 — i18n FR/EN : resout i18n/request.ts comme config server-side de next-intl.
@@ -21,21 +20,9 @@ const nextConfig = {
   // is read from the host header in middleware.
   experimental: {
     serverActions: { bodySizeLimit: "2mb" },
-    // S30 Session 2 — PPR tente mais Next 15.5 stable ne supporte pas `ppr: 'incremental'`
-    // (necessite canary). Opt-out conformement au brief §9. A re-tenter quand Next 16+
-    // promeut PPR vers stable.
   },
 };
 
-// S17 §4.8 : Sentry wrap pour error tracking + source maps upload (production).
-// Si SENTRY_DSN / SENTRY_AUTH_TOKEN absents (dev local), Sentry skip silently
-// les uploads et l'init runtime no-op — pas d'erreur de build.
-export default withSentryConfig(withNextIntl(nextConfig), {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
-  hideSourceMaps: true,
-});
+// Sentry désactivé — overhead build trop élevé (~2 min) pour un usage non actif.
+// Pour réactiver : npm install @sentry/nextjs, wrapper withSentryConfig ci-dessous.
+export default withNextIntl(nextConfig);
