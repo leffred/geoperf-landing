@@ -17,6 +17,7 @@ import { llmColor } from "@/components/saas/v2/LLMPill";
 import { PeriodToggle } from "@/components/saas/v2/PeriodToggle";
 import { parseRange, rangeToDays, type PeriodRange } from "@/components/saas/v2/period-utils";
 import { GtmPageEvent } from "@/components/gtm/GtmPageEvent";
+import { SnapshotAllButton } from "@/components/saas/v2/SnapshotAllButton";
 import { runAllSnapshots } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -225,7 +226,7 @@ export default async function DashboardPage({
       {snapshotStatus === "queued" && snapshotCount > 0 && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-2.5 text-success" style={{ fontSize: 13 }}>
           <RefreshCw size={13} strokeWidth={1.8} className="shrink-0" />
-          {snapshotCount} snapshot{snapshotCount > 1 ? "s" : ""} lancé{snapshotCount > 1 ? "s" : ""} — les résultats apparaîtront dans quelques minutes.
+          {snapshotCount} snapshot{snapshotCount > 1 ? "s" : ""} lancé{snapshotCount > 1 ? "s" : ""} — les résultats seront disponibles dans moins de 5 minutes.
         </div>
       )}
       {snapshotStatus === "cooldown" && (
@@ -257,14 +258,7 @@ export default async function DashboardPage({
           <PeriodToggle defaultRange="12w" />
           {/* Trigger snapshots for all active brands (with tier-based cooldown) */}
           <form action={runAllSnapshots}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
-              style={{ fontSize: 13, fontWeight: 500 }}
-            >
-              <RefreshCw size={12} strokeWidth={1.8} />
-              Lancer un snapshot
-            </button>
+            <SnapshotAllButton />
           </form>
           {/* Add a new brand */}
           <Link
