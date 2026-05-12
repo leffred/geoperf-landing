@@ -63,7 +63,12 @@ export async function updateBrandSetup(formData: FormData) {
     .filter(d => d.length > 0 && d.includes("."))
     .slice(0, 10);
 
-  const category_slug = categoryRaw ? slugify(categoryRaw) : undefined;
+  // Lookup slug réel en DB (ex: "Agriculture" → "farming"). Fallback slugify si libre.
+  let category_slug: string | undefined;
+  if (categoryRaw) {
+    const { data: catMatch } = await sb.from("categories").select("slug").eq("nom", categoryRaw).maybeSingle();
+    category_slug = (catMatch as any)?.slug ?? slugify(categoryRaw);
+  }
 
   const patch: Record<string, unknown> = {
     brand_description: description || null,

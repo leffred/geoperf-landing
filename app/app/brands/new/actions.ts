@@ -65,7 +65,9 @@ export async function createBrand(formData: FormData) {
     .filter(d => d.length > 0 && d.includes("."))
     .slice(0, 10);
 
-  const category_slug = slugify(categoryRaw);
+  // Lookup slug réel en DB (ex: "Agriculture" → "farming"). Fallback slugify si libre.
+  const { data: catMatch } = await sb.from("categories").select("slug").eq("nom", categoryRaw).maybeSingle();
+  const category_slug = (catMatch as any)?.slug ?? slugify(categoryRaw);
 
   const { data, error } = await sb
     .from("saas_tracked_brands")
