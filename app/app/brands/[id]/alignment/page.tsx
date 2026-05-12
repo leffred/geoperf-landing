@@ -7,6 +7,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { EmptyState } from "@/components/saas/EmptyState";
 import { loadSaasContext, tierLabel } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
+import { BrandTabBar } from "@/components/saas/v2/BrandTabBar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Brand Alignment — Geoperf", robots: { index: false, follow: false } };
@@ -72,6 +73,7 @@ export default async function AlignmentPage({ params }: Props) {
   if (!ALLOWED.has(ctx.tier)) {
     return (
       <Section py="md" tone="white">
+      <BrandTabBar id={id} />
         <PageHeader id={id} brandName={(brand as any).name} />
         <EmptyState
           icon="alerts"
@@ -92,6 +94,7 @@ export default async function AlignmentPage({ params }: Props) {
   if (setupEmpty) {
     return (
       <Section py="md" tone="white">
+      <BrandTabBar id={id} />
         <PageHeader id={id} brandName={(brand as any).name} />
         <EmptyState
           icon="topics"
@@ -115,6 +118,7 @@ export default async function AlignmentPage({ params }: Props) {
   if (!latest) {
     return (
       <Section py="md" tone="white">
+      <BrandTabBar id={id} />
         <PageHeader id={id} brandName={(brand as any).name} />
         <EmptyState
           icon="snapshot"
@@ -138,6 +142,7 @@ export default async function AlignmentPage({ params }: Props) {
 
   return (
     <Section py="md" tone="white">
+      <BrandTabBar id={id} />
       <PageHeader
         id={id}
         brandName={(brand as any).name}

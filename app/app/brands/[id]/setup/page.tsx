@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { loadSaasContext, tierLimits } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { BrandSetupForm } from "./BrandSetupForm";
+import { BrandTabBar } from "@/components/saas/v2/BrandTabBar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Brand Setup — Geoperf", robots: { index: false, follow: false } };
@@ -41,6 +42,7 @@ export default async function BrandSetupPage({ params, searchParams }: Props) {
 
   return (
     <Section py="md" tone="white">
+      <BrandTabBar id={id} />
       <div className="max-w-2xl">
         <Eyebrow className="mb-2">
           <Link href={`/app/brands/${id}`} className="hover:underline">{(brand as any).name}</Link>

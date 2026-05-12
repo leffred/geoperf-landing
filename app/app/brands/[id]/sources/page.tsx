@@ -6,6 +6,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { TopicSelector } from "@/components/saas/TopicSelector";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
+import { BrandTabBar } from "@/components/saas/v2/BrandTabBar";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Sources Explorer — Geoperf", robots: { index: false, follow: false } };
@@ -66,6 +67,7 @@ export default async function SourcesPage({ params, searchParams }: Props) {
   if (snapshotIds.length === 0) {
     return (
       <Section py="md" tone="white">
+      <BrandTabBar id={id} />
         <Header id={id} brandName={brand.name} />
         <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-10 text-center text-ink-muted text-sm">
           Aucun snapshot completed. Lance un run pour explorer les sources.
@@ -109,6 +111,7 @@ export default async function SourcesPage({ params, searchParams }: Props) {
 
   return (
     <Section py="md" tone="white">
+      <BrandTabBar id={id} />
       <Header
         id={id}
         brandName={brand.name}
