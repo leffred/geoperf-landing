@@ -7,11 +7,12 @@
 // Particularité : les concurrents cochés sont injectés directement dans le textarea
 // "competitors" du form parent (au lieu d'un input hidden séparé).
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Suggestion = { name: string; domain: string };
 
 export function CompetitorSuggestionPicker() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -23,7 +24,9 @@ export function CompetitorSuggestionPicker() {
   async function handleSuggest() {
     setError(null);
     setInjected(false);
-    const form = document.querySelector("form") as HTMLFormElement | null;
+    // .closest("form") remonte au form parent direct — évite de capter
+    // la form logout du Topbar qui apparaît avant dans le DOM.
+    const form = containerRef.current?.closest("form") as HTMLFormElement | null;
     if (!form) return;
     const fd = new FormData(form);
     const brand_name = String(fd.get("name") ?? "").trim();
@@ -71,7 +74,7 @@ export function CompetitorSuggestionPicker() {
 
   function handleInject() {
     if (checkedSuggestions.length === 0) return;
-    const form = document.querySelector("form") as HTMLFormElement | null;
+    const form = containerRef.current?.closest("form") as HTMLFormElement | null;
     if (!form) return;
     const competitorsField = form.querySelector('textarea[name="competitors"], input[name="competitors"]') as
       HTMLTextAreaElement | HTMLInputElement | null;
@@ -94,7 +97,7 @@ export function CompetitorSuggestionPicker() {
   }
 
   return (
-    <div className="bg-surface rounded-lg p-5 border border-ink/[0.08] space-y-3">
+    <div ref={containerRef} className="bg-surface rounded-lg p-5 border border-ink/[0.08] space-y-3">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
         <div>
           <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500 mb-1">Concurrents auto-suggérés (recommandé)</p>

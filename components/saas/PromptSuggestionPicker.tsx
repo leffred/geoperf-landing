@@ -12,7 +12,7 @@
 // S16.1 fix #1.1 : refonte UX visibility — card dédiée au lieu de border-t
 // discret, bouton primary, feedback succès/erreur clair.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Suggestion = { category: "direct_search" | "competitive" | "use_case"; template: string };
 
@@ -23,6 +23,7 @@ const CATEGORY_LABEL: Record<Suggestion["category"], string> = {
 };
 
 export function PromptSuggestionPicker() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -32,7 +33,7 @@ export function PromptSuggestionPicker() {
 
   async function handleSuggest() {
     setError(null);
-    const form = document.querySelector("form") as HTMLFormElement | null;
+    const form = containerRef.current?.closest("form") as HTMLFormElement | null;
     if (!form) return;
     const fd = new FormData(form);
     const name = String(fd.get("name") ?? "").trim();
@@ -82,7 +83,7 @@ export function PromptSuggestionPicker() {
   }
 
   return (
-    <div className="bg-surface rounded-lg p-5 border border-ink/[0.08] space-y-3">
+    <div ref={containerRef} className="bg-surface rounded-lg p-5 border border-ink/[0.08] space-y-3">
       <div className="flex items-baseline justify-between flex-wrap gap-2">
         <div>
           <p className="font-mono text-xs uppercase tracking-eyebrow text-brand-500 mb-1">Prompts personnalisés (recommandé)</p>

@@ -5,7 +5,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowUp, ArrowDown, Sparkles, RefreshCw, Download, Flag } from "lucide-react";
+import { ArrowUp, ArrowDown, Sparkles, RefreshCw, Download, Flag, Plus } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { KpiStrip, KpiCell } from "@/components/saas/v2/KpiStrip";
@@ -17,6 +17,7 @@ import { llmColor } from "@/components/saas/v2/LLMPill";
 import { PeriodToggle } from "@/components/saas/v2/PeriodToggle";
 import { parseRange, rangeToDays, type PeriodRange } from "@/components/saas/v2/period-utils";
 import { GtmPageEvent } from "@/components/gtm/GtmPageEvent";
+import { runAllSnapshots } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Dashboard — Geoperf", robots: { index: false, follow: false } };
@@ -78,11 +79,13 @@ interface RecoRow {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; welcome?: string }>;
+  searchParams: Promise<{ range?: string; welcome?: string; snapshot?: string; count?: string }>;
 }) {
   const sp = await searchParams;
   const range: PeriodRange = parseRange(sp.range);
   const justSignedUp = sp.welcome === "1";
+  const snapshotStatus = sp.snapshot ?? null;
+  const snapshotCount = Number(sp.count ?? 0);
   const rangeDays = rangeToDays(range);
   const rangeStartIso = new Date(Date.now() - rangeDays * 86400000).toISOString();
 
@@ -218,6 +221,25 @@ export default async function DashboardPage({
       {/* S32 Ticket 3 — signup_complete event quand on arrive via auth callback (?welcome=1) */}
       {justSignedUp && <GtmPageEvent event="signup_complete" value={50} dedupKey="signup_complete" />}
 
+      {/* Flash banner snapshot */}
+      {snapshotStatus === "queued" && snapshotCount > 0 && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-4 py-2.5 text-success" style={{ fontSize: 13 }}>
+          <RefreshCw size={13} strokeWidth={1.8} className="shrink-0" />
+          {snapshotCount} snapshot{snapshotCount > 1 ? "s" : ""} lancé{snapshotCount > 1 ? "s" : ""} — les résultats apparaîtront dans quelques minutes.
+        </div>
+      )}
+      {snapshotStatus === "cooldown" && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-DEFAULT bg-surface px-4 py-2.5 text-ink-muted" style={{ fontSize: 13 }}>
+          <RefreshCw size={13} strokeWidth={1.8} className="shrink-0" />
+          Snapshot trop récent — réessaie selon la cadence de ton abonnement.
+        </div>
+      )}
+      {snapshotStatus === "none" && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-DEFAULT bg-surface px-4 py-2.5 text-ink-muted" style={{ fontSize: 13 }}>
+          Aucune marque active à mettre à jour.
+        </div>
+      )}
+
       {/* Page header */}
       <div className="flex items-end justify-between mb-6 gap-4 flex-wrap">
         <div>
@@ -231,24 +253,37 @@ export default async function DashboardPage({
             {brandList.length} marque{brandList.length > 1 ? "s" : ""} suivie{brandList.length > 1 ? "s" : ""} · Dernier snapshot {fmtLastSnapshot(brandList)}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <PeriodToggle defaultRange="12w" />
+          {/* Trigger snapshots for all active brands (with tier-based cooldown) */}
+          <form action={runAllSnapshots}>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
+              style={{ fontSize: 13, fontWeight: 500 }}
+            >
+              <RefreshCw size={12} strokeWidth={1.8} />
+              Lancer un snapshot
+            </button>
+          </form>
+          {/* Add a new brand */}
           <Link
             href="/app/brands/new"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
             style={{ fontSize: 13, fontWeight: 500 }}
           >
-            <RefreshCw size={12} strokeWidth={1.8} />
-            Lancer un snapshot
+            <Plus size={12} strokeWidth={1.8} />
+            Nouvelle marque
           </Link>
-          <button
-            type="button"
+          {/* CSV export */}
+          <a
+            href="/api/saas/export-dashboard"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
             style={{ fontSize: 13, fontWeight: 500 }}
           >
             <Download size={12} strokeWidth={1.8} />
             Export
-          </button>
+          </a>
         </div>
       </div>
 
