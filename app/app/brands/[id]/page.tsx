@@ -4,14 +4,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Filter, Settings, RefreshCw, ChevronRight as ChevR, Flag } from "lucide-react";
+import { ChevronRight, Filter, Settings, ChevronRight as ChevR, Flag } from "lucide-react";
 import { requireSaasUser } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { KpiStrip, KpiCell } from "@/components/saas/v2/KpiStrip";
 import { Delta } from "@/components/saas/v2/Delta";
 import { EvolutionChart, type EvolutionSeries } from "@/components/saas/v2/EvolutionChart";
 import { LLMPill } from "@/components/saas/v2/LLMPill";
+import { RefreshBrandButton } from "@/components/saas/v2/RefreshBrandButton";
 import { refreshBrand } from "./actions";
+
+// Cooldown "run snapshot" par tier (secondes) — identique à dashboard/actions.ts
+const SNAP_COOLDOWN_SEC: Record<string, number> = {
+  free: 28 * 86400,
+  starter: 7 * 86400,
+  pro: 3600,
+};
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Marque — Geoperf", robots: { index: false, follow: false } };
@@ -82,7 +90,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
   const user = await requireSaasUser();
   const sb = getServiceClient();
 
-  const [brandRes, snapRes, allSnapshotsRes] = await Promise.all([
+  const [brandRes, snapRes, allSnapshotsRes, inFlightRes, subRes] = await Promise.all([
     sb.from("saas_tracked_brands")
       .select("id, user_id, name, domain, category_slug, competitor_domains, cadence, is_active, created_at")
       .eq("id", id)
@@ -99,11 +107,52 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
       .eq("brand_id", id)
       .order("created_at", { ascending: false })
       .limit(10),
+    // Snapshot en vol (queued/running) → bouton désactivé
+    sb.from("saas_brand_snapshots")
+      .select("id")
+      .eq("brand_id", id)
+      .in("status", ["queued", "running"])
+      .limit(1)
+      .maybeSingle(),
+    // Tier de l'abonnement actif
+    sb.from("saas_subscriptions")
+      .select("tier")
+      .eq("user_id", user.id)
+      .in("status", ["active", "trialing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const brand = brandRes.data as BrandRow | null;
   const latest = snapRes.data as SnapshotRow | null;
   const allSnapshots = (allSnapshotsRes.data as Partial<SnapshotRow>[] | null) ?? [];
+  const inFlight = !!inFlightRes.data;
+  const tier = ((subRes.data as any)?.tier ?? "free") as string;
+
+  // Cooldown : dernier snapshot completed trop récent ?
+  const cooldownSec = SNAP_COOLDOWN_SEC[tier] ?? SNAP_COOLDOWN_SEC.free;
+  const onCooldown = latest?.completed_at
+    ? new Date(latest.completed_at).getTime() > Date.now() - cooldownSec * 1000
+    : false;
+  const snapDisabled = inFlight || onCooldown;
+
+  // Texte du tooltip quand désactivé
+  const nextAvailableTime = latest?.completed_at && onCooldown
+    ? new Date(new Date(latest.completed_at).getTime() + cooldownSec * 1000)
+      .toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : null;
+  const tierLabel = tier === "free" ? "Free — 1 snapshot / 28 jours"
+    : tier === "starter" ? "Starter — 1 snapshot / 7 jours"
+    : "Pro — 1 snapshot / heure";
+  const upgradeHint = tier === "free" ? " Passez en Starter pour 1 / semaine."
+    : tier === "starter" ? " Passez en Pro pour 1 / heure."
+    : "";
+  const snapTooltip = inFlight
+    ? "Snapshot en cours — résultats disponibles dans quelques minutes."
+    : onCooldown
+      ? `Plan ${tierLabel}.${upgradeHint}${nextAvailableTime ? ` Prochain disponible à ${nextAvailableTime}.` : ""}`
+      : undefined;
 
   if (!brand || brand.user_id !== user.id) notFound();
 
@@ -214,14 +263,7 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
           </Link>
           <form action={refreshBrand}>
             <input type="hidden" name="brand_id" value={brand.id} />
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-500 text-white hover:bg-brand-600 transition-colors duration-fast"
-              style={{ fontSize: 13, fontWeight: 500 }}
-            >
-              <RefreshCw size={12} strokeWidth={1.8} />
-              Lancer un snapshot
-            </button>
+            <RefreshBrandButton disabled={snapDisabled} tooltip={snapTooltip} />
           </form>
         </div>
       </div>
