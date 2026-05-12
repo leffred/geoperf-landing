@@ -274,7 +274,8 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         <TabLink href={`/app/brands/${id}?tab=snapshots`} active={activeTab === "snapshots"}>Snapshots</TabLink>
         <TabLink href={`/app/brands/${id}?tab=recos`} active={activeTab === "recos"}>Recommandations</TabLink>
         <TabLink href={`/app/brands/${id}/sources`} active={activeTab === "sources"}>Sources</TabLink>
-        <TabLink href={`/app/brands/${id}/alignment`} active={activeTab === "competitors"}>Concurrents</TabLink>
+        <TabLink href={`/app/brands/${id}/competitors`} active={activeTab === "competitors"}>Concurrents</TabLink>
+        <TabLink href={`/app/brands/${id}/alignment`} active={activeTab === "alignment"}>Alignement</TabLink>
         <TabLink href={`/app/brands/${id}/setup`} active={activeTab === "settings"}>Réglages</TabLink>
       </div>
 
