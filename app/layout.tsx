@@ -8,12 +8,10 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
-// S32 — Google Tag Manager (server-side via tag.geoperf.com custom domain).
-// Container Web : GTM-THVGQ5GJ (client-side, push events vers dataLayer).
-// Container sGTM : GTM-PHS2MBHS (server-side, forward vers GA4 / Google Ads / LinkedIn CAPI / Meta CAPI).
-// First-party : snippet pointe sur tag.geoperf.com (CNAME → c.googletagmanager.com) au lieu de www.googletagmanager.com.
+// GTM — container web GTM-THVGQ5GJ via googletagmanager.com standard.
+// (tag.geoperf.com server-side désactivé : CNAME DNS non configuré → ERR_NAME_NOT_RESOLVED)
 const GTM_ID = "GTM-THVGQ5GJ";
-const GTM_DOMAIN = "tag.geoperf.com";
+const GTM_DOMAIN = "www.googletagmanager.com";
 
 export const metadata: Metadata = {
   title: "Geoperf — Études sectorielles de visibilité LLM",
