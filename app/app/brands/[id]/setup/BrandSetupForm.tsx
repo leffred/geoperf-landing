@@ -102,6 +102,27 @@ export function BrandSetupForm({
           </div>
 
           <div>
+            <label htmlFor="brand_description" className={FIELD_LABEL}>
+              Description de l&apos;activité{" "}
+              <span className="font-sans normal-case opacity-80 text-danger" style={{ letterSpacing: 0 }}>(important)</span>
+            </label>
+            <textarea
+              ref={descRef}
+              id="brand_description"
+              name="brand_description"
+              rows={3}
+              maxLength={1000}
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Ex : Éditeur SaaS B2B spécialisé dans la gestion des notes de frais pour PME françaises."
+              className={FIELD_INPUT}
+            />
+            <p className="text-xs text-ink-subtle mt-1.5">
+              2-3 phrases libres. Améliore la pertinence des prompts si votre activité n&apos;est pas listée dans les catégories/sous catégories.
+            </p>
+          </div>
+
+          <div>
             <label htmlFor="competitors" className={FIELD_LABEL}>Concurrents suivis (max 10 domaines)</label>
             <textarea
               id="competitors"
@@ -161,22 +182,6 @@ export function BrandSetupForm({
         )}
 
         <div className="space-y-4">
-          <div>
-            <label htmlFor="brand_description" className={FIELD_LABEL}>Description de la marque</label>
-            <textarea
-              ref={descRef}
-              id="brand_description"
-              name="brand_description"
-              rows={4}
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              maxLength={1000}
-              placeholder="Ex: Agence marketing B2B spécialisée PME/ETI. Accompagne les équipes commerciales sur la stratégie de marque et les campagnes digitales."
-              className={FIELD_INPUT}
-            />
-            <p className="text-xs text-ink-subtle mt-1.5">2-4 phrases. Utilisée pour calculer le score d&apos;alignement.</p>
-          </div>
-
           <div>
             <label htmlFor="brand_keywords" className={FIELD_LABEL}>Keywords ciblés (max 20)</label>
             <textarea

@@ -110,17 +110,17 @@ export default async function NewBrandPage({ searchParams }: Props) {
             <div>
               <label htmlFor="brand_description" className={FIELD_LABEL}>
                 Description de l&apos;activité{" "}
-                <span className="font-sans normal-case opacity-60">(optionnel)</span>
+                <span className="font-sans normal-case opacity-80 text-danger" style={{ letterSpacing: 0 }}>(important)</span>
               </label>
               <textarea
                 id="brand_description"
                 name="brand_description"
                 rows={3}
                 maxLength={500}
-                placeholder="Ex : Éditeur SaaS B2B spécialisé dans la gestion des notes de frais pour PME françaises. Utile si votre secteur ne rentre pas dans une catégorie standard."
+                placeholder="Ex : Éditeur SaaS B2B spécialisé dans la gestion des notes de frais pour PME françaises."
                 className={FIELD_INPUT}
               />
-              <p className="text-xs text-ink-subtle mt-1.5">2-3 phrases libres. Améliore la pertinence des prompts si votre activité est atypique.</p>
+              <p className="text-xs text-ink-subtle mt-1.5">2-3 phrases libres. Améliore la pertinence des prompts si votre activité n&apos;est pas listée dans les catégories/sous catégories.</p>
             </div>
 
             <CompetitorSuggestionPicker />
@@ -139,9 +139,6 @@ export default async function NewBrandPage({ searchParams }: Props) {
 
             <div>
               <label htmlFor="cadence" className={FIELD_LABEL}>Cadence des snapshots</label>
-              {/* S16.1 fix #1.2 : on ne disable plus le <select> entier (sinon HTML
-                  n'envoie pas la valeur dans le FormData côté Free). On disable
-                  juste l'option "weekly" qui reste non-sélectionnable. */}
               <select
                 id="cadence"
                 name="cadence"
