@@ -1,584 +1,732 @@
-import { Suspense, cache } from "react";
+// V2 — Brand Detail page. Overview tab (full layout) — other tabs navigate to existing sub-routes.
+// Breadcrumb · header avatar · 6 tabs · KPI strip · evolution + per-LLM bars · SoV + recos · sources + snapshots table.
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Section } from "@/components/ui/Section";
-import { Eyebrow } from "@/components/ui/Eyebrow";
-import { Button } from "@/components/ui/Button";
-import { BrandEvolutionChart, type Point } from "@/components/saas/BrandEvolutionChart";
-import { AlertBanner } from "@/components/saas/AlertBanner";
-import { RecommendationList } from "@/components/saas/RecommendationList";
-import { CompetitorMatrix } from "@/components/saas/CompetitorMatrix";
-import { TopicSelector } from "@/components/saas/TopicSelector";
-import {
-  CompetitorRankingBars,
-  type VisibilityEntry,
-  type ShareOfVoiceEntry,
-} from "@/components/saas/CompetitorRankingBars";
-import { Top10ShareOfVoice, type ShareOfVoiceRow } from "@/components/saas/Top10ShareOfVoice";
-import { Top10CitedDomains, type CitedDomainRow } from "@/components/saas/Top10CitedDomains";
-import { Top10CitedUrls, type CitedUrlRow } from "@/components/saas/Top10CitedUrls";
-import { PeriodToggle } from "@/components/saas/PeriodToggle";
-import { ChartSkeleton } from "@/components/saas/skeletons/ChartSkeleton";
-import { MatrixSkeleton } from "@/components/saas/skeletons/MatrixSkeleton";
-import { Top10Skeleton } from "@/components/saas/skeletons/Top10Skeleton";
-import { TimelineSkeleton } from "@/components/saas/skeletons/TimelineSkeleton";
-import { BrandRowSkeleton } from "@/components/saas/skeletons/BrandRowSkeleton";
-import { periodToDays } from "@/lib/period";
-
-type PeriodSpec = ReturnType<typeof periodToDays>;
-import { loadSaasContext, relativeVisibility } from "@/lib/saas-auth";
-import { isDemoMode } from "@/lib/demo-mode";
+import { ChevronRight, Filter, Settings, RefreshCw, ChevronRight as ChevR, Flag } from "lucide-react";
+import { requireSaasUser } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
-import { refreshBrand, markAlertsRead } from "./actions";
+import { KpiStrip, KpiCell } from "@/components/saas/v2/KpiStrip";
+import { Delta } from "@/components/saas/v2/Delta";
+import { EvolutionChart, type EvolutionSeries } from "@/components/saas/v2/EvolutionChart";
+import { LLMPill } from "@/components/saas/v2/LLMPill";
+import { refreshBrand } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Marque — Geoperf", robots: { index: false, follow: false } };
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ refreshed?: string; error?: string; period?: string }>;
+  searchParams: Promise<{ refreshed?: string; error?: string; tab?: string }>;
 };
 
-const ERROR_LABELS: Record<string, string> = {
-  refresh_failed: "Le snapshot manuel a échoué. Vérifie les logs Supabase.",
-  not_found: "Marque introuvable.",
-  confirm_required: "Tape DELETE pour confirmer la suppression.",
-};
+const SERIES_COLORS = ["#2563EB", "#7A5AE0", "#10A37F", "#C77D2C", "#D97706", "#20808D"];
 
-const STATUS_BADGE: Record<string, string> = {
-  completed: "bg-emerald-50 text-success",
-  failed: "bg-red-50 text-danger",
-  running: "bg-brand-50 text-brand-600",
-};
-
-function fmtDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+interface BrandRow {
+  id: string;
+  user_id: string;
+  name: string;
+  domain: string;
+  category_slug: string;
+  competitor_domains: string[];
+  cadence: string;
+  created_at: string;
 }
 
-function humanizeDomain(d: string): string {
-  const root = d.split(".")[0];
-  return root.split("-").map(w => w.length === 0 ? "" : w[0].toUpperCase() + w.slice(1)).join(" ");
+interface SnapshotRow {
+  id: string;
+  brand_id: string;
+  user_id: string;
+  status: string;
+  llms_used: string[];
+  prompts_count: number;
+  visibility_score: number | null;
+  avg_rank: number | null;
+  citation_rate: number | null;
+  share_of_voice: number | null;
+  total_cost_usd: number | null;
+  raw_response_count: number;
+  created_at: string;
+  completed_at: string | null;
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div className="text-[10px] font-mono uppercase tracking-eyebrow text-ink-subtle mb-1">{label}</div>
-      <div className="text-xl font-medium text-ink tabular-nums tracking-tight">{value}</div>
-    </div>
-  );
+interface ResponseRow {
+  llm: string;
+  brand_mentioned: boolean;
+  brand_rank: number | null;
+  competitors_mentioned: string[];
+  sources_cited: Array<{ url?: string; domain?: string; title?: string }> | null;
+  cost_usd: number | null;
 }
 
-// ============== Cached fetchers (request-scoped dedup) ==============
+interface RecoRow {
+  id: string;
+  priority: string;
+  category: string;
+  title: string;
+  body: string;
+  created_at: string;
+}
 
-const getBrand = cache(async (id: string) => {
-  const sb = getServiceClient();
-  const { data } = await sb
-    .from("saas_tracked_brands")
-    .select("id, user_id, name, domain, category_slug, competitor_domains, cadence, is_active, created_at")
-    .eq("id", id)
-    .maybeSingle();
-  return data as any | null;
-});
-
-const getLatestSnapshot = cache(async (brandId: string) => {
-  const sb = getServiceClient();
-  const { data } = await sb
-    .from("saas_brand_snapshots")
-    .select("id, status, visibility_score, avg_rank, citation_rate, share_of_voice, total_cost_usd, raw_response_count, prompts_count, brand_mention_count, total_mention_count, error_message, created_at, completed_at")
-    .eq("brand_id", brandId)
-    .eq("status", "completed")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data as any | null;
-});
-
-const getSnapshotList = cache(async (brandId: string) => {
-  const sb = getServiceClient();
-  const { data } = await sb
-    .from("saas_brand_snapshots")
-    .select("id, status, visibility_score, avg_rank, citation_rate, share_of_voice, total_cost_usd, raw_response_count, prompts_count, brand_mention_count, total_mention_count, error_message, created_at, completed_at")
-    .eq("brand_id", brandId)
-    .order("created_at", { ascending: false })
-    .limit(20);
-  return (data as any[] | null) ?? [];
-});
-
-const getAlerts = cache(async (brandId: string) => {
-  const sb = getServiceClient();
-  const { data } = await sb
-    .from("saas_alerts")
-    .select("id, alert_type, severity, title, body, brand_id, is_read, created_at")
-    .eq("brand_id", brandId)
-    .order("created_at", { ascending: false })
-    .limit(10);
-  return (data as any[] | null) ?? [];
-});
-
-// ============== Page (sync shell) ==============
+interface EvolutionRow {
+  brand_id: string;
+  name: string;
+  snapshot_date: string;
+  visibility_score: number | null;
+}
 
 export default async function BrandDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { refreshed, error, period: periodParam } = await searchParams;
-  const period = periodToDays(periodParam);
-  const ctx = await loadSaasContext();
-  const brand = await getBrand(id);
-  if (!brand || brand.user_id !== ctx.user.id) notFound();
-
-  const demo = await isDemoMode();
-  const matrixUnlocked = ctx.tier === "pro" || ctx.tier === "agency";
-  const errorMsg = error ? ERROR_LABELS[error] || "Erreur." : null;
-  const competitorHumans = ((brand.competitor_domains as string[] | null) ?? []).map(humanizeDomain);
-
-  return (
-    <Section py="md" tone="white">
-      <div className="flex items-baseline justify-between mb-8 flex-wrap gap-3">
-        <div>
-          <Eyebrow className="mb-2">
-            <Link href="/app/brands" className="hover:underline">Marques</Link>
-            <span className="opacity-50"> / </span>
-            <span>{brand.name}</span>
-          </Eyebrow>
-          <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-ink leading-tight">
-            {brand.name}
-          </h1>
-          <p className="text-sm text-ink-muted mt-1">
-            <span className="font-mono">{brand.domain}</span>
-            <span className="mx-2 text-ink-subtle">·</span>
-            {(brand.category_slug as string).replace(/-/g, " ")}
-            <span className="mx-2 text-ink-subtle">·</span>
-            {brand.cadence === "weekly" ? "Hebdo" : "Mensuel"}
-          </p>
-        </div>
-        {!demo && (
-          <form action={refreshBrand}>
-            <input type="hidden" name="brand_id" value={id} />
-            <Button type="submit" variant="primary" size="md">Lancer un snapshot</Button>
-          </form>
-        )}
-      </div>
-
-      <Suspense fallback={<div className="mb-6 h-9 bg-surface rounded-lg animate-pulse" />}>
-        <AsyncBrandTopicSelector brandId={id} ctx={ctx} />
-      </Suspense>
-
-      <PeriodToggle />
-
-      <Suspense fallback={null}>
-        <AsyncBrandAlertBanner brandId={id} />
-      </Suspense>
-
-      {refreshed === "1" && (
-        <div className="mb-6 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 text-sm text-brand-600">
-          Snapshot lancé. Le résultat apparaît ci-dessous (les recommandations Haiku peuvent prendre 10-20s de plus).
-        </div>
-      )}
-      {errorMsg && (
-        <div className="mb-6 rounded-lg border border-DEFAULT border-l-2 border-l-danger bg-white px-4 py-3 text-sm text-danger">
-          {errorMsg}
-        </div>
-      )}
-
-      <Suspense fallback={
-        <div className="grid lg:grid-cols-5 gap-6 mb-6">
-          <div className="lg:col-span-3"><ChartSkeleton height={280} /></div>
-          <div className="lg:col-span-2"><ChartSkeleton height={280} /></div>
-        </div>
-      }>
-        <AsyncBrandHero brandId={id} brandName={brand.name} period={period} />
-      </Suspense>
-
-      <Suspense fallback={
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          <Top10Skeleton />
-          <Top10Skeleton />
-          <Top10Skeleton />
-        </div>
-      }>
-        <AsyncBrandTop10 brandId={id} />
-      </Suspense>
-
-      <div className="bg-white rounded-lg border border-ink/[0.08] p-4 mb-6 flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono uppercase tracking-eyebrow text-brand-500 shrink-0">Drill-down</span>
-        <Link href={`/app/brands/${id}/sources`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Sources →</Link>
-        <Link href={`/app/brands/${id}/by-model`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Par LLM →</Link>
-        <Link href={`/app/brands/${id}/by-prompt`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Par prompt →</Link>
-        <Link href={`/app/brands/${id}/citations-flow`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Citations flow →</Link>
-        <Link href={`/app/brands/${id}/sentiment`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Sentiment →</Link>
-        <Link href={`/app/brands/${id}/topics`} className="px-2.5 py-1 rounded-md text-ink hover:bg-surface transition-colors">Topics →</Link>
-      </div>
-
-      <Suspense fallback={<MatrixSkeleton />}>
-        <AsyncCompetitorMatrixBlock
-          brandId={id}
-          brandName={brand.name}
-          competitorHumans={competitorHumans}
-          matrixUnlocked={matrixUnlocked}
-        />
-      </Suspense>
-
-      <Suspense fallback={
-        <div className="grid lg:grid-cols-2 gap-6 mb-8">
-          <TimelineSkeleton n={4} />
-          <TimelineSkeleton n={4} />
-        </div>
-      }>
-        <AsyncRecosAndAlerts brandId={id} pageId={id} />
-      </Suspense>
-
-      <Suspense fallback={<BrandRowSkeleton n={5} />}>
-        <AsyncSnapshotsHistory brandId={id} />
-      </Suspense>
-
-      <div className="mt-10 pt-8 border-t border-DEFAULT">
-        <Eyebrow className="mb-3">Concurrents suivis</Eyebrow>
-        <ul className="space-y-1">
-          {(brand.competitor_domains as string[] | null)?.length ? (
-            (brand.competitor_domains as string[]).map((c: string) => (
-              <li key={c} className="font-mono text-xs text-ink-muted">{c}</li>
-            ))
-          ) : (
-            <li className="text-xs text-ink-subtle italic">Aucun concurrent configuré. Édite la marque pour en ajouter.</li>
-          )}
-        </ul>
-      </div>
-    </Section>
-  );
-}
-
-// ============== Async sub-components ==============
-
-async function AsyncBrandTopicSelector({ brandId, ctx }: { brandId: string; ctx: any }) {
+  const sp = await searchParams;
+  const user = await requireSaasUser();
   const sb = getServiceClient();
-  const { data: topicsData } = await sb
-    .from("saas_topics")
-    .select("id, name, slug, is_default")
-    .eq("brand_id", brandId)
-    .order("is_default", { ascending: false })
-    .order("created_at", { ascending: true });
-  const topicList = (topicsData as any[] | null) ?? [];
-  if (topicList.length === 0) return null;
-  return (
-    <TopicSelector
-      brandId={brandId}
-      topics={topicList}
-      currentTopicId={null}
-      isOwner={ctx.is_owner}
-      topicLimit={ctx.limits.topics}
-    />
-  );
-}
 
-async function AsyncBrandAlertBanner({ brandId }: { brandId: string }) {
-  const alerts = await getAlerts(brandId);
-  const unread = alerts.filter((a: any) => !a.is_read);
-  if (unread.length === 0) return null;
-  return (
-    <div className="mb-6">
-      <AlertBanner alerts={unread} />
-    </div>
-  );
-}
-
-async function AsyncBrandHero({
-  brandId,
-  brandName,
-  period,
-}: {
-  brandId: string;
-  brandName: string;
-  period: PeriodSpec;
-}) {
-  const sb = getServiceClient();
-  const periodCutoff = new Date(Date.now() - period.days * 86400000).toISOString();
-
-  const [latestSnapshot, snapshotList, evolutionRes] = await Promise.all([
-    getLatestSnapshot(brandId),
-    getSnapshotList(brandId),
-    sb.from("v_saas_brand_evolution")
-      .select("snapshot_date, visibility_score, citation_rate, avg_rank")
-      .eq("brand_id", brandId)
-      .gte("snapshot_date", periodCutoff)
-      .order("snapshot_date", { ascending: true }),
-  ]);
-
-  if (!latestSnapshot) {
-    return (
-      <div className="bg-white rounded-lg border border-DEFAULT shadow-card p-10 text-center mb-8">
-        {snapshotList.some((s: any) => s.status === "running") ? (
-          <p className="text-ink-muted">Un snapshot est en cours… revisite cette page dans 30 secondes.</p>
-        ) : snapshotList.some((s: any) => s.status === "failed") ? (
-          <>
-            <p className="text-danger mb-2 font-medium">Le dernier snapshot a échoué :</p>
-            <p className="text-xs text-ink-muted font-mono">{snapshotList[0].error_message}</p>
-            <p className="text-sm text-ink-muted mt-3">Relance ci-dessus, ou contacte le support si l&apos;erreur persiste.</p>
-          </>
-        ) : (
-          <>
-            <p className="text-ink-muted mb-4">Aucun snapshot encore généré.</p>
-            <form action={refreshBrand}>
-              <input type="hidden" name="brand_id" value={brandId} />
-              <Button type="submit" variant="primary" size="md">Lancer le 1er snapshot</Button>
-            </form>
-          </>
-        )}
-      </div>
-    );
-  }
-
-  const evolutionList = (evolutionRes.data as any[] | null) ?? [];
-  const points: Point[] = evolutionList.map((e: any) => ({
-    snapshot_date: e.snapshot_date,
-    visibility_score: e.visibility_score,
-    citation_rate: e.citation_rate,
-    avg_rank: e.avg_rank,
-  }));
-
-  const [{ data: visibilityData }, { data: sovData }] = await Promise.all([
-    sb.from("v_saas_competitor_visibility")
-      .select("entity_name, is_self, visibility_score, mention_count, rank")
-      .eq("snapshot_id", latestSnapshot.id)
-      .order("rank", { ascending: true })
-      .limit(20),
-    sb.from("v_saas_competitor_share_of_voice")
-      .select("entity_name, is_self, mention_count, share_pct, rank")
-      .eq("snapshot_id", latestSnapshot.id)
-      .order("rank", { ascending: true })
-      .limit(20),
-  ]);
-  const visibilityEntries = (visibilityData as VisibilityEntry[] | null) ?? [];
-  const sovEntries = (sovData as ShareOfVoiceEntry[] | null) ?? [];
-
-  const llmsCount = (latestSnapshot.raw_response_count && latestSnapshot.prompts_count)
-    ? Math.max(1, Math.round(latestSnapshot.raw_response_count / latestSnapshot.prompts_count))
-    : 0;
-
-  const periodDelta = (() => {
-    if (points.length < 2) return null;
-    const oldest = points[0];
-    const newest = points[points.length - 1];
-    if (oldest.visibility_score === null || newest.visibility_score === null) return null;
-    return Number(newest.visibility_score) - Number(oldest.visibility_score);
-  })();
-
-  return (
-    <div className="grid lg:grid-cols-5 gap-6 mb-6">
-      <div className="lg:col-span-3 bg-white rounded-lg border border-ink/[0.08] p-6">
-        <Eyebrow className="mb-2">Visibility Score</Eyebrow>
-        <div className="flex items-baseline gap-3 mb-1">
-          <span className="text-5xl md:text-6xl font-medium tracking-tight text-brand-500 tabular-nums">
-            {Number(latestSnapshot.visibility_score).toFixed(0)}
-          </span>
-          <span className="text-2xl text-ink-subtle">/100</span>
-        </div>
-        <p className="text-xs text-ink-muted font-mono mb-1">
-          Basé sur {latestSnapshot.raw_response_count ?? 0} réponses · {latestSnapshot.prompts_count ?? 0} prompts × {llmsCount} LLMs
-        </p>
-        {periodDelta !== null && (
-          <p className="text-[11px] text-ink-subtle mb-1">
-            <span className={periodDelta >= 0 ? "text-success" : "text-danger"}>
-              {periodDelta >= 0 ? "+" : ""}{periodDelta.toFixed(1)} pt
-            </span>{" "}
-            vs il y a {period.label}
-          </p>
-        )}
-        {(() => {
-          const rv = relativeVisibility(latestSnapshot.visibility_score, latestSnapshot.citation_rate);
-          if (rv === null) return null;
-          return (
-            <p className="text-[11px] text-ink-subtle mb-5">
-              Performance quand cité : <span className="text-ink font-medium tabular-nums">{rv.toFixed(0)}/100</span> (visibility absolue normalisée par citation rate {latestSnapshot.citation_rate?.toFixed(0)}%)
-            </p>
-          );
-        })()}
-
-        <div className="grid grid-cols-3 gap-3 mb-6 pt-4 border-t border-ink/[0.06]">
-          <MiniStat label="Rang moy." value={latestSnapshot.avg_rank?.toFixed(1) ?? "—"} />
-          <MiniStat label="Citation" value={`${latestSnapshot.citation_rate?.toFixed(0) ?? 0}%`} />
-          <MiniStat label="Share of Voice" value={`${latestSnapshot.share_of_voice?.toFixed(0) ?? 0}%`} />
-        </div>
-
-        <CompetitorRankingBars
-          brandName={brandName}
-          entries={visibilityEntries}
-          fallback={sovEntries}
-          limit={7}
-        />
-      </div>
-
-      <div className="lg:col-span-2 bg-white rounded-lg border border-ink/[0.08] p-6">
-        <Eyebrow className="mb-2">Visibility Evolution</Eyebrow>
-        <h3 className="text-base font-medium text-ink tracking-tight mb-4">Trajectoire dans le temps</h3>
-        {points.length > 0 ? (
-          <BrandEvolutionChart points={points} brandName={brandName} />
-        ) : (
-          <p className="text-sm text-ink-muted italic">Le graph apparaîtra après le 2e snapshot.</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-async function AsyncBrandTop10({ brandId }: { brandId: string }) {
-  const latestSnapshot = await getLatestSnapshot(brandId);
-  if (!latestSnapshot) return null;
-
-  const sb = getServiceClient();
-  const [{ data: sovData }, { data: domainsData }, { data: urlsData }] = await Promise.all([
-    sb.from("v_saas_competitor_share_of_voice")
-      .select("entity_name, is_self, mention_count, share_pct, rank")
-      .eq("snapshot_id", latestSnapshot.id)
-      .order("rank", { ascending: true })
+  const [brandRes, snapRes, allSnapshotsRes] = await Promise.all([
+    sb.from("saas_tracked_brands")
+      .select("id, user_id, name, domain, category_slug, competitor_domains, cadence, is_active, created_at")
+      .eq("id", id)
+      .maybeSingle(),
+    sb.from("saas_brand_snapshots")
+      .select("id, brand_id, user_id, status, llms_used, prompts_count, visibility_score, avg_rank, citation_rate, share_of_voice, total_cost_usd, raw_response_count, created_at, completed_at")
+      .eq("brand_id", id)
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    sb.from("saas_brand_snapshots")
+      .select("id, brand_id, status, llms_used, prompts_count, visibility_score, avg_rank, total_cost_usd, created_at, completed_at")
+      .eq("brand_id", id)
+      .order("created_at", { ascending: false })
       .limit(10),
-    sb.rpc("saas_top_cited_domains", { p_snapshot_id: latestSnapshot.id, p_limit: 10 }),
-    sb.rpc("saas_top_cited_urls", { p_snapshot_id: latestSnapshot.id, p_limit: 10 }),
-  ]);
-  const topSov = (sovData as ShareOfVoiceRow[] | null) ?? [];
-  const topDomains = (domainsData as CitedDomainRow[] | null) ?? [];
-  const topUrls = (urlsData as CitedUrlRow[] | null) ?? [];
-
-  return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-      <Top10ShareOfVoice rows={topSov} />
-      <Top10CitedDomains rows={topDomains} />
-      <Top10CitedUrls rows={topUrls} />
-    </div>
-  );
-}
-
-async function AsyncCompetitorMatrixBlock({
-  brandId,
-  brandName,
-  competitorHumans,
-  matrixUnlocked,
-}: {
-  brandId: string;
-  brandName: string;
-  competitorHumans: string[];
-  matrixUnlocked: boolean;
-}) {
-  const latestSnapshot = await getLatestSnapshot(brandId);
-  if (!latestSnapshot) return null;
-
-  const sb = getServiceClient();
-  const { data: respData } = await sb
-    .from("saas_snapshot_responses")
-    .select("llm, brand_mentioned, competitors_mentioned")
-    .eq("snapshot_id", latestSnapshot.id);
-  const matrixResponses = (respData as any[] | null) ?? [];
-  if (matrixResponses.length === 0) return null;
-
-  return (
-    <div className="mb-6">
-      <CompetitorMatrix
-        responses={matrixResponses}
-        brandName={brandName}
-        competitorHumans={competitorHumans}
-        totalPromptsPerLlm={latestSnapshot.prompts_count ?? undefined}
-        locked={!matrixUnlocked}
-      />
-    </div>
-  );
-}
-
-async function AsyncRecosAndAlerts({ brandId, pageId }: { brandId: string; pageId: string }) {
-  const [latestSnapshot, alertList] = await Promise.all([
-    getLatestSnapshot(brandId),
-    getAlerts(brandId),
   ]);
 
-  let recos: any[] = [];
-  if (latestSnapshot) {
-    const sb = getServiceClient();
+  const brand = brandRes.data as BrandRow | null;
+  const latest = snapRes.data as SnapshotRow | null;
+  const allSnapshots = (allSnapshotsRes.data as Partial<SnapshotRow>[] | null) ?? [];
+
+  if (!brand || brand.user_id !== user.id) notFound();
+
+  // Previous snapshot for deltas
+  const prevSnap = allSnapshots.find((s) => s.id !== latest?.id && s.status === "completed");
+
+  // Latest snapshot responses (for per-LLM, SoV, sources)
+  let responses: ResponseRow[] = [];
+  if (latest) {
     const { data } = await sb
-      .from("saas_recommendations")
-      .select("id, priority, category, title, body, authority_sources, is_read, created_at")
-      .eq("snapshot_id", latestSnapshot.id)
-      .order("priority", { ascending: true });
-    recos = (data as any[] | null) ?? [];
+      .from("saas_snapshot_responses")
+      .select("llm, brand_mentioned, brand_rank, competitors_mentioned, sources_cited, cost_usd")
+      .eq("snapshot_id", latest.id);
+    responses = (data as ResponseRow[] | null) ?? [];
   }
 
-  // Si pas de snapshot, on n'affiche pas la section recos+alerts
-  if (!latestSnapshot) return null;
+  // Recos for this brand
+  const { data: recosData } = await sb
+    .from("saas_recommendations")
+    .select("id, priority, category, title, body, created_at")
+    .eq("brand_id", id)
+    .order("priority", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const recos = (recosData as RecoRow[] | null) ?? [];
 
-  return (
-    <div className="grid lg:grid-cols-2 gap-6 mb-8">
-      <div>
-        <div className="flex items-baseline justify-between mb-4">
-          <Eyebrow>Recommandations</Eyebrow>
-          <span className="text-xs text-ink-subtle font-mono">{recos.length}</span>
-        </div>
-        <RecommendationList recos={recos} />
-      </div>
+  // Evolution (12 weeks) - brand + 2 top competitors (best-effort, no comp evolution rows so we use brand only series for now + competitor SoV bars below)
+  const { data: evoData } = await sb
+    .from("v_saas_brand_evolution")
+    .select("brand_id, name, snapshot_date, visibility_score")
+    .eq("user_id", user.id)
+    .order("snapshot_date", { ascending: true })
+    .limit(120);
+  const evolutionRows = (evoData as EvolutionRow[] | null) ?? [];
 
-      <div>
-        <div className="flex items-baseline justify-between mb-4">
-          <Eyebrow>Alertes</Eyebrow>
-          {alertList.some((a: any) => !a.is_read) && (
-            <form action={markAlertsRead}>
-              <input type="hidden" name="brand_id" value={pageId} />
-              <button type="submit" className="text-xs text-ink-muted hover:text-ink underline transition-colors">
-                Marquer toutes lues
-              </button>
-            </form>
-          )}
-        </div>
-        {alertList.length === 0 ? (
-          <p className="text-sm text-ink-muted italic">Aucune alerte pour cette marque.</p>
-        ) : (
-          <AlertBanner alerts={alertList} />
-        )}
-      </div>
-    </div>
-  );
-}
+  // ─── Per-LLM aggregation
+  const perLlm = aggregatePerLlm(responses, latest?.llms_used ?? []);
 
-async function AsyncSnapshotsHistory({ brandId }: { brandId: string }) {
-  const snapshotList = await getSnapshotList(brandId);
+  // ─── Share of voice bars
+  const sov = aggregateShareOfVoice(responses, brand);
 
+  // ─── Sources
+  const sources = aggregateSources(responses);
+
+  // ─── Tabs
+  const activeTab = sp.tab ?? "overview";
+
+  // ─── Page render
   return (
     <div>
-      <Eyebrow className="mb-4">Historique des snapshots</Eyebrow>
-      <div className="bg-white rounded-lg border border-DEFAULT shadow-card overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-xs text-ink-subtle border-b border-DEFAULT">
-            <tr>
-              <th className="text-left py-3 px-4 font-mono uppercase tracking-eyebrow">Date</th>
-              <th className="text-left py-3 px-4 font-mono uppercase tracking-eyebrow">Status</th>
-              <th className="text-right py-3 px-4 font-mono uppercase tracking-eyebrow">Score</th>
-              <th className="text-right py-3 px-4 font-mono uppercase tracking-eyebrow">Rang</th>
-              <th className="text-right py-3 px-4 font-mono uppercase tracking-eyebrow">Cit.%</th>
-              <th className="text-right py-3 px-4 hidden md:table-cell font-mono uppercase tracking-eyebrow">Réponses</th>
-            </tr>
-          </thead>
-          <tbody>
-            {snapshotList.map((s: any) => (
-              <tr key={s.id} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface transition-colors">
-                <td className="py-3 px-4 font-mono text-xs">
-                  <Link href={`/app/brands/${brandId}/snapshots/${s.id}`} className="hover:text-brand-500 transition-colors">
-                    {fmtDate(s.created_at)}
-                  </Link>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono uppercase tracking-eyebrow ${STATUS_BADGE[s.status] || "bg-surface text-ink-muted"}`}>
-                    {s.status}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-right font-mono text-ink tabular-nums">{s.visibility_score?.toFixed(0) ?? "—"}</td>
-                <td className="py-3 px-4 text-right font-mono text-ink tabular-nums">{s.avg_rank?.toFixed(1) ?? "—"}</td>
-                <td className="py-3 px-4 text-right font-mono text-ink tabular-nums">{s.citation_rate?.toFixed(0) ?? "—"}</td>
-                <td className="py-3 px-4 text-right font-mono hidden md:table-cell text-xs text-ink-muted">{s.raw_response_count}</td>
-              </tr>
-            ))}
-            {snapshotList.length === 0 && (
-              <tr><td colSpan={6} className="py-6 text-center text-ink-muted text-sm">Aucun snapshot.</td></tr>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-ink-muted mb-3.5" style={{ fontSize: 12 }}>
+        <Link href="/app/dashboard" className="hover:text-ink transition-colors duration-fast no-underline">Dashboard</Link>
+        <ChevronRight size={10} strokeWidth={2} />
+        <span className="text-ink" style={{ fontWeight: 500 }}>{brand.name}</span>
+      </div>
+
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
+        <div className="flex items-start gap-3.5">
+          <div
+            className="grid place-items-center text-white shrink-0"
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 10,
+              background: "linear-gradient(135deg, #2563EB, #7A5AE0)",
+              fontSize: 20,
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {brand.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-ink leading-tight" style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em" }}>{brand.name}</h1>
+              <Chip>{brand.domain}</Chip>
+              <Chip>{humanizeSlug(brand.category_slug)} · {brand.cadence === "weekly" ? "hebdo" : "mensuel"}</Chip>
+            </div>
+            <div className="text-ink-muted mt-1" style={{ fontSize: 13 }}>
+              {brand.competitor_domains.length} concurrent{brand.competitor_domains.length > 1 ? "s" : ""} suivi{brand.competitor_domains.length > 1 ? "s" : ""}
+              {latest && (
+                <>
+                  {" · "}
+                  {latest.prompts_count} prompts × {latest.llms_used.length} LLMs · {allSnapshots.filter((s) => s.status === "completed").length} snapshot{allSnapshots.length > 1 ? "s" : ""}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
+            style={{ fontSize: 13, fontWeight: 500 }}
+          >
+            <Filter size={12} strokeWidth={1.8} />
+            Filtrer
+          </button>
+          <Link
+            href={`/app/brands/${brand.id}/setup`}
+            title="Réglages"
+            className="grid place-items-center rounded-md border border-strong bg-white text-ink hover:bg-surface transition-colors duration-fast"
+            style={{ width: 30, height: 30 }}
+          >
+            <Settings size={13} strokeWidth={1.8} />
+          </Link>
+          <form action={refreshBrand}>
+            <input type="hidden" name="brand_id" value={brand.id} />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-500 text-white hover:bg-brand-600 transition-colors duration-fast"
+              style={{ fontSize: 13, fontWeight: 500 }}
+            >
+              <RefreshCw size={12} strokeWidth={1.8} />
+              Lancer un snapshot
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-0 border-b border-DEFAULT mb-5">
+        <TabLink href={`/app/brands/${id}`} active={activeTab === "overview"}>Overview</TabLink>
+        <TabLink href={`/app/brands/${id}?tab=snapshots`} active={activeTab === "snapshots"}>Snapshots</TabLink>
+        <TabLink href={`/app/brands/${id}?tab=recos`} active={activeTab === "recos"}>Recommandations</TabLink>
+        <TabLink href={`/app/brands/${id}/sources`} active={activeTab === "sources"}>Sources</TabLink>
+        <TabLink href={`/app/brands/${id}/alignment`} active={activeTab === "competitors"}>Concurrents</TabLink>
+        <TabLink href={`/app/brands/${id}/setup`} active={activeTab === "settings"}>Réglages</TabLink>
+      </div>
+
+      {sp.refreshed && (
+        <div className="mb-4 px-3 py-2 rounded-md text-success" style={{ background: "color-mix(in srgb, #059669 12%, transparent)", fontSize: 13 }}>
+          ✓ Snapshot lancé. Refresh dans 30s.
+        </div>
+      )}
+      {sp.error && (
+        <div className="mb-4 px-3 py-2 rounded-md text-danger" style={{ background: "color-mix(in srgb, #DC2626 12%, transparent)", fontSize: 13 }}>
+          Erreur : {sp.error}
+        </div>
+      )}
+
+      {/* KPI strip */}
+      <div className="mb-4">
+        <KpiStrip>
+          <KpiCell
+            label="Score de visibilité"
+            value={latest?.visibility_score !== null && latest?.visibility_score !== undefined ? Math.round(Number(latest.visibility_score)) : "—"}
+            delta={deltaOrNull(latest?.visibility_score, prevSnap?.visibility_score)}
+            hint={prevSnap?.created_at ? `vs snapshot ${shortDate(prevSnap.created_at)}` : "—"}
+          />
+          <KpiCell
+            label="Rang moyen"
+            value={latest?.avg_rank !== null && latest?.avg_rank !== undefined ? Number(latest.avg_rank).toFixed(1) : "—"}
+            delta={deltaOrNull(latest?.avg_rank, prevSnap?.avg_rank)}
+            deltaSuffix=""
+            deltaInvert
+            hint="quand cité · plus bas = mieux"
+          />
+          <KpiCell
+            label="Taux de citation"
+            value={
+              <>
+                {latest?.citation_rate !== null && latest?.citation_rate !== undefined ? Math.round(Number(latest.citation_rate)) : "—"}
+                <span className="text-ink-muted ml-0.5" style={{ fontSize: 14 }}>%</span>
+              </>
+            }
+            delta={deltaOrNull(latest?.citation_rate, prevSnap?.citation_rate)}
+            deltaSuffix="%"
+            hint={latest ? `${responses.filter((r) => r.brand_mentioned).length}/${responses.length} réponses citent ${brand.name}` : "—"}
+          />
+          <KpiCell
+            label="Part de voix LLM"
+            value={
+              <>
+                {latest?.share_of_voice !== null && latest?.share_of_voice !== undefined ? Math.round(Number(latest.share_of_voice)) : "—"}
+                <span className="text-ink-muted ml-0.5" style={{ fontSize: 14 }}>%</span>
+              </>
+            }
+            delta={deltaOrNull(latest?.share_of_voice, prevSnap?.share_of_voice)}
+            deltaSuffix="%"
+            hint={`vs ${brand.competitor_domains.length} concurrents`}
+          />
+        </KpiStrip>
+      </div>
+
+      {/* Row 1 : Evolution + Per-LLM */}
+      <div className="grid mb-4 gap-4" style={{ gridTemplateColumns: "minmax(0, 1.55fr) minmax(0, 1fr)" }}>
+        <Card>
+          <CardHeader
+            title="Évolution hebdo"
+            sub={`Score ${brand.name} · 12 dernières semaines`}
+            right={
+              <div className="flex items-center gap-3">
+                <Legend color={SERIES_COLORS[0]} label={brand.name} solid />
+              </div>
+            }
+          />
+          <EvolutionChart
+            series={buildBrandEvolutionSeries(brand, evolutionRows)}
+            labels={buildEvolutionLabels(evolutionRows)}
+            height={240}
+          />
+        </Card>
+
+        <Card>
+          <CardHeader title="Performance par LLM" sub={latest ? `Snapshot du ${shortDate(latest.created_at)}` : "Pas encore de snapshot"} />
+          <div className="flex flex-col gap-3">
+            {perLlm.length === 0 ? (
+              <div className="text-ink-subtle py-4 text-center" style={{ fontSize: 13 }}>
+                Pas de réponses.
+              </div>
+            ) : (
+              perLlm.map((l) => (
+                <div key={l.name} className="flex items-center gap-3">
+                  <div style={{ width: 100 }}><LLMPill name={l.name} size="sm" /></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="rounded-full overflow-hidden bg-surface-2" style={{ height: 6 }}>
+                      <div className="rounded-full bg-brand-500" style={{ height: "100%", width: `${Math.min(100, Math.max(0, l.score))}%` }} />
+                    </div>
+                  </div>
+                  <div className="font-mono text-ink text-right tabular-nums" style={{ fontSize: 13, fontWeight: 600, width: 30 }}>{Math.round(l.score)}</div>
+                  <div style={{ width: 50, textAlign: "right" }}>
+                    <Delta value={l.delta} suffix="" />
+                  </div>
+                </div>
+              ))
             )}
-          </tbody>
-        </table>
+          </div>
+          {latest && (
+            <div className="mt-3.5 pt-3.5 border-t border-DEFAULT flex items-center justify-between text-ink-muted" style={{ fontSize: 11 }}>
+              <span>Citation moyenne : <strong className="text-ink">{Math.round(perLlm.reduce((acc, l) => acc + l.score, 0) / Math.max(1, perLlm.length))}%</strong></span>
+              <Link href={`/app/brands/${id}/snapshots/${latest.id}`} className="font-mono text-brand-500 no-underline hover:underline" style={{ fontSize: 11 }}>
+                Détail snapshot →
+              </Link>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Row 2 : SoV + recos */}
+      <div className="grid mb-4 gap-4" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.4fr)" }}>
+        <Card>
+          <CardHeader title="Part de voix" sub={`${brand.name} vs concurrents · dernier snapshot`} />
+          {sov.length === 0 ? (
+            <div className="text-ink-subtle py-4 text-center" style={{ fontSize: 13 }}>—</div>
+          ) : (
+            <div className="flex flex-col gap-3.5">
+              {sov.map((s, i) => (
+                <div key={s.name} className="flex items-center gap-3">
+                  <div className="truncate" style={{ width: 110, fontSize: 13, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? "#0A0E1A" : "#5B6478" }}>
+                    {s.name}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="rounded-full overflow-hidden bg-surface-2" style={{ height: 8 }}>
+                      <div className="rounded-full" style={{ height: "100%", width: `${Math.min(100, s.percent)}%`, background: SERIES_COLORS[i % SERIES_COLORS.length], opacity: i === 0 ? 1 : 0.7 }} />
+                    </div>
+                  </div>
+                  <div className="font-mono text-ink text-right tabular-nums" style={{ fontSize: 13, fontWeight: i === 0 ? 600 : 500, width: 40 }}>{s.percent.toFixed(0)}%</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Recommandations actionnables"
+            sub={recos.length > 0 ? `${recos.length} priorisées · générées au dernier snapshot` : "Aucune recommandation"}
+            right={<span className="font-mono uppercase text-ink-subtle" style={{ fontSize: 10, letterSpacing: "0.1em" }}>Claude Haiku 4.5</span>}
+          />
+          {recos.length === 0 ? (
+            <div className="text-ink-subtle py-4 text-center" style={{ fontSize: 13 }}>Aucune reco active.</div>
+          ) : (
+            <div className="flex flex-col">
+              {recos.map((r, i) => (
+                <div
+                  key={r.id}
+                  className="flex items-stretch gap-3"
+                  style={{
+                    paddingTop: i === 0 ? 0 : 12,
+                    paddingBottom: i === recos.length - 1 ? 0 : 12,
+                    borderBottom: i === recos.length - 1 ? "none" : "1px solid rgba(10,14,26,0.08)",
+                  }}
+                >
+                  <div style={{ width: 3, borderRadius: 2, background: prioColor(r.priority) }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-ink" style={{ fontSize: 13, fontWeight: 500 }}>{r.title}</span>
+                      <span className="font-mono uppercase text-ink-subtle" style={{ fontSize: 10, letterSpacing: "0.1em" }}>
+                        {r.category.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    <div className="text-ink-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
+                      {r.body.slice(0, 200)}
+                      {r.body.length > 200 ? "…" : ""}
+                    </div>
+                  </div>
+                  <div className="shrink-0">
+                    <Flag size={10} strokeWidth={1.8} color={prioColor(r.priority)} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Row 3 : Sources + snapshots history */}
+      <div className="grid mb-4 gap-4" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.3fr)" }}>
+        <Card>
+          <CardHeader title="Sources d'autorité" sub="Domaines cités par les LLMs · dernier snapshot" />
+          {sources.length === 0 ? (
+            <div className="text-ink-subtle py-4 text-center" style={{ fontSize: 13 }}>Pas de sources extraites.</div>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {sources.slice(0, 6).map((s) => (
+                <div key={s.domain} className="flex items-center gap-2.5">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-ink-muted border border-DEFAULT bg-surface whitespace-nowrap"
+                    style={{ fontSize: 11 }}
+                  >
+                    <span className="rounded-sm" style={{ width: 10, height: 10, background: "#2563EB" }} />
+                    {s.domain}
+                  </span>
+                  <div className="flex-1" />
+                  <div className="flex items-center gap-1">
+                    {s.llms.slice(0, 4).map((llm) => (
+                      <span
+                        key={llm}
+                        className="font-mono uppercase text-ink-muted rounded bg-surface"
+                        style={{ fontSize: 9, padding: "1px 5px", letterSpacing: "0.05em" }}
+                      >
+                        {shortLlm(llm)}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="font-mono text-ink text-right tabular-nums" style={{ fontSize: 13, fontWeight: 600, width: 24 }}>{s.count}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Historique des snapshots"
+            sub={allSnapshots.length > 0 ? `${allSnapshots.length} runs · ${allSnapshots.filter((s) => s.status === "completed").length} completed` : "Pas encore de snapshot"}
+          />
+          {allSnapshots.length === 0 ? (
+            <div className="text-ink-subtle py-4 text-center" style={{ fontSize: 13 }}>Pas encore de run.</div>
+          ) : (
+            <table className="w-full" style={{ fontSize: 13, borderCollapse: "separate", borderSpacing: 0 }}>
+              <thead>
+                <tr>
+                  <Th>Date</Th>
+                  <Th numeric>Score</Th>
+                  <Th numeric>Δ</Th>
+                  <Th numeric>LLMs</Th>
+                  <Th numeric>Prompts</Th>
+                  <Th numeric>Coût</Th>
+                  <Th />
+                </tr>
+              </thead>
+              <tbody>
+                {allSnapshots.map((s, i) => {
+                  const prev = allSnapshots[i + 1];
+                  const delta = deltaOrNull(s.visibility_score, prev?.visibility_score);
+                  const path = `/app/brands/${id}/snapshots/${s.id}`;
+                  return (
+                    <tr key={s.id} className="hover:bg-surface cursor-pointer">
+                      <Td>
+                        <Link href={path} className="font-mono text-ink no-underline" style={{ fontSize: 12 }}>
+                          {shortDate(s.created_at!)}
+                        </Link>
+                      </Td>
+                      <Td numeric><Link href={path} className="text-ink no-underline" style={{ fontWeight: 600 }}>{s.visibility_score !== null && s.visibility_score !== undefined ? Math.round(Number(s.visibility_score)) : "—"}</Link></Td>
+                      <Td numeric><Link href={path} className="no-underline"><Delta value={delta} /></Link></Td>
+                      <Td numeric><Link href={path} className="text-ink no-underline">{(s.llms_used ?? []).length}</Link></Td>
+                      <Td numeric><Link href={path} className="text-ink no-underline">{s.prompts_count}</Link></Td>
+                      <Td numeric><Link href={path} className="text-ink-muted no-underline">{s.total_cost_usd !== null && s.total_cost_usd !== undefined ? `${Number(s.total_cost_usd).toFixed(2)}€` : "—"}</Link></Td>
+                      <Td><Link href={path} className="no-underline"><ChevR size={12} strokeWidth={1.8} color="#8C94A6" /></Link></Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </Card>
       </div>
     </div>
   );
+}
+
+// ──────────────── Helpers ────────────────
+
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-white border border-DEFAULT rounded-xl shadow-card" style={{ padding: 18 }}>
+      {children}
+    </div>
+  );
+}
+
+function CardHeader({ title, sub, right }: { title: string; sub?: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-3.5 gap-3 flex-wrap">
+      <div className="min-w-0">
+        <div className="text-ink" style={{ fontSize: 13, fontWeight: 600 }}>{title}</div>
+        {sub && <div className="text-ink-muted truncate" style={{ fontSize: 12, marginTop: 1 }}>{sub}</div>}
+      </div>
+      {right && <div className="shrink-0">{right}</div>}
+    </div>
+  );
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface border border-DEFAULT text-ink-muted"
+      style={{ fontSize: 11, fontWeight: 500 }}
+    >
+      {children}
+    </span>
+  );
+}
+
+function TabLink({ href, active, children }: { href: string; active?: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className={`no-underline ${active ? "text-ink" : "text-ink-muted"} transition-colors duration-fast`}
+      style={{
+        padding: "10px 14px",
+        fontSize: 13,
+        fontWeight: 500,
+        borderBottom: active ? "2px solid #2563EB" : "2px solid transparent",
+        marginBottom: -1,
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function Th({ children, numeric }: { children?: React.ReactNode; numeric?: boolean }) {
+  return (
+    <th
+      className="font-mono uppercase text-ink-subtle text-left bg-white"
+      style={{
+        fontSize: 10,
+        letterSpacing: "0.14em",
+        fontWeight: 500,
+        padding: "10px 12px",
+        borderBottom: "1px solid rgba(10,14,26,0.08)",
+        textAlign: numeric ? "right" : "left",
+      }}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, numeric }: { children?: React.ReactNode; numeric?: boolean }) {
+  return (
+    <td
+      style={{
+        padding: "11px 12px",
+        borderBottom: "1px solid rgba(10,14,26,0.08)",
+        textAlign: numeric ? "right" : "left",
+        fontVariantNumeric: numeric ? "tabular-nums" : undefined,
+        fontFamily: numeric ? '"JetBrains Mono", monospace' : undefined,
+        verticalAlign: "middle",
+      }}
+    >
+      {children}
+    </td>
+  );
+}
+
+function Legend({ color, label, solid }: { color: string; label: string; solid?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-ink-muted" style={{ fontSize: 11 }}>
+      <span style={{ width: 8, height: solid ? 8 : 2, borderRadius: solid ? 2 : 0, background: color }} />
+      {label}
+    </span>
+  );
+}
+
+function aggregatePerLlm(responses: ResponseRow[], llmsUsed: string[]): Array<{ name: string; score: number; delta: number | null }> {
+  const byLlm = new Map<string, { mentioned: number; total: number; rankSum: number; rankCount: number }>();
+  for (const r of responses) {
+    if (!byLlm.has(r.llm)) byLlm.set(r.llm, { mentioned: 0, total: 0, rankSum: 0, rankCount: 0 });
+    const x = byLlm.get(r.llm)!;
+    x.total += 1;
+    if (r.brand_mentioned) {
+      x.mentioned += 1;
+      if (r.brand_rank !== null) {
+        x.rankSum += r.brand_rank;
+        x.rankCount += 1;
+      }
+    }
+  }
+  const all = (llmsUsed.length ? llmsUsed : Array.from(byLlm.keys()));
+  return all.map((name) => {
+    const x = byLlm.get(name);
+    const score = x && x.total > 0 ? (x.mentioned / x.total) * 100 : 0;
+    return { name, score, delta: null };
+  }).sort((a, b) => b.score - a.score);
+}
+
+function aggregateShareOfVoice(responses: ResponseRow[], brand: BrandRow): Array<{ name: string; percent: number }> {
+  const brandLower = brand.name.toLowerCase();
+  let brandMentions = 0;
+  const compCounts: Record<string, number> = {};
+  let totalMentions = 0;
+  for (const r of responses) {
+    if (r.brand_mentioned) {
+      brandMentions += 1;
+      totalMentions += 1;
+    }
+    for (const c of r.competitors_mentioned ?? []) {
+      if (!c) continue;
+      if (c.toLowerCase() === brandLower) continue;
+      compCounts[c] = (compCounts[c] ?? 0) + 1;
+      totalMentions += 1;
+    }
+  }
+  if (totalMentions === 0) return [];
+  const rows: Array<{ name: string; percent: number }> = [
+    { name: brand.name, percent: (brandMentions / totalMentions) * 100 },
+  ];
+  Object.entries(compCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .forEach(([name, n]) => rows.push({ name, percent: (n / totalMentions) * 100 }));
+  return rows;
+}
+
+function aggregateSources(responses: ResponseRow[]): Array<{ domain: string; count: number; llms: string[] }> {
+  const acc = new Map<string, { count: number; llms: Set<string> }>();
+  for (const r of responses) {
+    const sources = Array.isArray(r.sources_cited) ? r.sources_cited : [];
+    for (const s of sources) {
+      const dom = (s?.domain || (s?.url ? safeDomain(s.url) : "")).toLowerCase();
+      if (!dom) continue;
+      if (!acc.has(dom)) acc.set(dom, { count: 0, llms: new Set() });
+      const x = acc.get(dom)!;
+      x.count += 1;
+      x.llms.add(r.llm);
+    }
+  }
+  return Array.from(acc.entries())
+    .map(([domain, x]) => ({ domain, count: x.count, llms: Array.from(x.llms) }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function safeDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function buildBrandEvolutionSeries(brand: BrandRow, rows: EvolutionRow[]): EvolutionSeries[] {
+  const allDatesSet = new Set<string>();
+  for (const r of rows) allDatesSet.add(r.snapshot_date);
+  const allDates = Array.from(allDatesSet).sort().slice(-12);
+  return [
+    {
+      name: brand.name,
+      color: SERIES_COLORS[0],
+      data: allDates.map((d) => {
+        const row = rows.find((e) => e.brand_id === brand.id && e.snapshot_date === d);
+        return row?.visibility_score ?? null;
+      }),
+    },
+  ];
+}
+
+function buildEvolutionLabels(rows: EvolutionRow[]): string[] {
+  const allDatesSet = new Set<string>();
+  for (const r of rows) allDatesSet.add(r.snapshot_date);
+  const allDates = Array.from(allDatesSet).sort().slice(-12);
+  return allDates.map((d) => `S${getWeekNumber(new Date(d))}`);
+}
+
+function getWeekNumber(d: Date): number {
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+}
+
+function deltaOrNull(now: number | null | undefined, then: number | null | undefined): number | null {
+  if (now === null || now === undefined || then === null || then === undefined) return null;
+  return Number(now) - Number(then);
+}
+
+function shortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+}
+
+function humanizeSlug(slug: string): string {
+  return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function shortLlm(llm: string): string {
+  const k = llm.toLowerCase();
+  if (k.includes("gpt")) return "GPT";
+  if (k.includes("claude")) return "CLA";
+  if (k.includes("gemini")) return "GEM";
+  if (k.includes("perplexity") || k.includes("sonar")) return "PER";
+  return llm.slice(0, 3).toUpperCase();
+}
+
+function prioColor(p: string): string {
+  if (p === "high") return "#DC2626";
+  if (p === "medium") return "#D97706";
+  return "#8C94A6";
 }
