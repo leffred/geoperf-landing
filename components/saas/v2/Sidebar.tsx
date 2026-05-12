@@ -5,7 +5,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 
 export interface SidebarBrand {
   id: string;
@@ -38,6 +38,11 @@ export function Sidebar({
   const isAlerts = pathname.startsWith("/app/alerts");
   const isRecos = pathname.startsWith("/app/recos");
   const isBrandActive = (id: string) => pathname.startsWith(`/app/brands/${id}`);
+
+  const tierLower = tier.toLowerCase();
+  const isFree = tierLower === "free";
+  const upgradeLabel = isFree ? "Passer à Starter" : tierLower === "starter" ? "Passer à Pro" : null;
+
   return (
     <aside
       className="hidden md:flex flex-col border-r border-DEFAULT bg-white shrink-0"
@@ -110,6 +115,20 @@ export function Sidebar({
               </div>
             </>
           )}
+          <Link
+            href="/app/billing"
+            className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-md transition-colors duration-fast"
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "5px 8px",
+              background: upgradeLabel ? "#2563EB" : "#F1F5F9",
+              color: upgradeLabel ? "#fff" : "#5B6478",
+            }}
+          >
+            <Zap size={10} strokeWidth={2.2} />
+            {upgradeLabel ?? "Gérer l'abonnement"}
+          </Link>
         </div>
       </div>
     </aside>
