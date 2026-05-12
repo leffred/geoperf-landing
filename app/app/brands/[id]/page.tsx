@@ -289,6 +289,8 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
         </div>
       )}
 
+      {activeTab === "overview" && (
+        <>
       {/* KPI strip */}
       <div className="mb-4">
         <KpiStrip>
@@ -535,6 +537,118 @@ export default async function BrandDetailPage({ params, searchParams }: Props) {
           )}
         </Card>
       </div>
+        </>
+      )}
+      {activeTab === "snapshots" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-ink font-medium" style={{ fontSize: 16 }}>Historique des snapshots</div>
+              <div className="text-ink-muted mt-0.5" style={{ fontSize: 13 }}>
+                {allSnapshots.length} run{allSnapshots.length !== 1 ? "s" : ""} · {allSnapshots.filter((s) => s.status === "completed").length} complétés
+              </div>
+            </div>
+          </div>
+          {allSnapshots.length === 0 ? (
+            <div className="bg-white border border-DEFAULT rounded-xl shadow-card py-12 text-center text-ink-muted" style={{ fontSize: 13 }}>
+              Aucun snapshot encore.
+            </div>
+          ) : (
+            <div className="bg-white border border-DEFAULT rounded-xl shadow-card" style={{ padding: 18 }}>
+              <table className="w-full" style={{ fontSize: 13, borderCollapse: "separate", borderSpacing: 0 }}>
+                <thead>
+                  <tr>
+                    <Th>Date</Th>
+                    <Th>Statut</Th>
+                    <Th numeric>Score</Th>
+                    <Th numeric>Δ</Th>
+                    <Th numeric>Citation %</Th>
+                    <Th numeric>Rang moy.</Th>
+                    <Th numeric>LLMs</Th>
+                    <Th numeric>Prompts</Th>
+                    <Th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {allSnapshots.map((s, i) => {
+                    const prev = allSnapshots[i + 1];
+                    const delta = deltaOrNull(s.visibility_score, prev?.visibility_score);
+                    const path = `/app/brands/${id}/snapshots/${s.id}`;
+                    return (
+                      <tr key={s.id} className="hover:bg-surface cursor-pointer">
+                        <Td><Link href={path} className="font-mono text-ink no-underline" style={{ fontSize: 12 }}>{shortDate(s.created_at!)}</Link></Td>
+                        <Td>
+                          <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.08em", color: s.status === "completed" ? "#059669" : s.status === "running" ? "#2563EB" : "#DC2626" }}>
+                            {s.status}
+                          </span>
+                        </Td>
+                        <Td numeric><Link href={path} className="text-ink no-underline font-semibold">{s.visibility_score !== null && s.visibility_score !== undefined ? Math.round(Number(s.visibility_score)) : "—"}</Link></Td>
+                        <Td numeric><Link href={path} className="no-underline"><Delta value={delta} /></Link></Td>
+                        <Td numeric><Link href={path} className="text-ink no-underline">{s.citation_rate !== null && s.citation_rate !== undefined ? Math.round(Number(s.citation_rate)) + "%" : "—"}</Link></Td>
+                        <Td numeric><Link href={path} className="text-ink no-underline">{s.avg_rank !== null && s.avg_rank !== undefined ? Number(s.avg_rank).toFixed(1) : "—"}</Link></Td>
+                        <Td numeric><Link href={path} className="text-ink no-underline">{(s.llms_used ?? []).length}</Link></Td>
+                        <Td numeric><Link href={path} className="text-ink no-underline">{s.prompts_count}</Link></Td>
+                        <Td><Link href={path} className="no-underline"><ChevR size={12} strokeWidth={1.8} color="#8C94A6" /></Link></Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+      {activeTab === "recos" && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-ink font-medium" style={{ fontSize: 16 }}>Recommandations actionnables</div>
+              <div className="text-ink-muted mt-0.5" style={{ fontSize: 13 }}>
+                {recos.length} priorisée{recos.length !== 1 ? "s" : ""} · générées au dernier snapshot
+              </div>
+            </div>
+            <span className="font-mono uppercase text-ink-subtle" style={{ fontSize: 10, letterSpacing: "0.1em" }}>Claude Haiku 4.5</span>
+          </div>
+          {recos.length === 0 ? (
+            <div className="bg-white border border-DEFAULT rounded-xl shadow-card py-12 text-center text-ink-muted" style={{ fontSize: 13 }}>
+              Aucune recommandation. Lance un snapshot pour en générer.
+            </div>
+          ) : (
+            <div className="bg-white border border-DEFAULT rounded-xl shadow-card" style={{ padding: 18 }}>
+              <div className="flex flex-col">
+                {recos.map((r, i) => (
+                  <div
+                    key={r.id}
+                    className="flex items-stretch gap-3"
+                    style={{
+                      paddingTop: i === 0 ? 0 : 16,
+                      paddingBottom: i === recos.length - 1 ? 0 : 16,
+                      borderBottom: i === recos.length - 1 ? "none" : "1px solid rgba(10,14,26,0.08)",
+                    }}
+                  >
+                    <div style={{ width: 3, borderRadius: 2, flexShrink: 0, background: prioColor(r.priority) }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                        <span className="text-ink font-medium" style={{ fontSize: 14 }}>{r.title}</span>
+                        <span className="font-mono uppercase text-ink-subtle" style={{ fontSize: 10, letterSpacing: "0.1em" }}>
+                          {r.category.replace(/_/g, " ")}
+                        </span>
+                        <span className="font-mono uppercase" style={{ fontSize: 10, letterSpacing: "0.08em", color: prioColor(r.priority) }}>
+                          {r.priority}
+                        </span>
+                      </div>
+                      <div className="text-ink-muted" style={{ fontSize: 13, lineHeight: 1.6 }}>{r.body}</div>
+                    </div>
+                    <div className="shrink-0 pt-0.5">
+                      <Flag size={12} strokeWidth={1.8} color={prioColor(r.priority)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
