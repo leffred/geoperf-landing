@@ -123,7 +123,6 @@ export default async function SignupPage({ params, searchParams }: Props) {
               {source && <input type="hidden" name="source" value={source} />}
               {category && <input type="hidden" name="category" value={category} />}
               {invitation_token && <input type="hidden" name="invitation_token" value={invitation_token} />}
-              {hasCoupon && <input type="hidden" name="coupon_code" value={coupon!.toUpperCase()} />}
               <div>
                 <label htmlFor="full_name" className={FIELD_LABEL}>{t("fieldFullName")}</label>
                 <input id="full_name" name="full_name" type="text" autoComplete="name" className={FIELD_INPUT} />
@@ -150,6 +149,18 @@ export default async function SignupPage({ params, searchParams }: Props) {
               <div>
                 <label htmlFor="password" className={FIELD_LABEL}>{t("fieldPassword")}</label>
                 <input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" className={FIELD_INPUT} />
+              </div>
+              <div>
+                <label htmlFor="coupon_code" className={FIELD_LABEL}>Code promo <span className="normal-case font-sans opacity-60" style={{ letterSpacing: 0 }}>(optionnel)</span></label>
+                <input
+                  id="coupon_code"
+                  name="coupon_code"
+                  type="text"
+                  defaultValue={hasCoupon ? coupon!.toUpperCase() : ""}
+                  placeholder="ex : FRIEND50"
+                  autoComplete="off"
+                  className={`${FIELD_INPUT} font-mono uppercase placeholder:normal-case placeholder:font-sans`}
+                />
               </div>
 
               <Button type="submit" variant="primary" size="md" className="w-full">
