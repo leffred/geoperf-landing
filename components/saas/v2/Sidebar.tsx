@@ -37,6 +37,7 @@ export function Sidebar({
   const isDashboard = pathname === "/app/dashboard";
   const isAlerts = pathname.startsWith("/app/alerts");
   const isRecos = pathname.startsWith("/app/recos");
+  const isContent = pathname.startsWith("/app/content");
   const isBrandActive = (id: string) =>
     pathname.startsWith(`/app/brands/${id}`) &&
     !pathname.startsWith(`/app/brands/${id}/alignment`);
@@ -61,6 +62,9 @@ export function Sidebar({
       </SidebarItem>
       <SidebarItem href="/app/recos" active={isRecos} badge={pendingRecos > 0 ? String(pendingRecos) : undefined}>
         Recommandations
+      </SidebarItem>
+      <SidebarItem href="/app/content" active={isContent}>
+        Content
       </SidebarItem>
 
       <SidebarSection label="Marques suivies" />
