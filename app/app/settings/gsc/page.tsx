@@ -79,11 +79,19 @@ export default async function GscSettingsPage({
               </form>
             </div>
 
+            {/* Propriete active — statut visible */}
+            {profile?.gsc_property_url && (
+              <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2.5">
+                <span className="text-green-600 text-xs font-mono uppercase tracking-wide shrink-0">Actif</span>
+                <span className="text-green-900 text-sm font-mono truncate">{profile.gsc_property_url}</span>
+              </div>
+            )}
+
             {/* Selecteur de propriete */}
             {sites.length > 0 ? (
               <form action={saveGscProperty} className="space-y-2">
                 <label className="block text-xs font-mono uppercase text-gray-400 tracking-wide">
-                  Propriete active
+                  Changer de propriete
                 </label>
                 <div className="flex gap-2">
                   <select
