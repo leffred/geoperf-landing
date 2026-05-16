@@ -58,6 +58,60 @@ export async function generateArticle(formData: FormData) {
   redirect("/app/content?success=generated");
 }
 
+// Server Action wired sur <form action={saveArticle}> côté ArticleEditor.
+// Pas de redirect : on reste sur la page d'édition après la sauvegarde.
+// Retour useActionState-friendly : { ok, saved_at?, error? }.
+export type SaveArticleState = {
+  ok: boolean;
+  saved_at?: string;
+  error?: string;
+};
+
+export async function saveArticle(
+  _prev: SaveArticleState | undefined,
+  formData: FormData,
+): Promise<SaveArticleState> {
+  const articleId = String(formData.get("article_id") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const bodyHtml = String(formData.get("body_html") ?? "");
+
+  if (!articleId) return { ok: false, error: "missing_article" };
+  if (!title) return { ok: false, error: "missing_title" };
+  if (!bodyHtml.trim()) return { ok: false, error: "empty_body" };
+
+  const ctx = await loadSaasContext();
+  const sb = getServiceClient();
+
+  // Ownership : filtre explicite client_id même avec service_role.
+  const { data: existing } = await sb
+    .from("geo_articles")
+    .select("id, status")
+    .eq("id", articleId)
+    .eq("client_id", ctx.user.id)
+    .maybeSingle();
+  if (!existing) return { ok: false, error: "not_found" };
+
+  const nowIso = new Date().toISOString();
+  const { error: upErr } = await sb
+    .from("geo_articles")
+    .update({
+      title: title.slice(0, 200),
+      body_html: bodyHtml,
+      updated_at: nowIso,
+    })
+    .eq("id", articleId)
+    .eq("client_id", ctx.user.id);
+
+  if (upErr) {
+    console.error("[saveArticle] update failed:", upErr.message);
+    return { ok: false, error: "save_failed" };
+  }
+
+  revalidatePath(`/app/content/${articleId}`);
+  revalidatePath("/app/content");
+  return { ok: true, saved_at: nowIso };
+}
+
 export async function publishArticle(formData: FormData) {
   const articleId = String(formData.get("article_id") ?? "").trim();
   if (!articleId) redirect("/app/content?error=missing_article");

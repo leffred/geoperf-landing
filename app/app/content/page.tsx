@@ -166,9 +166,13 @@ function ArticlesTable({ rows }: { rows: ArticleRow[] }) {
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-DEFAULT last:border-b-0 hover:bg-surface/50 transition-colors">
                 <Td>
-                  <div className="text-ink truncate max-w-md" style={{ fontSize: 13, fontWeight: 500 }}>
+                  <Link
+                    href={`/app/content/${r.id}`}
+                    className="block text-ink hover:text-brand-500 transition-colors truncate max-w-md"
+                    style={{ fontSize: 13, fontWeight: 500 }}
+                  >
                     {r.title || "(sans titre)"}
-                  </div>
+                  </Link>
                   {r.slug && (
                     <div className="text-ink-subtle font-mono truncate max-w-md mt-0.5" style={{ fontSize: 11 }}>
                       /{r.slug}
@@ -228,16 +232,25 @@ function RowActions({ row }: { row: ArticleRow }) {
   }
   if (row.status === "draft" || row.status === "review") {
     return (
-      <form action={publishArticle} className="inline-flex">
-        <input type="hidden" name="article_id" value={row.id} />
-        <button
-          type="submit"
-          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-ink hover:bg-ink/90 text-white transition-colors"
+      <div className="inline-flex items-center gap-2">
+        <Link
+          href={`/app/content/${row.id}`}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-DEFAULT hover:bg-surface text-ink-muted hover:text-ink transition-colors"
           style={{ fontSize: 12, fontWeight: 500 }}
         >
-          Publier
-        </button>
-      </form>
+          Éditer
+        </Link>
+        <form action={publishArticle} className="inline-flex">
+          <input type="hidden" name="article_id" value={row.id} />
+          <button
+            type="submit"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-ink hover:bg-ink/90 text-white transition-colors"
+            style={{ fontSize: 12, fontWeight: 500 }}
+          >
+            Publier
+          </button>
+        </form>
+      </div>
     );
   }
   return <span className="text-ink-subtle font-mono" style={{ fontSize: 11 }}>—</span>;
