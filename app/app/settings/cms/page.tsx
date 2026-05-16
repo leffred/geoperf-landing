@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, Trash2, X } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
-import { addWordpressCms, addShopifyCms, deleteCms } from "./actions";
+import { addWordpressCms, addShopifyCms, addWebflowCms, deleteCms } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "CMS connectés — Geoperf", robots: { index: false, follow: false } };
@@ -29,6 +29,7 @@ const ERROR_LABELS: Record<string, string> = {
   missing_domain: "Domaine Shopify requis.",
   missing_token: "Access token requis.",
   missing_blog_id: "Blog ID requis.",
+  missing_collection_id: "Collection ID Webflow requis.",
   missing_id: "Configuration introuvable.",
   insert_failed: "Échec de l'ajout du CMS.",
   delete_failed: "Échec de la suppression.",
@@ -55,7 +56,10 @@ export default async function CmsSettingsPage({
     .order("created_at", { ascending: false });
   const rows = (configs as CmsRow[] | null) ?? [];
 
-  const tab = sp.tab === "shopify" ? "shopify" : "wordpress";
+  const tab: "wordpress" | "shopify" | "webflow" =
+    sp.tab === "shopify" ? "shopify" :
+    sp.tab === "webflow" ? "webflow" :
+    "wordpress";
   const errorMsg = sp.error ? ERROR_LABELS[sp.error] ?? `Erreur : ${sp.error}` : null;
   const successMsg = sp.success ? SUCCESS_LABELS[sp.success] ?? null : null;
 
@@ -127,11 +131,15 @@ export default async function CmsSettingsPage({
           <TabLink href="/app/settings/cms?tab=shopify" active={tab === "shopify"}>
             Shopify
           </TabLink>
-          <DisabledTab label="Webflow" hint="S35" />
+          <TabLink href="/app/settings/cms?tab=webflow" active={tab === "webflow"}>
+            Webflow
+          </TabLink>
           <DisabledTab label="Wix" hint="S35" />
         </div>
 
-        {tab === "wordpress" ? <WordpressForm /> : <ShopifyForm />}
+        {tab === "wordpress" && <WordpressForm />}
+        {tab === "shopify" && <ShopifyForm />}
+        {tab === "webflow" && <WebflowForm />}
       </section>
     </div>
   );
@@ -173,7 +181,7 @@ function CmsBadge({ type }: { type: string }) {
   const map: Record<string, { bg: string; fg: string; label: string }> = {
     wordpress: { bg: "#21759B", fg: "#FFFFFF", label: "WordPress" },
     shopify:   { bg: "#95BF47", fg: "#FFFFFF", label: "Shopify" },
-    webflow:   { bg: "#4353FF", fg: "#FFFFFF", label: "Webflow" },
+    webflow:   { bg: "#146EF5", fg: "#FFFFFF", label: "Webflow" },
     wix:       { bg: "#000000", fg: "#FFFFFF", label: "Wix" },
   };
   const s = map[type] ?? { bg: "#5B6478", fg: "#FFFFFF", label: type };
@@ -362,6 +370,80 @@ function ShopifyForm() {
         style={{ fontSize: 13, fontWeight: 600 }}
       >
         Ajouter Shopify
+      </button>
+    </form>
+  );
+}
+
+function WebflowForm() {
+  return (
+    <form action={addWebflowCms} className="bg-white border border-DEFAULT rounded-xl shadow-card p-5 md:p-6 space-y-4">
+      <Field
+        label="API Token"
+        htmlFor="wf_token"
+        hint={
+          <>
+            Webflow Dashboard → Account Settings → Integrations → <em>API Access</em>. Scope requis : <code className="font-mono">CMS write</code> sur le site cible.
+          </>
+        }
+      >
+        <input
+          id="wf_token"
+          name="api_token"
+          type="password"
+          required
+          autoComplete="new-password"
+          placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+          style={{ fontSize: 13 }}
+        />
+      </Field>
+      <Field
+        label="Collection ID"
+        htmlFor="wf_collection_id"
+        hint={
+          <>
+            💡 Webflow Designer → CMS → Blog Posts collection → <em>Settings</em> → bas du panneau, <code className="font-mono">Collection ID</code>.
+          </>
+        }
+      >
+        <input
+          id="wf_collection_id"
+          name="collection_id"
+          type="text"
+          required
+          placeholder="64a1b2c3d4e5f6a7b8c9d0e1"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+          style={{ fontSize: 13 }}
+        />
+      </Field>
+      <Field
+        label="Site ID (optionnel)"
+        htmlFor="wf_site_id"
+        hint="Pour générer le lien retour vers Webflow Designer après publication. Visible dans l'URL du Designer."
+      >
+        <input
+          id="wf_site_id"
+          name="site_id"
+          type="text"
+          placeholder="64a1b2c3d4e5f6a7b8c9d0e1"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+          style={{ fontSize: 13 }}
+        />
+      </Field>
+
+      <div className="rounded-md bg-surface px-3 py-2.5 text-ink-muted" style={{ fontSize: 11, lineHeight: 1.5 }}>
+        ⚠️ La collection Webflow doit utiliser les <strong>field slugs</strong> standards du template Blog :
+        <code className="font-mono ml-1">name</code>, <code className="font-mono">slug</code>, <code className="font-mono">post-body</code>, <code className="font-mono">post-summary</code>.
+        Si vos slugs diffèrent, la publication échouera en 422 (mapping custom prévu S35).
+      </div>
+
+      <button
+        type="submit"
+        className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-md transition-colors"
+        style={{ fontSize: 13, fontWeight: 600 }}
+      >
+        Ajouter Webflow
       </button>
     </form>
   );

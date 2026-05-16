@@ -79,6 +79,37 @@ export async function addShopifyCms(formData: FormData) {
   redirect("/app/settings/cms?success=added");
 }
 
+export async function addWebflowCms(formData: FormData) {
+  const apiToken = String(formData.get("api_token") ?? "").trim();
+  const collectionId = String(formData.get("collection_id") ?? "").trim();
+  const siteId = String(formData.get("site_id") ?? "").trim();
+
+  if (!apiToken) redirect("/app/settings/cms?tab=webflow&error=missing_token");
+  if (!collectionId) redirect("/app/settings/cms?tab=webflow&error=missing_collection_id");
+
+  const ctx = await loadSaasContext();
+  const sb = getServiceClient();
+
+  const extra: Record<string, string> = { collection_id: collectionId };
+  if (siteId) extra.site_id = siteId;
+
+  const { error } = await sb.from("client_cms_config").insert({
+    client_id: ctx.user.id,
+    cms_type: "webflow",
+    site_url: siteId ? `https://webflow.com/design/${siteId}` : null,
+    api_key_encrypted: apiToken,
+    extra_config: extra,
+    is_active: true,
+  });
+  if (error) {
+    console.error("[addWebflowCms]", error.message);
+    redirect("/app/settings/cms?tab=webflow&error=insert_failed");
+  }
+
+  revalidatePath("/app/settings/cms");
+  redirect("/app/settings/cms?success=added");
+}
+
 export async function deleteCms(formData: FormData) {
   const id = String(formData.get("cms_id") ?? "").trim();
   if (!id) redirect("/app/settings/cms?error=missing_id");
