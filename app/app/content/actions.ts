@@ -1,9 +1,5 @@
 "use server";
 
-// S33 — GEO Content Writer server actions.
-// - generateArticle : POST n8n webhook geo-content-generate (gate quota free=5)
-// - publishArticle  : appelle Edge Function saas_publish_to_wordpress (1ère config CMS active)
-
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { loadSaasContext } from "@/lib/saas-auth";
@@ -24,8 +20,6 @@ export async function generateArticle(formData: FormData) {
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  // Quota free-tier — Content sub n'existe pas encore dans Stripe (S33 Phase 1),
-  // donc tout tier monitoring tombe sur le quota free Content = 5 articles total.
   const { count } = await sb
     .from("geo_articles")
     .select("id", { count: "exact", head: true })
@@ -58,9 +52,6 @@ export async function generateArticle(formData: FormData) {
   redirect("/app/content?success=generated");
 }
 
-// Server Action wired sur <form action={saveArticle}> côté ArticleEditor.
-// Pas de redirect : on reste sur la page d'édition après la sauvegarde.
-// Retour useActionState-friendly : { ok, saved_at?, error? }.
 export type SaveArticleState = {
   ok: boolean;
   saved_at?: string;
@@ -82,7 +73,6 @@ export async function saveArticle(
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  // Ownership : filtre explicite client_id même avec service_role.
   const { data: existing } = await sb
     .from("geo_articles")
     .select("id, status")
@@ -119,7 +109,6 @@ export async function publishArticle(formData: FormData) {
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  // Ownership : on filtre directement client_id pour éviter de leak via service_role
   const { data: article } = await sb
     .from("geo_articles")
     .select("id, status")
@@ -131,7 +120,6 @@ export async function publishArticle(formData: FormData) {
     redirect("/app/content?error=already_published");
   }
 
-  // 1ère config CMS active (WordPress) pour ce user
   const { data: cms } = await sb
     .from("client_cms_config")
     .select("id")
@@ -143,7 +131,6 @@ export async function publishArticle(formData: FormData) {
     .maybeSingle();
   if (!cms) redirect("/app/content?error=no_cms");
 
-  // JWT user pour l'Edge Function (verify_jwt=true + auth.getUser() interne)
   const ssr = await getSupabaseServerClient();
   const { data: { session } } = await ssr.auth.getSession();
   if (!session) redirect("/app/content?error=auth");
