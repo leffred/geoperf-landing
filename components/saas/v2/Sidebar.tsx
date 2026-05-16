@@ -39,6 +39,7 @@ export function Sidebar({
   const isRecos = pathname.startsWith("/app/recos");
   const isContent = pathname.startsWith("/app/content");
   const isGsc = pathname.startsWith("/app/settings/gsc");
+  const isCms = pathname.startsWith("/app/settings/cms");
   const isBrandActive = (id: string) =>
     pathname.startsWith(`/app/brands/${id}`) &&
     !pathname.startsWith(`/app/brands/${id}/alignment`);
@@ -69,6 +70,9 @@ export function Sidebar({
       </SidebarItem>
       <SidebarItem href="/app/settings/gsc" active={isGsc}>
         Google Search Console
+      </SidebarItem>
+      <SidebarItem href="/app/settings/cms" active={isCms}>
+        CMS connectés
       </SidebarItem>
 
       <SidebarSection label="Marques suivies" />

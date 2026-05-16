@@ -120,16 +120,21 @@ export async function publishArticle(formData: FormData) {
     redirect("/app/content?error=already_published");
   }
 
+  // 1ère config CMS active (WordPress ou Shopify). Dispatch via cms_type
+  // sur l'Edge Function correspondante. S35 : ajouter Webflow + Wix.
   const { data: cms } = await sb
     .from("client_cms_config")
-    .select("id")
+    .select("id, cms_type")
     .eq("client_id", ctx.user.id)
-    .eq("cms_type", "wordpress")
     .eq("is_active", true)
+    .in("cms_type", ["wordpress", "shopify"])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (!cms) redirect("/app/content?error=no_cms");
+
+  const cmsType = (cms as { cms_type: string }).cms_type;
+  const fnName = cmsType === "shopify" ? "saas_publish_to_shopify" : "saas_publish_to_wordpress";
 
   const ssr = await getSupabaseServerClient();
   const { data: { session } } = await ssr.auth.getSession();
@@ -137,7 +142,7 @@ export async function publishArticle(formData: FormData) {
 
   let ok = false;
   try {
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/saas_publish_to_wordpress`, {
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${session.access_token}`,
