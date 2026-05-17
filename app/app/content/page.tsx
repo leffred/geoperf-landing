@@ -7,15 +7,14 @@ import { ExternalLink, FileText, Plus, Sparkles } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { KpiStrip, KpiCell } from "@/components/saas/v2/KpiStrip";
+import { CONTENT_PLAN_LIMITS, CONTENT_TIER_LABELS, type ContentTier } from "@/lib/content-plans";
 import { publishArticle } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "GEO Content — Geoperf", robots: { index: false, follow: false } };
 
-const FREE_QUOTA = 5;
-
 const ERROR_LABELS: Record<string, string> = {
-  quota: `Vous avez utilisé vos ${FREE_QUOTA} articles gratuits — Passer au plan Starter (49€/mois) pour continuer.`,
+  quota: "Quota atteint sur votre plan actuel.",
   no_cms: "Aucun CMS WordPress connecté. Configurez une connexion dans Réglages → CMS pour publier.",
   publish_failed: "Échec de la publication WordPress. Vérifiez les credentials CMS et réessayez.",
   not_found: "Article introuvable.",
@@ -27,6 +26,7 @@ const ERROR_LABELS: Record<string, string> = {
 const SUCCESS_LABELS: Record<string, string> = {
   generated: "Article généré et ajouté en brouillon.",
   published: "Article publié sur WordPress avec succès.",
+  content_subscribed: "Abonnement Content activé — quota mis à jour.",
 };
 
 interface ArticleRow {
@@ -43,26 +43,41 @@ interface ArticleRow {
 export default async function ContentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; tier?: string }>;
 }) {
   const sp = await searchParams;
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  const { data: articles } = await sb
-    .from("geo_articles")
-    .select("id, title, slug, status, cms_target, cms_url, created_at, published_at")
-    .eq("client_id", ctx.user.id)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [articlesRes, contentSubRes] = await Promise.all([
+    sb.from("geo_articles")
+      .select("id, title, slug, status, cms_target, cms_url, created_at, published_at")
+      .eq("client_id", ctx.user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    sb.from("saas_content_subscriptions")
+      .select("tier, articles_used_this_period, current_period_end")
+      .eq("user_id", ctx.user.id)
+      .eq("status", "active")
+      .maybeSingle(),
+  ]);
 
-  const rows = (articles as ArticleRow[] | null) ?? [];
+  const rows = (articlesRes.data as ArticleRow[] | null) ?? [];
+  const contentSub = contentSubRes.data as {
+    tier: ContentTier;
+    articles_used_this_period: number;
+    current_period_end: string | null;
+  } | null;
+
   const total = rows.length;
   const drafts = rows.filter((r) => r.status === "draft" || r.status === "review").length;
   const published = rows.filter((r) => r.status === "published").length;
-  // Quota free : pas de produit Content dans Stripe S33 Phase 1, donc tous les tiers monitoring
-  // partagent le quota free Content = 5. La banner est purement informationnelle pour l'instant.
-  const quotaReached = total >= FREE_QUOTA;
+
+  // S35 — quota tier-aware. Free : compte total historique. Paid : compteur de période.
+  const tier = (contentSub?.tier ?? "free") as ContentTier;
+  const limits = CONTENT_PLAN_LIMITS[tier];
+  const usedThisPeriod = tier === "free" ? total : (contentSub?.articles_used_this_period ?? 0);
+  const quotaReached = usedThisPeriod >= limits.articles_per_month;
 
   const errorMsg = sp.error ? ERROR_LABELS[sp.error] ?? "Erreur." : null;
   const successMsg = sp.success ? SUCCESS_LABELS[sp.success] ?? null : null;
@@ -103,14 +118,24 @@ export default async function ContentPage({
         </div>
       )}
 
-      {/* Quota banner — affichée seulement quand le quota free est atteint et pas d'erreur déjà visible */}
-      {quotaReached && !errorMsg && (
+      {/* Quota banner — tier-aware (S35) */}
+      {quotaReached && (
         <div className="mb-6 rounded-lg border border-DEFAULT border-l-2 border-l-brand-500 bg-brand-50 px-4 py-3 flex items-start gap-3" style={{ fontSize: 13 }}>
           <Sparkles size={16} strokeWidth={1.8} className="text-brand-500 mt-0.5 shrink-0" />
           <div className="flex-1 text-brand-600">
-            Vous avez utilisé vos <strong>{FREE_QUOTA} articles gratuits</strong> — passez au plan{" "}
-            <strong>Content Starter (49€/mois)</strong> pour générer 10 articles supplémentaires par mois.{" "}
-            <Link href="/app/billing" className="underline hover:text-brand-700">Voir les plans</Link>
+            {tier === "free" ? (
+              <>
+                Vous avez utilisé vos <strong>{limits.articles_per_month} articles gratuits</strong> (crédit unique).{" "}
+                Débloquez plus d&apos;articles avec un plan Content.{" "}
+                <Link href="/app/content/upgrade" className="underline hover:text-brand-700 font-semibold">Voir les plans →</Link>
+              </>
+            ) : (
+              <>
+                Vous avez utilisé vos <strong>{limits.articles_per_month} articles du plan {CONTENT_TIER_LABELS[tier]}</strong> ce mois-ci.
+                Le quota se renouvelle au prochain cycle de facturation.{" "}
+                <Link href="/app/content/upgrade" className="underline hover:text-brand-700 font-semibold">Upgrader le plan →</Link>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -119,7 +144,11 @@ export default async function ContentPage({
       <KpiStrip className="mb-6">
         <KpiCell label="Brouillons" value={drafts} hint={drafts > 0 ? "à publier" : "—"} />
         <KpiCell label="Publiés" value={published} hint={published > 0 ? "sur CMS" : "—"} />
-        <KpiCell label="Total" value={`${total} / ${FREE_QUOTA}`} hint="quota free" />
+        <KpiCell
+          label={tier === "free" ? "Quota total" : "Ce mois-ci"}
+          value={`${usedThisPeriod} / ${limits.articles_per_month}`}
+          hint={`plan ${CONTENT_TIER_LABELS[tier]}`}
+        />
       </KpiStrip>
 
       {/* Empty state */}

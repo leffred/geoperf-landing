@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { getSupabaseServerClient } from "@/lib/supabase-server-auth";
+import { CONTENT_PLAN_LIMITS, type ContentTier } from "@/lib/content-plans";
 
 const N8N_BASE = process.env.N8N_WEBHOOK_BASE || "https://fredericlefebvre.app.n8n.cloud/webhook";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const FREE_QUOTA = 5;
 
 export async function generateArticle(formData: FormData) {
   const subject = String(formData.get("subject") ?? "").trim();
@@ -20,13 +20,33 @@ export async function generateArticle(formData: FormData) {
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  const { count } = await sb
-    .from("geo_articles")
-    .select("id", { count: "exact", head: true })
-    .eq("client_id", ctx.user.id);
+  // S35 — Quota check : lit le tier Content réel + compteur de période courante.
+  // Free : quota total historique (5 articles, pas renouvelable). Paid : per-period counter
+  // resetté par invoice.paid dans le webhook.
+  const { data: contentSubRaw } = await sb
+    .from("saas_content_subscriptions")
+    .select("id, tier, articles_used_this_period")
+    .eq("user_id", ctx.user.id)
+    .eq("status", "active")
+    .maybeSingle();
+  const contentSub = contentSubRaw as { id: string; tier: ContentTier; articles_used_this_period: number } | null;
 
-  if ((count ?? 0) >= FREE_QUOTA) {
-    redirect("/app/content?error=quota");
+  const tier = (contentSub?.tier ?? "free") as ContentTier;
+  const limits = CONTENT_PLAN_LIMITS[tier];
+
+  let usedCount: number;
+  if (tier === "free") {
+    const { count } = await sb
+      .from("geo_articles")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", ctx.user.id);
+    usedCount = count ?? 0;
+  } else {
+    usedCount = contentSub?.articles_used_this_period ?? 0;
+  }
+
+  if (usedCount >= limits.articles_per_month) {
+    redirect(`/app/content?error=quota&tier=${tier}`);
   }
 
   let ok = false;
@@ -47,6 +67,15 @@ export async function generateArticle(formData: FormData) {
   }
 
   if (!ok) redirect("/app/content/new?error=generation_failed");
+
+  // Incrémente le compteur de période sur les tiers payants. Free : le quota se calcule
+  // depuis COUNT(geo_articles), pas besoin d'incrémenter le compteur.
+  if (contentSub && tier !== "free") {
+    await sb
+      .from("saas_content_subscriptions")
+      .update({ articles_used_this_period: usedCount + 1 })
+      .eq("id", contentSub.id);
+  }
 
   revalidatePath("/app/content");
   redirect("/app/content?success=generated");
