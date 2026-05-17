@@ -3,7 +3,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ExternalLink, FileText, Plus, Sparkles } from "lucide-react";
+import { BarChart3, ExternalLink, FileText, Plus, Sparkles } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { KpiStrip, KpiCell } from "@/components/saas/v2/KpiStrip";
@@ -97,14 +97,24 @@ export default async function ContentPage({
             Articles optimisés pour ChatGPT, Claude, Gemini, Perplexity — générés par IA, publiables sur votre CMS.
           </p>
         </div>
-        <Link
-          href="/app/content/new"
-          className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-md transition-colors"
-          style={{ fontSize: 13, fontWeight: 600 }}
-        >
-          <Plus size={14} strokeWidth={2.2} />
-          Nouvel article
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/app/content/analytics"
+            className="inline-flex items-center gap-1.5 border border-DEFAULT hover:bg-surface text-ink-muted hover:text-ink px-3 py-2 rounded-md transition-colors"
+            style={{ fontSize: 13, fontWeight: 500 }}
+          >
+            <BarChart3 size={13} strokeWidth={1.8} />
+            Analytics
+          </Link>
+          <Link
+            href="/app/content/new"
+            className="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-md transition-colors"
+            style={{ fontSize: 13, fontWeight: 600 }}
+          >
+            <Plus size={14} strokeWidth={2.2} />
+            Nouvel article
+          </Link>
+        </div>
       </div>
 
       {successMsg && (

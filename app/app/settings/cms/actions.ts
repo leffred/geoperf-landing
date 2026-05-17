@@ -143,6 +143,35 @@ export async function addWixCms(formData: FormData) {
   redirect("/app/settings/cms?success=added");
 }
 
+
+export async function addPrestashopCms(formData: FormData) {
+  const siteUrl = normalizeUrl(String(formData.get("site_url") ?? ""));
+  const apiKey = String(formData.get("api_key") ?? "").trim();
+  const languageId = String(formData.get("language_id") ?? "1").trim() || "1";
+  const cmsCategoryId = String(formData.get("cms_category_id") ?? "1").trim() || "1";
+
+  if (!siteUrl) redirect("/app/settings/cms?tab=prestashop&error=missing_site_url");
+  if (!apiKey) redirect("/app/settings/cms?tab=prestashop&error=missing_token");
+
+  const ctx = await loadSaasContext();
+  const sb = getServiceClient();
+
+  const { error } = await sb.from("client_cms_config").insert({
+    client_id: ctx.user.id,
+    cms_type: "prestashop",
+    site_url: siteUrl,
+    api_key_encrypted: apiKey,
+    extra_config: { language_id: languageId, cms_category_id: cmsCategoryId },
+    is_active: true,
+  });
+  if (error) {
+    console.error("[addPrestashopCms]", error.message);
+    redirect("/app/settings/cms?tab=prestashop&error=insert_failed");
+  }
+
+  revalidatePath("/app/settings/cms");
+  redirect("/app/settings/cms?success=added");
+}
 export async function deleteCms(formData: FormData) {
   const id = String(formData.get("cms_id") ?? "").trim();
   if (!id) redirect("/app/settings/cms?error=missing_id");

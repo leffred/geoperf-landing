@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, Trash2, X } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
-import { addWordpressCms, addShopifyCms, addWebflowCms, addWixCms, deleteCms } from "./actions";
+import { addWordpressCms, addShopifyCms, addWebflowCms, addWixCms, addPrestashopCms, deleteCms } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "CMS connectés — Geoperf", robots: { index: false, follow: false } };
@@ -58,10 +58,11 @@ export default async function CmsSettingsPage({
     .order("created_at", { ascending: false });
   const rows = (configs as CmsRow[] | null) ?? [];
 
-  const tab: "wordpress" | "shopify" | "webflow" | "wix" =
+  const tab: "wordpress" | "shopify" | "webflow" | "wix" | "prestashop" =
     sp.tab === "shopify" ? "shopify" :
     sp.tab === "webflow" ? "webflow" :
     sp.tab === "wix" ? "wix" :
+    sp.tab === "prestashop" ? "prestashop" :
     "wordpress";
   const errorMsg = sp.error ? ERROR_LABELS[sp.error] ?? `Erreur : ${sp.error}` : null;
   const successMsg = sp.success ? SUCCESS_LABELS[sp.success] ?? null : null;
@@ -140,12 +141,16 @@ export default async function CmsSettingsPage({
           <TabLink href="/app/settings/cms?tab=wix" active={tab === "wix"}>
             Wix
           </TabLink>
+          <TabLink href="/app/settings/cms?tab=prestashop" active={tab === "prestashop"}>
+            PrestaShop
+          </TabLink>
         </div>
 
         {tab === "wordpress" && <WordpressForm />}
         {tab === "shopify" && <ShopifyForm />}
         {tab === "webflow" && <WebflowForm />}
         {tab === "wix" && <WixForm />}
+        {tab === "prestashop" && <PrestaShopForm />}
       </section>
     </div>
   );
@@ -189,6 +194,7 @@ function CmsBadge({ type }: { type: string }) {
     shopify:   { bg: "#95BF47", fg: "#FFFFFF", label: "Shopify" },
     webflow:   { bg: "#146EF5", fg: "#FFFFFF", label: "Webflow" },
     wix:       { bg: "#000000", fg: "#FFFFFF", label: "Wix" },
+    prestashop:{ bg: "#DF0067", fg: "#FFFFFF", label: "PrestaShop" },
   };
   const s = map[type] ?? { bg: "#5B6478", fg: "#FFFFFF", label: type };
   return (
@@ -499,18 +505,84 @@ function WixForm() {
           style={{ fontSize: 13 }}
         />
       </Field>
-
       <div className="rounded-md bg-surface px-3 py-2.5 text-ink-muted" style={{ fontSize: 11, lineHeight: 1.5 }}>
-        💡 L&apos;article sera publié directement sur le Blog Wix du site. Assurez-vous que votre site a un
-        <strong className="ml-1">blog activé</strong> (Wix Dashboard → Add Apps → Blog).
+        💡 L&apos;article sera publié sur le Blog Wix du site. Assurez-vous que le blog est activé
+        (Wix Dashboard → Add Apps → Blog).
       </div>
-
-      <button
-        type="submit"
-        className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-md transition-colors"
-        style={{ fontSize: 13, fontWeight: 600 }}
-      >
+      <button type="submit" className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-md transition-colors" style={{ fontSize: 13, fontWeight: 600 }}>
         Ajouter Wix
+      </button>
+    </form>
+  );
+}
+
+function PrestaShopForm() {
+  return (
+    <form action={addPrestashopCms} className="bg-white border border-DEFAULT rounded-xl shadow-card p-5 md:p-6 space-y-4">
+      <Field label="URL du site" htmlFor="ps_site_url" hint="URL de base PrestaShop, ex : https://monsite.com">
+        <input
+          id="ps_site_url"
+          name="site_url"
+          type="url"
+          required
+          placeholder="https://monsite.com"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink"
+          style={{ fontSize: 14 }}
+        />
+      </Field>
+      <Field
+        label="Clé WebService"
+        htmlFor="ps_api_key"
+        hint={
+          <>
+            BO PrestaShop → Paramètres avancés → Webservice → Ajouter une clé.
+            Permissions requises : <code className="font-mono">content</code> (GET + POST).
+          </>
+        }
+      >
+        <input
+          id="ps_api_key"
+          name="api_key"
+          type="password"
+          required
+          autoComplete="new-password"
+          placeholder="ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+          style={{ fontSize: 13 }}
+        />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="ID Langue" htmlFor="ps_language_id" hint="1 = français (défaut)">
+          <input
+            id="ps_language_id"
+            name="language_id"
+            type="number"
+            min="1"
+            defaultValue="1"
+            placeholder="1"
+            className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+            style={{ fontSize: 14 }}
+          />
+        </Field>
+        <Field label="ID Catégorie CMS" htmlFor="ps_category_id" hint="1 = accueil (défaut)">
+          <input
+            id="ps_category_id"
+            name="cms_category_id"
+            type="number"
+            min="1"
+            defaultValue="1"
+            placeholder="1"
+            className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+            style={{ fontSize: 14 }}
+          />
+        </Field>
+      </div>
+      <div className="rounded-md bg-surface px-3 py-2.5 text-ink-muted" style={{ fontSize: 11, lineHeight: 1.5 }}>
+        ⚠️ PrestaShop n&apos;a pas de blog natif. L&apos;article sera créé comme une <strong>CMS page</strong> (contenu statique SEO).
+        Pour les boutiques avec un module blog (Smart Blog, Presta Blog…), le support est prévu S37.
+      </div>
+      <button type="submit" className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-md transition-colors" style={{ fontSize: 13, fontWeight: 600 }}>
+        Ajouter PrestaShop
       </button>
     </form>
   );

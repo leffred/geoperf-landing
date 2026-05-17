@@ -75,26 +75,22 @@ export async function generateArticle(formData: FormData) {
   redirect("/app/content?success=generated");
 }
 
-export type SaveArticleState = {
-  ok: boolean;
-  saved_at?: string;
-  error?: string;
-};
+export type SaveArticleState = { ok: boolean; saved_at?: string; error?: string };
 
 export async function saveArticle(
   _prev: SaveArticleState | undefined,
   formData: FormData,
 ): Promise<SaveArticleState> {
   const articleId = String(formData.get("article_id") ?? "").trim();
-  const title = String(formData.get("title") ?? "").trim();
-  const bodyHtml = String(formData.get("body_html") ?? "");
+  const title     = String(formData.get("title")      ?? "").trim();
+  const bodyHtml  = String(formData.get("body_html")  ?? "");
 
   if (!articleId) return { ok: false, error: "missing_article" };
-  if (!title) return { ok: false, error: "missing_title" };
+  if (!title)     return { ok: false, error: "missing_title" };
   if (!bodyHtml.trim()) return { ok: false, error: "empty_body" };
 
   const ctx = await loadSaasContext();
-  const sb = getServiceClient();
+  const sb  = getServiceClient();
 
   const { data: existing } = await sb
     .from("geo_articles")
@@ -107,11 +103,7 @@ export async function saveArticle(
   const nowIso = new Date().toISOString();
   const { error: upErr } = await sb
     .from("geo_articles")
-    .update({
-      title: title.slice(0, 200),
-      body_html: bodyHtml,
-      updated_at: nowIso,
-    })
+    .update({ title: title.slice(0, 200), body_html: bodyHtml, updated_at: nowIso })
     .eq("id", articleId)
     .eq("client_id", ctx.user.id);
 
@@ -130,7 +122,7 @@ export async function publishArticle(formData: FormData) {
   if (!articleId) redirect("/app/content?error=missing_article");
 
   const ctx = await loadSaasContext();
-  const sb = getServiceClient();
+  const sb  = getServiceClient();
 
   const { data: article } = await sb
     .from("geo_articles")
@@ -143,7 +135,7 @@ export async function publishArticle(formData: FormData) {
     redirect("/app/content?error=already_published");
   }
 
-  // 1ere config CMS active (WordPress / Shopify / Webflow / Wix). Dispatch via Edge Function.
+  // 1ere config CMS active. Dispatch vers la bonne Edge Function.
   const { data: cms } = await sb
     .from("client_cms_config")
     .select("id, cms_type")
@@ -152,23 +144,22 @@ export async function publishArticle(formData: FormData) {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-
   if (!cms) redirect("/app/content?error=no_cms");
 
   const cmsRow = cms as { id: string; cms_type: string };
   const CMS_FN_MAP: Record<string, string> = {
-    wordpress: "saas_publish_to_wordpress",
-    shopify: "saas_publish_to_shopify",
-    webflow: "saas_publish_to_webflow",
-    wix: "saas_publish_to_wix",
+    wordpress:   "saas_publish_to_wordpress",
+    shopify:     "saas_publish_to_shopify",
+    webflow:     "saas_publish_to_webflow",
+    wix:         "saas_publish_to_wix",
+    prestashop:  "saas_publish_to_prestashop",
   };
   const fnName = CMS_FN_MAP[cmsRow.cms_type];
   if (!fnName) redirect("/app/content?error=unsupported_cms");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const anonKey     = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  // Recupere le JWT user depuis la session serveur
   const sbAuth = getSupabaseServerClient();
   const { data: { session } } = await sbAuth.auth.getSession();
   const token = session?.access_token;
@@ -199,8 +190,7 @@ export async function publishArticle(formData: FormData) {
   revalidatePath("/app/content");
   if (!ok) redirect("/app/content?error=publish_failed");
 
-  // Fire-and-forget : déclenche le scan de visibilité LLM post-publication.
-  // Pas d'await — on ne bloque pas la redirection sur les 4 appels LLM (~30s).
+  // Fire-and-forget : scan visibilite LLM post-publication (~30s, non bloquant)
   fetch(`${supabaseUrl}/functions/v1/saas_check_article_llm_visibility`, {
     method: "POST",
     headers: {
