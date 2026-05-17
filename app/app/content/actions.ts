@@ -160,7 +160,7 @@ export async function publishArticle(formData: FormData) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const anonKey     = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  const sbAuth = getSupabaseServerClient();
+  const sbAuth = await getSupabaseServerClient();
   const { data: { session } } = await sbAuth.auth.getSession();
   const token = session?.access_token;
   if (!token) redirect("/app/content?error=not_authenticated");
