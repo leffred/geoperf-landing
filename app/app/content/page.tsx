@@ -9,6 +9,7 @@ import { getServiceClient } from "@/lib/supabase";
 import { KpiStrip, KpiCell } from "@/components/saas/v2/KpiStrip";
 import { CONTENT_PLAN_LIMITS, CONTENT_TIER_LABELS, type ContentTier } from "@/lib/content-plans";
 import { publishArticle } from "./actions";
+import { OnboardingChecklist } from "./OnboardingChecklist";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "GEO Content — Geoperf", robots: { index: false, follow: false } };
@@ -49,7 +50,7 @@ export default async function ContentPage({
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  const [articlesRes, contentSubRes] = await Promise.all([
+  const [articlesRes, contentSubRes, cmsRes] = await Promise.all([
     sb.from("geo_articles")
       .select("id, title, slug, status, cms_target, cms_url, created_at, published_at")
       .eq("client_id", ctx.user.id)
@@ -60,6 +61,10 @@ export default async function ContentPage({
       .eq("user_id", ctx.user.id)
       .eq("status", "active")
       .maybeSingle(),
+    sb.from("client_cms_config")
+      .select("id", { count: "exact", head: true })
+      .eq("client_id", ctx.user.id)
+      .eq("is_active", true),
   ]);
 
   const rows = (articlesRes.data as ArticleRow[] | null) ?? [];
@@ -78,6 +83,8 @@ export default async function ContentPage({
   const limits = CONTENT_PLAN_LIMITS[tier];
   const usedThisPeriod = tier === "free" ? total : (contentSub?.articles_used_this_period ?? 0);
   const quotaReached = usedThisPeriod >= limits.articles_per_month;
+
+  const hasCms = (cmsRes.count ?? 0) > 0;
 
   const errorMsg = sp.error ? ERROR_LABELS[sp.error] ?? "Erreur." : null;
   const successMsg = sp.success ? SUCCESS_LABELS[sp.success] ?? null : null;
@@ -127,6 +134,13 @@ export default async function ContentPage({
           {errorMsg}
         </div>
       )}
+
+      {/* Onboarding checklist (S36-D) — disparaît quand les 3 étapes sont faites */}
+      <OnboardingChecklist
+        hasCms={hasCms}
+        hasArticle={total > 0}
+        hasPublished={published > 0}
+      />
 
       {/* Quota banner — tier-aware (S35) */}
       {quotaReached && (
