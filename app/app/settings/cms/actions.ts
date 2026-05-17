@@ -149,6 +149,8 @@ export async function addPrestashopCms(formData: FormData) {
   const apiKey = String(formData.get("api_key") ?? "").trim();
   const languageId = String(formData.get("language_id") ?? "1").trim() || "1";
   const cmsCategoryId = String(formData.get("cms_category_id") ?? "1").trim() || "1";
+  const rawModule = String(formData.get("blog_module") ?? "cms").trim();
+  const blogModule = ["cms", "smartblog", "prestablog"].includes(rawModule) ? rawModule : "cms";
 
   if (!siteUrl) redirect("/app/settings/cms?tab=prestashop&error=missing_site_url");
   if (!apiKey) redirect("/app/settings/cms?tab=prestashop&error=missing_token");
@@ -161,7 +163,7 @@ export async function addPrestashopCms(formData: FormData) {
     cms_type: "prestashop",
     site_url: siteUrl,
     api_key_encrypted: apiKey,
-    extra_config: { language_id: languageId, cms_category_id: cmsCategoryId },
+    extra_config: { language_id: languageId, cms_category_id: cmsCategoryId, blog_module: blogModule },
     is_active: true,
   });
   if (error) {

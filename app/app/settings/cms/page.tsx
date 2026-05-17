@@ -531,12 +531,29 @@ function PrestaShopForm() {
         />
       </Field>
       <Field
+        label="Module de publication"
+        htmlFor="ps_blog_module"
+        hint="Choisissez le module installé sur votre boutique. La permission WebService correspondante doit être activée."
+      >
+        <select
+          id="ps_blog_module"
+          name="blog_module"
+          defaultValue="cms"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink"
+          style={{ fontSize: 14 }}
+        >
+          <option value="cms">Pages CMS (défaut — pas de module blog)</option>
+          <option value="smartblog">Smart Blog by SmartDataSoft</option>
+          <option value="prestablog">PrestaShop Blog by yaslam</option>
+        </select>
+      </Field>
+      <Field
         label="Clé WebService"
         htmlFor="ps_api_key"
         hint={
           <>
             BO PrestaShop → Paramètres avancés → Webservice → Ajouter une clé.
-            Permissions requises : <code className="font-mono">content</code> (GET + POST).
+            Permissions selon module : <code className="font-mono">content</code> (CMS), <code className="font-mono">smartblogpost</code> (Smart Blog), <code className="font-mono">post</code> (Presta Blog).
           </>
         }
       >
@@ -564,7 +581,7 @@ function PrestaShopForm() {
             style={{ fontSize: 14 }}
           />
         </Field>
-        <Field label="ID Catégorie CMS" htmlFor="ps_category_id" hint="1 = accueil (défaut)">
+        <Field label="ID Catégorie" htmlFor="ps_category_id" hint="Catégorie CMS ou blog (défaut : 1)">
           <input
             id="ps_category_id"
             name="cms_category_id"
@@ -576,10 +593,6 @@ function PrestaShopForm() {
             style={{ fontSize: 14 }}
           />
         </Field>
-      </div>
-      <div className="rounded-md bg-surface px-3 py-2.5 text-ink-muted" style={{ fontSize: 11, lineHeight: 1.5 }}>
-        ⚠️ PrestaShop n&apos;a pas de blog natif. L&apos;article sera créé comme une <strong>CMS page</strong> (contenu statique SEO).
-        Pour les boutiques avec un module blog (Smart Blog, Presta Blog…), le support est prévu S37.
       </div>
       <button type="submit" className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-md transition-colors" style={{ fontSize: 13, fontWeight: 600 }}>
         Ajouter PrestaShop
