@@ -1,5 +1,5 @@
-// S34 — Page édition d'un article GEO Content.
-// Server Component shell : fetch article + meta panel + héberge le <ArticleEditor> client.
+// S34/S35 — Page édition d'un article GEO Content.
+// Server Component shell : fetch article + visibility LLM + meta panel + ArticleEditor.
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
 import { ArticleEditor } from "./ArticleEditor";
+import { LlmVisibilityPanel } from "./LlmVisibilityPanel";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Éditer l'article — Geoperf Content", robots: { index: false, follow: false } };
@@ -28,6 +29,15 @@ interface ArticleRow {
   updated_at: string;
 }
 
+export interface LlmVisibilityRow {
+  id: string;
+  llm_name: string;
+  query: string;
+  appeared: boolean;
+  response_excerpt: string | null;
+  checked_at: string;
+}
+
 export default async function EditArticlePage({
   params,
 }: {
@@ -37,12 +47,21 @@ export default async function EditArticlePage({
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  const { data } = await sb
-    .from("geo_articles")
-    .select("id, title, slug, body_markdown, body_html, meta_title, meta_description, keywords, status, cms_url, cms_target, created_at, updated_at")
-    .eq("id", id)
-    .eq("client_id", ctx.user.id)
-    .maybeSingle();
+  // Fetch article + LLM visibility en parallèle
+  const [{ data }, { data: visibilityData }] = await Promise.all([
+    sb
+      .from("geo_articles")
+      .select("id, title, slug, body_markdown, body_html, meta_title, meta_description, keywords, status, cms_url, cms_target, created_at, updated_at")
+      .eq("id", id)
+      .eq("client_id", ctx.user.id)
+      .maybeSingle(),
+    sb
+      .from("geo_article_llm_visibility")
+      .select("id, llm_name, query, appeared, response_excerpt, checked_at")
+      .eq("article_id", id)
+      .eq("client_id", ctx.user.id)
+      .order("checked_at", { ascending: false }),
+  ]);
 
   if (!data) notFound();
   const article = data as ArticleRow;
@@ -50,6 +69,7 @@ export default async function EditArticlePage({
     ? (article.keywords as unknown[]).filter((k): k is string => typeof k === "string")
     : [];
   const isPublished = article.status === "published";
+  const llmVisibility = (visibilityData as LlmVisibilityRow[] | null) ?? [];
 
   return (
     <div className="px-6 md:px-8 py-6 md:py-8 max-w-6xl mx-auto">
@@ -94,7 +114,7 @@ export default async function EditArticlePage({
         </div>
       )}
 
-      {/* Layout 2 colonnes : éditeur + meta SEO */}
+      {/* Layout 2 colonnes : éditeur + sidebar */}
       <div className="grid lg:grid-cols-[1fr_280px] gap-6">
         <div>
           <ArticleEditor
@@ -113,18 +133,39 @@ export default async function EditArticlePage({
             createdAt={article.created_at}
             updatedAt={article.updated_at}
           />
+
+          {/* LLM Visibility — visible uniquement si publié */}
+          {isPublished && (
+            <LlmVisibilityPanel
+              articleId={article.id}
+              rows={llmVisibility}
+            />
+          )}
         </aside>
       </div>
     </div>
   );
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; fg: string; label: string }> = {
+    draft:     { bg: "#F3F4F6", fg: "#6B7280", label: "Brouillon" },
+    published: { bg: "#D1FAE5", fg: "#059669", label: "Publié" },
+    generating:{ bg: "#FEF3C7", fg: "#D97706", label: "En génération…" },
+  };
+  const s = map[status] ?? { bg: "#F3F4F6", fg: "#6B7280", label: status };
+  return (
+    <span
+      className="inline-block rounded-full font-mono uppercase"
+      style={{ fontSize: 10, letterSpacing: "0.1em", padding: "3px 10px", background: s.bg, color: s.fg, fontWeight: 600 }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
 function MetaPanel({
-  metaTitle,
-  metaDescription,
-  keywords,
-  createdAt,
-  updatedAt,
+  metaTitle, metaDescription, keywords, createdAt, updatedAt,
 }: {
   metaTitle: string | null;
   metaDescription: string | null;
@@ -142,10 +183,8 @@ function MetaPanel({
           Généré par l&apos;IA — non éditable en S34.
         </p>
       </div>
-
       <MetaField label="Meta title" value={metaTitle} max={60} />
       <MetaField label="Meta description" value={metaDescription} max={160} />
-
       <div>
         <div className="font-mono uppercase text-ink-subtle mb-1.5" style={{ fontSize: 10, letterSpacing: "0.14em" }}>
           Keywords
@@ -158,7 +197,7 @@ function MetaPanel({
               <span
                 key={k}
                 className="inline-block bg-surface text-ink-muted rounded"
-                style={{ fontSize: 11, padding: "2px 8px" }}
+                style={{ fontSize: 10, padding: "2px 7px", fontFamily: "monospace" }}
               >
                 {k}
               </span>
@@ -166,65 +205,38 @@ function MetaPanel({
           </div>
         )}
       </div>
-
-      <div className="pt-3 border-t border-DEFAULT space-y-1 text-ink-subtle font-mono" style={{ fontSize: 10 }}>
-        <div>Créé : {fmtDate(createdAt)}</div>
-        <div>Modifié : {fmtDate(updatedAt)}</div>
+      <div className="pt-2 border-t border-DEFAULT space-y-1">
+        <DateField label="Créé le" value={createdAt} />
+        <DateField label="Modifié le" value={updatedAt} />
       </div>
     </div>
   );
 }
 
 function MetaField({ label, value, max }: { label: string; value: string | null; max: number }) {
-  const v = value ?? "";
-  const len = v.length;
-  const overflow = len > max;
+  const len = value?.length ?? 0;
+  const over = len > max;
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-1">
-        <div className="font-mono uppercase text-ink-subtle" style={{ fontSize: 10, letterSpacing: "0.14em" }}>
-          {label}
-        </div>
-        <div className="font-mono" style={{ fontSize: 10, color: overflow ? "#B91C1C" : "#8C94A6" }}>
-          {len} / {max}
-        </div>
+      <div className="font-mono uppercase text-ink-subtle mb-1" style={{ fontSize: 10, letterSpacing: "0.14em" }}>
+        {label}
+        <span className={`ml-1 ${over ? "text-danger" : "text-ink-subtle"}`}>({len}/{max})</span>
       </div>
-      <p className="text-ink" style={{ fontSize: 12, lineHeight: 1.5 }}>
-        {v || <span className="text-ink-subtle italic">— vide</span>}
-      </p>
+      {value ? (
+        <p className="text-ink" style={{ fontSize: 12, lineHeight: 1.5 }}>{value}</p>
+      ) : (
+        <p className="text-ink-subtle" style={{ fontSize: 12 }}>—</p>
+      )}
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { bg: string; fg: string; label: string }> = {
-    draft:     { bg: "#F1F5F9", fg: "#5B6478", label: "Brouillon" },
-    review:    { bg: "#FEF3C7", fg: "#92400E", label: "Revue" },
-    published: { bg: "#D1FAE5", fg: "#065F46", label: "Publié" },
-    failed:    { bg: "#FEE2E2", fg: "#991B1B", label: "Échec" },
-  };
-  const s = map[status] ?? map.draft;
+function DateField({ label, value }: { label: string; value: string }) {
+  const d = new Date(value).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
   return (
-    <span
-      className="inline-block font-mono uppercase rounded"
-      style={{
-        fontSize: 10,
-        letterSpacing: "0.1em",
-        padding: "3px 8px",
-        background: s.bg,
-        color: s.fg,
-        fontWeight: 600,
-      }}
-    >
-      {s.label}
-    </span>
+    <div className="flex items-center justify-between">
+      <span className="text-ink-subtle font-mono uppercase" style={{ fontSize: 9, letterSpacing: "0.1em" }}>{label}</span>
+      <span className="text-ink-muted font-mono" style={{ fontSize: 11 }}>{d}</span>
+    </div>
   );
-}
-
-function fmtDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return iso;
-  }
 }

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Check, Trash2, X } from "lucide-react";
 import { loadSaasContext } from "@/lib/saas-auth";
 import { getServiceClient } from "@/lib/supabase";
-import { addWordpressCms, addShopifyCms, addWebflowCms, deleteCms } from "./actions";
+import { addWordpressCms, addShopifyCms, addWebflowCms, addWixCms, deleteCms } from "./actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "CMS connectés — Geoperf", robots: { index: false, follow: false } };
@@ -30,6 +30,8 @@ const ERROR_LABELS: Record<string, string> = {
   missing_token: "Access token requis.",
   missing_blog_id: "Blog ID requis.",
   missing_collection_id: "Collection ID Webflow requis.",
+  missing_site_id: "Site ID Wix requis.",
+  invalid_site_id: "Site ID invalide — format UUID attendu.",
   missing_id: "Configuration introuvable.",
   insert_failed: "Échec de l'ajout du CMS.",
   delete_failed: "Échec de la suppression.",
@@ -56,9 +58,10 @@ export default async function CmsSettingsPage({
     .order("created_at", { ascending: false });
   const rows = (configs as CmsRow[] | null) ?? [];
 
-  const tab: "wordpress" | "shopify" | "webflow" =
+  const tab: "wordpress" | "shopify" | "webflow" | "wix" =
     sp.tab === "shopify" ? "shopify" :
     sp.tab === "webflow" ? "webflow" :
+    sp.tab === "wix" ? "wix" :
     "wordpress";
   const errorMsg = sp.error ? ERROR_LABELS[sp.error] ?? `Erreur : ${sp.error}` : null;
   const successMsg = sp.success ? SUCCESS_LABELS[sp.success] ?? null : null;
@@ -134,12 +137,15 @@ export default async function CmsSettingsPage({
           <TabLink href="/app/settings/cms?tab=webflow" active={tab === "webflow"}>
             Webflow
           </TabLink>
-          <DisabledTab label="Wix" hint="S35" />
+          <TabLink href="/app/settings/cms?tab=wix" active={tab === "wix"}>
+            Wix
+          </TabLink>
         </div>
 
         {tab === "wordpress" && <WordpressForm />}
         {tab === "shopify" && <ShopifyForm />}
         {tab === "webflow" && <WebflowForm />}
+        {tab === "wix" && <WixForm />}
       </section>
     </div>
   );
@@ -444,6 +450,67 @@ function WebflowForm() {
         style={{ fontSize: 13, fontWeight: 600 }}
       >
         Ajouter Webflow
+      </button>
+    </form>
+  );
+}
+
+function WixForm() {
+  return (
+    <form action={addWixCms} className="bg-white border border-DEFAULT rounded-xl shadow-card p-5 md:p-6 space-y-4">
+      <Field
+        label="API Key"
+        htmlFor="wix_api_key"
+        hint={
+          <>
+            Wix Dashboard → Settings → Advanced → <em>API Keys</em> → Create API Key.
+            Permissions requises : <code className="font-mono">Blog - Post - Create</code>.
+          </>
+        }
+      >
+        <input
+          id="wix_api_key"
+          name="api_key"
+          type="password"
+          required
+          autoComplete="new-password"
+          placeholder="IST2.xxxxxxxxxxxxxxxx..."
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+          style={{ fontSize: 13 }}
+        />
+      </Field>
+      <Field
+        label="Site ID"
+        htmlFor="wix_site_id"
+        hint={
+          <>
+            Visible dans l&apos;URL du Dashboard : <code className="font-mono">manage.wix.com/dashboard/<strong>&#123;site_id&#125;</strong>/...</code>.
+            Format UUID : <code className="font-mono">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>.
+          </>
+        }
+      >
+        <input
+          id="wix_site_id"
+          name="site_id"
+          type="text"
+          required
+          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          className="w-full bg-white px-3.5 py-2.5 rounded-md border border-DEFAULT hover:border-strong focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors text-ink font-mono"
+          style={{ fontSize: 13 }}
+        />
+      </Field>
+
+      <div className="rounded-md bg-surface px-3 py-2.5 text-ink-muted" style={{ fontSize: 11, lineHeight: 1.5 }}>
+        💡 L&apos;article sera publié directement sur le Blog Wix du site. Assurez-vous que votre site a un
+        <strong className="ml-1">blog activé</strong> (Wix Dashboard → Add Apps → Blog).
+      </div>
+
+      <button
+        type="submit"
+        className="inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-5 py-2.5 rounded-md transition-colors"
+        style={{ fontSize: 13, fontWeight: 600 }}
+      >
+        Ajouter Wix
       </button>
     </form>
   );

@@ -1,8 +1,10 @@
 "use server";
 
-// S34 — Server Actions pour /app/settings/cms.
+// S34/S35 — Server Actions pour /app/settings/cms.
 // - addWordpressCms : INSERT client_cms_config (cms_type=wordpress, api_key_encrypted="user:pass")
 // - addShopifyCms   : INSERT client_cms_config (cms_type=shopify, api_key_encrypted=token, extra_config={blog_id})
+// - addWebflowCms   : INSERT client_cms_config (cms_type=webflow, api_key_encrypted=token, extra_config={collection_id, site_id?})
+// - addWixCms       : INSERT client_cms_config (cms_type=wix,     api_key_encrypted=api_key, extra_config={site_id})
 // - deleteCms       : DELETE WHERE id + client_id
 
 import { redirect } from "next/navigation";
@@ -65,7 +67,7 @@ export async function addShopifyCms(formData: FormData) {
   const { error } = await sb.from("client_cms_config").insert({
     client_id: ctx.user.id,
     cms_type: "shopify",
-    site_url: domain, // stocké sans https://, normalisé côté edge fn
+    site_url: domain,
     api_key_encrypted: accessToken,
     extra_config: { blog_id: blogId },
     is_active: true,
@@ -104,6 +106,37 @@ export async function addWebflowCms(formData: FormData) {
   if (error) {
     console.error("[addWebflowCms]", error.message);
     redirect("/app/settings/cms?tab=webflow&error=insert_failed");
+  }
+
+  revalidatePath("/app/settings/cms");
+  redirect("/app/settings/cms?success=added");
+}
+
+export async function addWixCms(formData: FormData) {
+  const apiKey = String(formData.get("api_key") ?? "").trim();
+  const siteId = String(formData.get("site_id") ?? "").trim();
+
+  if (!apiKey) redirect("/app/settings/cms?tab=wix&error=missing_token");
+  if (!siteId) redirect("/app/settings/cms?tab=wix&error=missing_site_id");
+
+  // Validation format site_id : UUID Wix (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRe.test(siteId)) redirect("/app/settings/cms?tab=wix&error=invalid_site_id");
+
+  const ctx = await loadSaasContext();
+  const sb = getServiceClient();
+
+  const { error } = await sb.from("client_cms_config").insert({
+    client_id: ctx.user.id,
+    cms_type: "wix",
+    site_url: `https://manage.wix.com/dashboard/${siteId}/blog`,
+    api_key_encrypted: apiKey,
+    extra_config: { site_id: siteId },
+    is_active: true,
+  });
+  if (error) {
+    console.error("[addWixCms]", error.message);
+    redirect("/app/settings/cms?tab=wix&error=insert_failed");
   }
 
   revalidatePath("/app/settings/cms");

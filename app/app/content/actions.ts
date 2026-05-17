@@ -8,7 +8,6 @@ import { getSupabaseServerClient } from "@/lib/supabase-server-auth";
 import { CONTENT_PLAN_LIMITS, type ContentTier } from "@/lib/content-plans";
 
 const N8N_BASE = process.env.N8N_WEBHOOK_BASE || "https://fredericlefebvre.app.n8n.cloud/webhook";
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export async function generateArticle(formData: FormData) {
   const subject = String(formData.get("subject") ?? "").trim();
@@ -20,9 +19,6 @@ export async function generateArticle(formData: FormData) {
   const ctx = await loadSaasContext();
   const sb = getServiceClient();
 
-  // S35 — Quota check : lit le tier Content réel + compteur de période courante.
-  // Free : quota total historique (5 articles, pas renouvelable). Paid : per-period counter
-  // resetté par invoice.paid dans le webhook.
   const { data: contentSubRaw } = await sb
     .from("saas_content_subscriptions")
     .select("id, tier, articles_used_this_period")
@@ -68,8 +64,6 @@ export async function generateArticle(formData: FormData) {
 
   if (!ok) redirect("/app/content/new?error=generation_failed");
 
-  // Incrémente le compteur de période sur les tiers payants. Free : le quota se calcule
-  // depuis COUNT(geo_articles), pas besoin d'incrémenter le compteur.
   if (contentSub && tier !== "free") {
     await sb
       .from("saas_content_subscriptions")
@@ -149,54 +143,75 @@ export async function publishArticle(formData: FormData) {
     redirect("/app/content?error=already_published");
   }
 
-  // 1ère config CMS active (WordPress / Shopify / Webflow). Dispatch via cms_type
-  // sur l'Edge Function correspondante. S35 : ajouter Wix.
+  // 1ere config CMS active (WordPress / Shopify / Webflow / Wix). Dispatch via Edge Function.
   const { data: cms } = await sb
     .from("client_cms_config")
     .select("id, cms_type")
     .eq("client_id", ctx.user.id)
     .eq("is_active", true)
-    .in("cms_type", ["wordpress", "shopify", "webflow"])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
   if (!cms) redirect("/app/content?error=no_cms");
 
-  const cmsType = (cms as { cms_type: string }).cms_type;
-  const fnName =
-    cmsType === "shopify" ? "saas_publish_to_shopify" :
-    cmsType === "webflow" ? "saas_publish_to_webflow" :
-    "saas_publish_to_wordpress";
+  const cmsRow = cms as { id: string; cms_type: string };
+  const CMS_FN_MAP: Record<string, string> = {
+    wordpress: "saas_publish_to_wordpress",
+    shopify: "saas_publish_to_shopify",
+    webflow: "saas_publish_to_webflow",
+    wix: "saas_publish_to_wix",
+  };
+  const fnName = CMS_FN_MAP[cmsRow.cms_type];
+  if (!fnName) redirect("/app/content?error=unsupported_cms");
 
-  const ssr = await getSupabaseServerClient();
-  const { data: { session } } = await ssr.auth.getSession();
-  if (!session) redirect("/app/content?error=auth");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  // Recupere le JWT user depuis la session serveur
+  const sbAuth = getSupabaseServerClient();
+  const { data: { session } } = await sbAuth.auth.getSession();
+  const token = session?.access_token;
+  if (!token) redirect("/app/content?error=not_authenticated");
 
   let ok = false;
   try {
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
+    const resp = await fetch(`${supabaseUrl}/functions/v1/${fnName}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${session.access_token}`,
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+        "apikey": anonKey,
       },
-      body: JSON.stringify({
-        article_id: articleId,
-        cms_config_id: (cms as { id: string }).id,
-      }),
-      signal: AbortSignal.timeout(20_000),
+      body: JSON.stringify({ article_id: articleId, cms_config_id: cmsRow.id }),
+      signal: AbortSignal.timeout(30_000),
     });
     if (resp.ok) {
       ok = true;
     } else {
-      console.error("[publishArticle] Edge fn HTTP", resp.status, (await resp.text()).slice(0, 400));
+      const detail = await resp.text();
+      console.error(`[publishArticle] ${fnName} HTTP ${resp.status}:`, detail.slice(0, 300));
     }
   } catch (e) {
-    console.error("[publishArticle] Edge fn unreachable:", e instanceof Error ? e.message : String(e));
+    console.error("[publishArticle] unreachable:", e instanceof Error ? e.message : String(e));
   }
 
+  revalidatePath("/app/content");
   if (!ok) redirect("/app/content?error=publish_failed");
 
-  revalidatePath("/app/content");
+  // Fire-and-forget : déclenche le scan de visibilité LLM post-publication.
+  // Pas d'await — on ne bloque pas la redirection sur les 4 appels LLM (~30s).
+  fetch(`${supabaseUrl}/functions/v1/saas_check_article_llm_visibility`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+      "apikey": anonKey,
+    },
+    body: JSON.stringify({ article_id: articleId, client_id: ctx.user.id }),
+  }).catch(e =>
+    console.warn("[publishArticle] llm visibility fire-and-forget failed:", e instanceof Error ? e.message : String(e))
+  );
+
   redirect("/app/content?success=published");
 }
